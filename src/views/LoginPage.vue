@@ -9,6 +9,7 @@ import { setAccessToken } from '../stores/auth';
 const router = useRouter();
 const loginId = ref('');
 const password = ref('');
+const rememberMe = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref('');
 
@@ -23,7 +24,11 @@ const handleSubmit = async () => {
 
   isSubmitting.value = true;
   try {
-    const token = await login({ loginId: trimmedId, password: password.value });
+    const token = await login({
+      loginId: trimmedId,
+      password: password.value,
+      rememberMe: rememberMe.value,
+    });
     setAccessToken(token.accessToken, token.expiresInSec);
     await router.push('/');
   } catch (error) {
@@ -145,6 +150,7 @@ const handleSubmit = async () => {
               <input
                 type="checkbox"
                 class="h-4 w-4 rounded border-slate-300 text-red-500 dark:border-slate-700"
+                v-model="rememberMe"
               />
               로그인 유지
             </label>
