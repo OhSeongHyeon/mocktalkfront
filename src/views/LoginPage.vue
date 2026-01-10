@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { ApiError } from '../lib/api';
+import { API_BASE_URL, ApiError } from '../lib/api';
 import { login } from '../services/auth';
 import { setAccessToken } from '../stores/auth';
 
@@ -12,6 +12,10 @@ const password = ref('');
 const rememberMe = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref('');
+
+const apiBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+const googleAuthUrl = `${apiBase}/oauth2/authorization/google`;
+const githubAuthUrl = `${apiBase}/oauth2/authorization/github`;
 
 const handleSubmit = async () => {
   errorMessage.value = '';
@@ -169,6 +173,27 @@ const handleSubmit = async () => {
           >
             로그인
           </button>
+
+          <div class="flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
+            <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+            또는
+            <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <a
+              :href="googleAuthUrl"
+              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              Google로 계속하기
+            </a>
+            <a
+              :href="githubAuthUrl"
+              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              GitHub로 계속하기
+            </a>
+          </div>
 
           <p
             v-if="errorMessage"

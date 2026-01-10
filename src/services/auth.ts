@@ -12,6 +12,10 @@ export interface TokenResponse {
   expiresInSec: number;
 }
 
+export interface OAuth2CodeRequest {
+  code: string;
+}
+
 export interface RegisterRequest {
   loginId: string;
   email: string;
@@ -23,8 +27,10 @@ export interface RegisterRequest {
 }
 
 const login = (payload: LoginRequest) => postJson<TokenResponse>('/auth/login', payload);
+const exchangeOAuth2Code = (payload: OAuth2CodeRequest) =>
+  postJson<TokenResponse>('/auth/oauth2/callback', payload);
 const register = (payload: RegisterRequest) => postJson<void>('/auth/join', payload);
 const refreshAccessToken = () => post<TokenResponse>('/auth/refresh');
 const logout = () => post<void>('/auth/logout');
 
-export { login, logout, refreshAccessToken, register };
+export { exchangeOAuth2Code, login, logout, refreshAccessToken, register };

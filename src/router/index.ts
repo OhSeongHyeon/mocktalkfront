@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import LoginPage from '../views/LoginPage.vue';
 import MainPage from '../views/MainPage.vue';
+import OAuthCallbackPage from '../views/OAuthCallbackPage.vue';
 import RegisterPage from '../views/RegisterPage.vue';
 
 const router = createRouter({
@@ -9,6 +10,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: MainPage },
     { path: '/login', name: 'login', component: LoginPage },
+    { path: '/oauth/callback', name: 'oauth-callback', component: OAuthCallbackPage },
     { path: '/join', name: 'join', component: RegisterPage },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],

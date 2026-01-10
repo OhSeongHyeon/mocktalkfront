@@ -1,3 +1,4 @@
+import globals from 'globals';
 import js from '@eslint/js';
 import vue from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
@@ -8,6 +9,11 @@ import tsParser from '@typescript-eslint/parser';
 
 export default [
   {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
     ignores: [
       'dist/**',
       'node_modules/**',

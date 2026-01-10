@@ -65,7 +65,6 @@ const closeProfileMenu = () => {
 const handleLogout = async () => {
   try {
     await logout();
-  } catch {
   } finally {
     clearAccessToken();
     closeProfileMenu();
