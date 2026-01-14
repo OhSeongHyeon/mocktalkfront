@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 
 import { applyTheme } from '../lib/theme';
 import { logout } from '../services/auth';
@@ -49,6 +49,13 @@ const openLogin = () => {
   }
 };
 
+const openMyPage = async () => {
+  closeProfileMenu();
+  if (router.currentRoute.value.path !== '/mypage') {
+    await router.push('/mypage');
+  }
+};
+
 const toggleTheme = () => {
   isDark.value = !isDark.value;
   applyTheme(isDark.value ? 'dark' : 'light');
@@ -94,9 +101,9 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
 
 <template>
   <header
-    class="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/95 dark:text-slate-100"
+    class="sticky top-0 z-40 h-16 border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/95 dark:text-slate-100"
   >
-    <div class="flex w-full items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
+    <div class="flex h-full w-full items-center gap-4 px-4 sm:px-6 lg:px-8">
       <div class="flex items-center gap-3">
         <button
           type="button"
@@ -120,8 +127,8 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
           </svg>
         </button>
 
-        <a
-          href="#"
+        <RouterLink
+          to="/"
           class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100"
         >
           <!-- <span
@@ -134,7 +141,7 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
             </svg>
           </span> -->
           <span class="hidden sm:inline">MockTalk</span>
-        </a>
+        </RouterLink>
       </div>
 
       <div class="flex flex-1 items-center justify-center">
@@ -143,7 +150,7 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
           <input
             id="global-search"
             type="search"
-            placeholder="MockTalk 검색"
+            placeholder="검색"
             class="h-11 w-full rounded-l-full border border-slate-200/80 bg-white px-5 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
           />
           <button
@@ -233,27 +240,6 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
 
         <button
           type="button"
-          class="hidden items-center gap-2 rounded-full border border-slate-200/80 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 sm:inline-flex"
-          aria-label="업로드"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="h-4 w-4"
-            aria-hidden="true"
-          >
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-          </svg>
-          업로드
-        </button>
-
-        <button
-          type="button"
           class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
           aria-label="알림"
         >
@@ -310,8 +296,9 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
               type="button"
               class="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
               role="menuitem"
+              @click="openMyPage"
             >
-              설정
+              마이페이지
             </button>
             <button
               type="button"

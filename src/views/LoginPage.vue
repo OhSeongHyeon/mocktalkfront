@@ -3,7 +3,9 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { API_BASE_URL, ApiError } from '../lib/api';
+import { applyProfileSummary } from '../lib/profile';
 import { login } from '../services/auth';
+import { getMyProfile } from '../services/mypage';
 import { setAccessToken } from '../stores/auth';
 
 const router = useRouter();
@@ -34,11 +36,22 @@ const handleSubmit = async () => {
       rememberMe: rememberMe.value,
     });
     setAccessToken(token.accessToken, token.expiresInSec);
+    try {
+      const profile = await getMyProfile();
+      applyProfileSummary(profile);
+    } catch {
+      // 로그인 직후 프로필 조회 실패는 무시
+    }
     await router.push('/');
   } catch (error) {
     if (error instanceof ApiError) {
-      errorMessage.value =
-        error.status === 401 ? '아이디 또는 비밀번호가 올바르지 않습니다.' : error.message;
+      if (error.status === 401) {
+        const message = error.message?.trim();
+        errorMessage.value =
+          message && message !== 'Unauthorized' ? message : '아이디 또는 비밀번호가 올바르지 않습니다.';
+      } else {
+        errorMessage.value = error.message;
+      }
     } else {
       errorMessage.value = '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.';
     }
@@ -185,12 +198,56 @@ const handleSubmit = async () => {
               :href="googleAuthUrl"
               class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             >
+              <span
+                class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 48 48" class="h-4 w-4 dark:hidden">
+                  <path
+                    d="M44.5 20H24v8.5h11.8C34.5 33.9 29.9 38 24 38c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.3 0 6.2 1.2 8.5 3.2l6-6C34.9 5.1 29.8 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20.3-7.6 20.3-21 0-1.4-.1-2.7-.3-4z"
+                    fill="#4285F4"
+                  />
+                  <path
+                    d="M6.3 14.7l7 5.1C15.2 16 19.3 13 24 13c3.3 0 6.2 1.2 8.5 3.2l6-6C34.9 5.1 29.8 3 24 3c-7.9 0-14.7 4.3-18.7 10.7z"
+                    fill="#34A853"
+                  />
+                  <path
+                    d="M24 45c5.7 0 10.8-1.9 14.4-5.1l-6.6-5.4C29.9 36.9 27.1 38 24 38c-5.8 0-10.8-3.9-12.5-9.2l-7 5.4C8.5 40.5 15.8 45 24 45z"
+                    fill="#FBBC05"
+                  />
+                  <path
+                    d="M11.5 28.8c-.4-1.2-.6-2.4-.6-3.8s.2-2.6.6-3.8l-7-5.1C3.5 18.5 3 21.2 3 24s.5 5.5 1.5 7.9l7-5.1z"
+                    fill="#EA4335"
+                  />
+                </svg>
+                <svg viewBox="0 0 48 48" class="hidden h-4 w-4 dark:block" fill="currentColor">
+                  <path
+                    d="M24 10.9c3.1 0 6.1 1.1 8.4 3.2l5.8-5.8C34.9 5.1 29.8 3 24 3 15.8 3 8.5 7.5 4.8 14.6l6.8 5.2C13 14.3 18.2 10.9 24 10.9z"
+                  />
+                  <path
+                    d="M44.5 20H24v8.5h11.8c-1.5 4.1-5.9 7.6-11.8 7.6-5.8 0-10.8-3.9-12.5-9.2l-6.8 5.2C8.5 40.5 15.8 45 24 45c10.5 0 20.3-7.6 20.3-21 0-1.4-.1-2.7-.3-4z"
+                  />
+                  <path
+                    d="M9.8 24c0-1.3.2-2.6.6-3.8l-6.8-5.2C3.5 18.5 3 21.2 3 24s.5 5.5 1.5 7.9l6.8-5.2c-.4-1.2-.5-2.4-.5-3.7z"
+                  />
+                </svg>
+              </span>
               Google로 계속하기
             </a>
             <a
               :href="githubAuthUrl"
               class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             >
+              <span
+                class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor">
+                  <path
+                    d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.9 9.6.5.1.7-.2.7-.5v-1.9c-2.8.6-3.4-1.2-3.4-1.2-.4-1.1-1.1-1.4-1.1-1.4-.9-.7.1-.7.1-.7 1 0 1.6 1.1 1.6 1.1.9 1.6 2.5 1.1 3.1.8.1-.7.4-1.1.6-1.4-2.2-.2-4.5-1.1-4.5-5 0-1.1.4-2 1.1-2.8-.1-.2-.5-1.3.1-2.7 0 0 .9-.3 2.9 1.1.9-.3 1.8-.4 2.7-.4.9 0 1.8.1 2.7.4 2-1.4 2.9-1.1 2.9-1.1.6 1.4.2 2.5.1 2.7.7.8 1.1 1.7 1.1 2.8 0 3.9-2.3 4.8-4.5 5 .4.3.7 1 .7 2.1v3.2c0 .3.2.6.7.5 4-1.3 6.9-5.1 6.9-9.6C22 6.6 17.5 2 12 2z"
+                  />
+                </svg>
+              </span>
               GitHub로 계속하기
             </a>
           </div>

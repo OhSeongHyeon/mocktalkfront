@@ -97,7 +97,7 @@ const handleSubmit = async () => {
         </p>
         <h1 class="text-3xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-4xl">
           나만의 커뮤니티를 만들고,<br />
-          포럼과 갤러리를 한번에 관리하세요.
+          커뮤니티와 갤러리를 한번에 관리하세요.
         </h1>
         <p class="text-base text-slate-600 dark:text-slate-300">
           계정을 만들면 게시판, 갤러리, 알림까지 MockTalk의 모든 기능을 이용할 수 있습니다.

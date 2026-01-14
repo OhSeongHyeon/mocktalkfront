@@ -43,8 +43,21 @@ const extractMessage = (details: unknown) => {
   if (!details || typeof details !== 'object') {
     return null;
   }
-  const message = (details as { message?: unknown }).message;
-  return message ? String(message) : null;
+  const typed = details as {
+    message?: unknown;
+    reason?: unknown;
+    error?: { reason?: unknown };
+  };
+  if (typed.message) {
+    return String(typed.message);
+  }
+  if (typed.reason) {
+    return String(typed.reason);
+  }
+  if (typed.error?.reason) {
+    return String(typed.error.reason);
+  }
+  return null;
 };
 
 type TokenResponse = {
