@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 flex-1 w-full overflow-hidden">
+    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar
         :collapsed="menuCollapsed"
         :mobile-open="isMobileMenuOpen"

@@ -51,7 +51,12 @@ const iconPaths: Record<string, string[]> = {
   subscriptions: ['M4 7h16v10H4z', 'M10 10l4 2.5-4 2.5z'],
   megaphone: ['M3 11l8-4v10l-8-4z', 'M11 9h4a4 4 0 0 1 0 6h-4'],
   chat: ['M4 6h16v9H7l-3 3V6z'],
-  community: ['M7 11a3 3 0 1 0 0-6', 'M17 12a3 3 0 1 0 0-6', 'M3 20v-1a4 4 0 0 1 4-4h2', 'M13 19v-1a4 4 0 0 1 4-4h2'],
+  community: [
+    'M7 11a3 3 0 1 0 0-6',
+    'M17 12a3 3 0 1 0 0-6',
+    'M3 20v-1a4 4 0 0 1 4-4h2',
+    'M13 19v-1a4 4 0 0 1 4-4h2',
+  ],
   gallery: ['M4 6h16v12H4z', 'M8 12l2 2 4-5 6 7'],
   library: ['M4 5h4v14H4z', 'M10 5h10v14H10z', 'M10 9h10'],
   history: ['M12 7v5l3 2', 'M4 12a8 8 0 1 0 8-8'],
@@ -122,9 +127,9 @@ const sections = computed(() =>
           {{ section.title }}
         </p>
         <component
+          :is="item.path ? RouterLink : 'button'"
           v-for="item in section.items"
           :key="item.name"
-          :is="item.path ? RouterLink : 'button'"
           :to="item.path ?? undefined"
           class="flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-semibold transition"
           :class="[

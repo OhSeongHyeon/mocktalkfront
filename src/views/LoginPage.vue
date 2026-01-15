@@ -48,7 +48,9 @@ const handleSubmit = async () => {
       if (error.status === 401) {
         const message = error.message?.trim();
         errorMessage.value =
-          message && message !== 'Unauthorized' ? message : '아이디 또는 비밀번호가 올바르지 않습니다.';
+          message && message !== 'Unauthorized'
+            ? message
+            : '아이디 또는 비밀번호가 올바르지 않습니다.';
       } else {
         errorMessage.value = error.message;
       }
@@ -165,9 +167,9 @@ const handleSubmit = async () => {
           <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
             <label class="inline-flex items-center gap-2">
               <input
+                v-model="rememberMe"
                 type="checkbox"
                 class="h-4 w-4 rounded border-slate-300 text-red-500 dark:border-slate-700"
-                v-model="rememberMe"
               />
               로그인 유지
             </label>
