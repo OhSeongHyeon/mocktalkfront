@@ -63,10 +63,7 @@ const handleSubmit = async () => {
 <template>
   <div class="min-h-screen text-slate-900 dark:text-slate-100">
     <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
-      <RouterLink
-        to="/"
-        class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100"
-      >
+      <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
         <!-- <span
           class="grid h-9 w-9 place-items-center rounded-2xl shadow-sm"
           style="background-color: var(--accent-strong)"
@@ -78,46 +75,23 @@ const handleSubmit = async () => {
         </span> -->
         <span class="hidden sm:inline">MockTalk</span>
       </RouterLink>
-      <RouterLink
-        to="/login"
-        class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-      >
+      <RouterLink to="/login" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
         로그인으로
       </RouterLink>
     </header>
 
-    <main
-      class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8"
-    >
+    <main class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8">
       <section class="flex w-full flex-1 flex-col gap-6 pt-4">
-        <p
-          class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500"
-        >
-          MockTalk Join
-        </p>
+        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">MockTalk Join</p>
         <h1 class="text-3xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-4xl">
           나만의 커뮤니티를 만들고,<br />
           커뮤니티와 갤러리를 한번에 관리하세요.
         </h1>
-        <p class="text-base text-slate-600 dark:text-slate-300">
-          계정을 만들면 게시판, 갤러리, 알림까지 MockTalk의 모든 기능을 이용할 수 있습니다.
-        </p>
+        <p class="text-base text-slate-600 dark:text-slate-300">계정을 만들면 게시판, 갤러리, 알림까지 MockTalk의 모든 기능을 이용할 수 있습니다.</p>
         <div class="flex flex-wrap gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-          <span
-            class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"
-          >
-            커뮤니티
-          </span>
-          <span
-            class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"
-          >
-            갤러리
-          </span>
-          <span
-            class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"
-          >
-            알림
-          </span>
+          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 커뮤니티 </span>
+          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 갤러리 </span>
+          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 알림 </span>
         </div>
       </section>
 
@@ -127,12 +101,7 @@ const handleSubmit = async () => {
           @submit.prevent="handleSubmit"
         >
           <div class="flex flex-col gap-2">
-            <label
-              for="register-login-id"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              로그인 아이디
-            </label>
+            <label for="register-login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
             <input
               id="register-login-id"
               v-model="loginId"
@@ -146,12 +115,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="register-email"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              이메일
-            </label>
+            <label for="register-email" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이메일 </label>
             <input
               id="register-email"
               v-model="email"
@@ -165,12 +129,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="register-password"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              비밀번호
-            </label>
+            <label for="register-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
             <input
               id="register-password"
               v-model="password"
@@ -181,18 +140,11 @@ const handleSubmit = async () => {
               class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
               :disabled="isSubmitting"
             />
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">
-              비밀번호는 8자 이상 입력하세요.
-            </span>
+            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500"> 비밀번호는 8자 이상 입력하세요. </span>
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="register-confirm-password"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              비밀번호 확인
-            </label>
+            <label for="register-confirm-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 확인 </label>
             <input
               id="register-confirm-password"
               v-model="confirmPassword"
@@ -206,12 +158,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="register-user-name"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              사용자명(선택)
-            </label>
+            <label for="register-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 사용자명(선택) </label>
             <input
               id="register-user-name"
               v-model="userName"
@@ -225,12 +172,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="register-display-name"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              표시명(선택)
-            </label>
+            <label for="register-display-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 표시명(선택) </label>
             <input
               id="register-display-name"
               v-model="displayName"
@@ -244,12 +186,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="register-handle"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              핸들(선택)
-            </label>
+            <label for="register-handle" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 핸들(선택) </label>
             <input
               id="register-handle"
               v-model="handle"
@@ -278,14 +215,9 @@ const handleSubmit = async () => {
             {{ errorMessage }}
           </p>
 
-          <div
-            class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-          >
+          <div class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             이미 계정이 있나요?
-            <RouterLink
-              to="/login"
-              class="font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white"
-            >
+            <RouterLink to="/login" class="font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white">
               로그인
             </RouterLink>
           </div>

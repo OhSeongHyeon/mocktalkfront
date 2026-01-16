@@ -47,10 +47,7 @@ const handleSubmit = async () => {
     if (error instanceof ApiError) {
       if (error.status === 401) {
         const message = error.message?.trim();
-        errorMessage.value =
-          message && message !== 'Unauthorized'
-            ? message
-            : '아이디 또는 비밀번호가 올바르지 않습니다.';
+        errorMessage.value = message && message !== 'Unauthorized' ? message : '아이디 또는 비밀번호가 올바르지 않습니다.';
       } else {
         errorMessage.value = error.message;
       }
@@ -66,10 +63,7 @@ const handleSubmit = async () => {
 <template>
   <div class="min-h-screen text-slate-900 dark:text-slate-100">
     <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
-      <RouterLink
-        to="/"
-        class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100"
-      >
+      <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
         <!-- <span
           class="grid h-9 w-9 place-items-center rounded-2xl shadow-sm"
           style="background-color: var(--accent-strong)"
@@ -81,46 +75,23 @@ const handleSubmit = async () => {
         </span> -->
         <span class="hidden sm:inline">MockTalk</span>
       </RouterLink>
-      <RouterLink
-        to="/"
-        class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-      >
+      <RouterLink to="/" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
         홈으로
       </RouterLink>
     </header>
 
-    <main
-      class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8"
-    >
+    <main class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8">
       <section class="flex w-full flex-1 flex-col gap-6 pt-4">
-        <p
-          class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500"
-        >
-          MockTalk Login
-        </p>
+        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">MockTalk Login</p>
         <h1 class="text-3xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-4xl">
           크리에이터처럼 꾸미고,<br />
           커뮤니티처럼 소통하세요.
         </h1>
-        <p class="text-base text-slate-600 dark:text-slate-300">
-          로그인 아이디로 빠르게 입장해서 게시판, 갤러리, 알림을 한곳에서 관리합니다.
-        </p>
+        <p class="text-base text-slate-600 dark:text-slate-300">로그인 아이디로 빠르게 입장해서 게시판, 갤러리, 알림을 한곳에서 관리합니다.</p>
         <div class="flex flex-wrap gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-          <span
-            class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"
-          >
-            게시판
-          </span>
-          <span
-            class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"
-          >
-            갤러리
-          </span>
-          <span
-            class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"
-          >
-            알림
-          </span>
+          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 게시판 </span>
+          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 갤러리 </span>
+          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 알림 </span>
         </div>
       </section>
 
@@ -130,9 +101,7 @@ const handleSubmit = async () => {
           @submit.prevent="handleSubmit"
         >
           <div class="flex flex-col gap-2">
-            <label for="login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-              로그인 아이디
-            </label>
+            <label for="login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
             <input
               id="login-id"
               v-model="loginId"
@@ -146,12 +115,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label
-              for="login-password"
-              class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-            >
-              비밀번호
-            </label>
+            <label for="login-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
             <input
               id="login-password"
               v-model="password"
@@ -166,17 +130,10 @@ const handleSubmit = async () => {
 
           <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
             <label class="inline-flex items-center gap-2">
-              <input
-                v-model="rememberMe"
-                type="checkbox"
-                class="h-4 w-4 rounded border-slate-300 text-red-500 dark:border-slate-700"
-              />
+              <input v-model="rememberMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-red-500 dark:border-slate-700" />
               로그인 유지
             </label>
-            <a
-              href="#"
-              class="font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-            >
+            <a href="#" class="font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
               비밀번호 찾기
             </a>
           </div>
@@ -217,21 +174,14 @@ const handleSubmit = async () => {
                     d="M24 45c5.7 0 10.8-1.9 14.4-5.1l-6.6-5.4C29.9 36.9 27.1 38 24 38c-5.8 0-10.8-3.9-12.5-9.2l-7 5.4C8.5 40.5 15.8 45 24 45z"
                     fill="#FBBC05"
                   />
-                  <path
-                    d="M11.5 28.8c-.4-1.2-.6-2.4-.6-3.8s.2-2.6.6-3.8l-7-5.1C3.5 18.5 3 21.2 3 24s.5 5.5 1.5 7.9l7-5.1z"
-                    fill="#EA4335"
-                  />
+                  <path d="M11.5 28.8c-.4-1.2-.6-2.4-.6-3.8s.2-2.6.6-3.8l-7-5.1C3.5 18.5 3 21.2 3 24s.5 5.5 1.5 7.9l7-5.1z" fill="#EA4335" />
                 </svg>
                 <svg viewBox="0 0 48 48" class="hidden h-4 w-4 dark:block" fill="currentColor">
-                  <path
-                    d="M24 10.9c3.1 0 6.1 1.1 8.4 3.2l5.8-5.8C34.9 5.1 29.8 3 24 3 15.8 3 8.5 7.5 4.8 14.6l6.8 5.2C13 14.3 18.2 10.9 24 10.9z"
-                  />
+                  <path d="M24 10.9c3.1 0 6.1 1.1 8.4 3.2l5.8-5.8C34.9 5.1 29.8 3 24 3 15.8 3 8.5 7.5 4.8 14.6l6.8 5.2C13 14.3 18.2 10.9 24 10.9z" />
                   <path
                     d="M44.5 20H24v8.5h11.8c-1.5 4.1-5.9 7.6-11.8 7.6-5.8 0-10.8-3.9-12.5-9.2l-6.8 5.2C8.5 40.5 15.8 45 24 45c10.5 0 20.3-7.6 20.3-21 0-1.4-.1-2.7-.3-4z"
                   />
-                  <path
-                    d="M9.8 24c0-1.3.2-2.6.6-3.8l-6.8-5.2C3.5 18.5 3 21.2 3 24s.5 5.5 1.5 7.9l6.8-5.2c-.4-1.2-.5-2.4-.5-3.7z"
-                  />
+                  <path d="M9.8 24c0-1.3.2-2.6.6-3.8l-6.8-5.2C3.5 18.5 3 21.2 3 24s.5 5.5 1.5 7.9l6.8-5.2c-.4-1.2-.5-2.4-.5-3.7z" />
                 </svg>
               </span>
               Google로 계속하기
@@ -262,14 +212,9 @@ const handleSubmit = async () => {
             {{ errorMessage }}
           </p>
 
-          <div
-            class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-          >
+          <div class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             아직 계정이 없나요?
-            <RouterLink
-              to="/join"
-              class="font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white"
-            >
+            <RouterLink to="/join" class="font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white">
               회원가입
             </RouterLink>
           </div>

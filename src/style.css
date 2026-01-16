@@ -31,16 +31,14 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-image:
-    radial-gradient(circle at top left, #fff7ed 0%, transparent 55%),
-    radial-gradient(circle at 90% 20%, #ecfeff 0%, transparent 50%),
+    radial-gradient(circle at top left, #fff7ed 0%, transparent 55%), radial-gradient(circle at 90% 20%, #ecfeff 0%, transparent 50%),
     linear-gradient(135deg, #f8fafc 0%, #fef3c7 45%, #f1f5f9 100%);
   color: inherit;
 }
 
 html.dark body {
   background-image:
-    radial-gradient(circle at 10% 10%, #1e293b 0%, transparent 55%),
-    radial-gradient(circle at 85% 20%, #0f172a 0%, transparent 55%),
+    radial-gradient(circle at 10% 10%, #1e293b 0%, transparent 55%), radial-gradient(circle at 85% 20%, #0f172a 0%, transparent 55%),
     linear-gradient(135deg, #0b1120 0%, #111827 60%, #0f172a 100%);
   color: #e2e8f0;
 }

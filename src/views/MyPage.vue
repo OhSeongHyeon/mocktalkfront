@@ -8,19 +8,8 @@ import { ApiError } from '../lib/api';
 import { resolveFileUrl } from '../lib/files';
 import { applyProfileSummary } from '../lib/profile';
 import { logout } from '../services/auth';
-import {
-  deleteMyAccount,
-  getMyArticles,
-  getMyComments,
-  getMyProfile,
-  updateMyProfile,
-} from '../services/mypage';
-import type {
-  ArticleResponse,
-  CommentResponse,
-  PageResponse,
-  UserProfileResponse,
-} from '../services/mypage';
+import { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile } from '../services/mypage';
+import type { ArticleResponse, CommentResponse, PageResponse, UserProfileResponse } from '../services/mypage';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { clearAccessToken } from '../stores/auth';
 
@@ -315,11 +304,7 @@ onBeforeUnmount(() => {
   <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar
-        :collapsed="menuCollapsed"
-        :mobile-open="isMobileMenuOpen"
-        @close="closeMobileMenu"
-      />
+      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
           <section
@@ -328,12 +313,8 @@ onBeforeUnmount(() => {
             <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">My Page</p>
             <div class="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">
-                  나의 프로필 관리
-                </h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">
-                  프로필 정보를 수정하고 내 활동을 확인하세요.
-                </p>
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">나의 프로필 관리</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">프로필 정보를 수정하고 내 활동을 확인하세요.</p>
               </div>
               <div class="flex flex-wrap gap-2">
                 <button
@@ -369,29 +350,15 @@ onBeforeUnmount(() => {
               class="flex h-full flex-col gap-5 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80"
             >
               <div class="flex items-center gap-4">
-                <div
-                  class="h-20 w-20 overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-100 dark:border-slate-800/80 dark:bg-slate-900"
-                >
-                  <img
-                    v-if="resolvedProfileImage"
-                    :src="resolvedProfileImage"
-                    alt="프로필 이미지"
-                    class="h-full w-full object-cover"
-                  />
-                  <div
-                    v-else
-                    class="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400"
-                  >
-                    없음
-                  </div>
+                <div class="h-20 w-20 overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-100 dark:border-slate-800/80 dark:bg-slate-900">
+                  <img v-if="resolvedProfileImage" :src="resolvedProfileImage" alt="프로필 이미지" class="h-full w-full object-cover" />
+                  <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400">없음</div>
                 </div>
                 <div>
                   <p class="text-lg font-semibold text-slate-900 dark:text-white">
                     {{ profile?.displayName || profile?.userName || '사용자' }}
                   </p>
-                  <p class="text-sm text-slate-500 dark:text-slate-400">
-                    @{{ profile?.handle || '-' }}
-                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">@{{ profile?.handle || '-' }}</p>
                 </div>
               </div>
 
@@ -445,12 +412,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-login-id"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  아이디
-                </label>
+                <label for="mypage-login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 아이디 </label>
                 <input
                   id="mypage-login-id"
                   :value="profile?.loginId ?? ''"
@@ -462,12 +424,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-name"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  이름
-                </label>
+                <label for="mypage-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이름 </label>
                 <input
                   id="mypage-name"
                   v-model="form.userName"
@@ -478,12 +435,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-email"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  이메일
-                </label>
+                <label for="mypage-email" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이메일 </label>
                 <input
                   id="mypage-email"
                   v-model="form.email"
@@ -495,12 +447,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-nickname"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  닉네임
-                </label>
+                <label for="mypage-nickname" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 닉네임 </label>
                 <input
                   id="mypage-nickname"
                   v-model="form.displayName"
@@ -511,12 +458,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-handle"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  핸들
-                </label>
+                <label for="mypage-handle" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 핸들 </label>
                 <input
                   id="mypage-handle"
                   v-model="form.handle"
@@ -527,12 +469,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-password"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  비밀번호
-                </label>
+                <label for="mypage-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
                 <input
                   id="mypage-password"
                   v-model="form.password"
@@ -545,12 +482,7 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-2">
-                <label
-                  for="mypage-password-confirm"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  비밀번호 확인
-                </label>
+                <label for="mypage-password-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 확인 </label>
                 <input
                   id="mypage-password-confirm"
                   v-model="form.passwordConfirm"
@@ -562,12 +494,7 @@ onBeforeUnmount(() => {
                 />
               </div>
               <div class="grid gap-2">
-                <label
-                  for="mypage-image"
-                  class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-                >
-                  프로필 이미지
-                </label>
+                <label for="mypage-image" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 프로필 이미지 </label>
                 <div class="flex flex-wrap items-center gap-3">
                   <input
                     id="mypage-image"
@@ -687,9 +614,7 @@ onBeforeUnmount(() => {
             >
               {{ listError }}
             </p>
-            <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">
-              아직 작성한 항목이 없습니다.
-            </div>
+            <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">아직 작성한 항목이 없습니다.</div>
             <div v-else class="grid gap-3">
               <div
                 v-for="item in currentList?.items"
@@ -705,11 +630,7 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
                 <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  {{
-                    activeTab === 'articles'
-                      ? (item as ArticleResponse).content
-                      : (item as CommentResponse).content
-                  }}
+                  {{ activeTab === 'articles' ? (item as ArticleResponse).content : (item as CommentResponse).content }}
                 </p>
               </div>
             </div>
@@ -718,28 +639,16 @@ onBeforeUnmount(() => {
       </main>
     </div>
 
-    <div
-      v-if="isDeleteModalOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center px-4"
-      role="dialog"
-      aria-modal="true"
-    >
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
       <div class="absolute inset-0 bg-slate-900/40" @click="closeDeleteModal"></div>
-      <div
-        class="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950"
-      >
+      <div class="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">계정 삭제</h3>
         <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
           계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
           <span class="font-semibold text-red-500">탈퇴</span>를 입력하세요.
         </p>
         <div class="mt-4 grid gap-2">
-          <label
-            for="delete-confirm"
-            class="text-sm font-semibold text-slate-700 dark:text-slate-200"
-          >
-            재확인 문구
-          </label>
+          <label for="delete-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 재확인 문구 </label>
           <input
             id="delete-confirm"
             v-model="deleteConfirmText"

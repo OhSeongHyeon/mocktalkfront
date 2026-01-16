@@ -14,13 +14,7 @@ export default [
         ...globals.browser,
       },
     },
-    ignores: [
-      'dist/**',
-      'node_modules/**',
-      'tailwind.config.js',
-      'postcss.config.js',
-      'vite.config.ts',
-    ],
+    ignores: ['dist/**', 'node_modules/**', 'tailwind.config.js', 'postcss.config.js', 'vite.config.ts'],
   },
 
   js.configs.recommended,
@@ -34,6 +28,15 @@ export default [
     plugins: { prettier },
     rules: {
       'prettier/prettier': 'warn',
+
+      'vue/max-attributes-per-line': 'off',
+      'vue/first-attribute-linebreak': 'off',
+      'vue/html-indent': 'off',
+      'vue/html-closing-bracket-newline': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/multiline-html-element-content-newline': 'off',
+      'vue/no-v-html': 'off',
+
       'no-empty': 'off',
     },
   },

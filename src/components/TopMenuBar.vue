@@ -4,13 +4,7 @@ import { RouterLink, useRouter } from 'vue-router';
 
 import { applyTheme } from '../lib/theme';
 import { logout } from '../services/auth';
-import {
-  clearAccessToken,
-  displayName,
-  isAuthenticated,
-  profileImageUrl,
-  userPoint,
-} from '../stores/auth';
+import { clearAccessToken, displayName, isAuthenticated, profileImageUrl, userPoint } from '../stores/auth';
 import defaultAvatar from '../assets/default-avatar.svg';
 
 const emit = defineEmits<{
@@ -53,6 +47,13 @@ const openMyPage = async () => {
   closeProfileMenu();
   if (router.currentRoute.value.path !== '/mypage') {
     await router.push('/mypage');
+  }
+};
+
+const openBoardCreate = async () => {
+  closeProfileMenu();
+  if (router.currentRoute.value.path !== '/boards/create') {
+    await router.push('/boards/create');
   }
 };
 
@@ -127,10 +128,7 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
           </svg>
         </button>
 
-        <RouterLink
-          to="/"
-          class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100"
-        >
+        <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
           <!-- <span
             class="grid h-9 w-9 place-items-center rounded-2xl shadow-sm"
             style="background-color: var(--accent-strong)"
@@ -299,6 +297,14 @@ const handleDocumentKeydown = (event: KeyboardEvent) => {
               @click="openMyPage"
             >
               마이페이지
+            </button>
+            <button
+              type="button"
+              class="flex w-full items-center px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+              role="menuitem"
+              @click="openBoardCreate"
+            >
+              커뮤니티 개설
             </button>
             <button
               type="button"

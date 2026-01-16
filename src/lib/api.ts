@@ -126,8 +126,7 @@ const request = async <T>(path: string, init: RequestInit = {}, retry = true): P
       globalThis.dispatchEvent(new CustomEvent('auth:logout'));
     }
     const details = await readErrorBody(response);
-    const message =
-      typeof details === 'string' ? details : (extractMessage(details) ?? response.statusText);
+    const message = typeof details === 'string' ? details : (extractMessage(details) ?? response.statusText);
     throw new ApiError(response.status, message, details ?? undefined);
   }
 
@@ -143,8 +142,7 @@ const request = async <T>(path: string, init: RequestInit = {}, retry = true): P
   return (await response.text()) as T;
 };
 
-const post = async <T>(path: string, init: RequestInit = {}) =>
-  request<T>(path, { ...init, method: 'POST' });
+const post = async <T>(path: string, init: RequestInit = {}) => request<T>(path, { ...init, method: 'POST' });
 
 const postJson = async <T>(path: string, body?: unknown, init: RequestInit = {}) => {
   const headers = new Headers(init.headers ?? {});

@@ -25,6 +25,7 @@ export interface UserProfileResponse {
   userName: string;
   displayName: string;
   handle: string;
+  userPoint: number;
   profileImage: FileResponse | null;
 }
 
@@ -100,16 +101,12 @@ const updateMyProfile = async (payload: {
 };
 
 const getMyArticles = async (page: number, size: number) => {
-  const response = await request<ApiEnvelope<PageResponse<ArticleResponse>>>(
-    `/users/me/articles?page=${page}&size=${size}`,
-  );
+  const response = await request<ApiEnvelope<PageResponse<ArticleResponse>>>(`/users/me/articles?page=${page}&size=${size}`);
   return unwrap(response);
 };
 
 const getMyComments = async (page: number, size: number) => {
-  const response = await request<ApiEnvelope<PageResponse<CommentResponse>>>(
-    `/users/me/comments?page=${page}&size=${size}`,
-  );
+  const response = await request<ApiEnvelope<PageResponse<CommentResponse>>>(`/users/me/comments?page=${page}&size=${size}`);
   return unwrap(response);
 };
 

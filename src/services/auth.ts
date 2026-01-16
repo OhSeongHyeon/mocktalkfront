@@ -27,8 +27,7 @@ export interface RegisterRequest {
 }
 
 const login = (payload: LoginRequest) => postJson<TokenResponse>('/auth/login', payload);
-const exchangeOAuth2Code = (payload: OAuth2CodeRequest) =>
-  postJson<TokenResponse>('/auth/oauth2/callback', payload);
+const exchangeOAuth2Code = (payload: OAuth2CodeRequest) => postJson<TokenResponse>('/auth/oauth2/callback', payload);
 const register = (payload: RegisterRequest) => postJson<void>('/auth/join', payload);
 const refreshAccessToken = () => post<TokenResponse>('/auth/refresh');
 const logout = () => post<void>('/auth/logout');
