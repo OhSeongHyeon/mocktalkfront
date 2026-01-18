@@ -6,6 +6,7 @@ import CommentItem from './CommentItem.vue';
 interface CommentListProps {
   comments: CommentTreeResponse[];
   currentUserId: number | null;
+  articleAuthorId: number | null;
   isAuthenticated: boolean;
   depth?: number;
 }
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   (event: 'reply', payload: { parentId: number; content: string }): void;
   (event: 'update', payload: { commentId: number; content: string }): void;
   (event: 'delete', commentId: number): void;
+  (event: 'reaction', payload: { commentId: number; reactionType: number }): void;
 }>();
 
 const depthValue = props.depth ?? 0;
@@ -28,20 +30,24 @@ const depthValue = props.depth ?? 0;
         <CommentItem
           :comment="comment"
           :current-user-id="currentUserId"
+          :article-author-id="articleAuthorId"
           :is-authenticated="isAuthenticated"
           @reply="emit('reply', $event)"
           @update="emit('update', $event)"
           @delete="emit('delete', $event)"
+          @reaction="emit('reaction', $event)"
         />
         <div v-if="comment.children.length > 0" class="mt-4 pl-6">
           <CommentList
             :comments="comment.children"
             :current-user-id="currentUserId"
+            :article-author-id="articleAuthorId"
             :is-authenticated="isAuthenticated"
             :depth="depthValue + 1"
             @reply="emit('reply', $event)"
             @update="emit('update', $event)"
             @delete="emit('delete', $event)"
+            @reaction="emit('reaction', $event)"
           />
         </div>
       </div>

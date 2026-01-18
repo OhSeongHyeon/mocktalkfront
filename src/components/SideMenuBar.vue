@@ -18,22 +18,22 @@ const menuSections = [
     title: '메인',
     items: [
       { name: '홈', icon: 'home', path: '/' },
-      { name: '구독', icon: 'subscriptions' },
+      { name: '구독', icon: 'stack' },
     ],
   },
   {
     title: '둘러보기',
     items: [
-      { name: '공지사항', icon: 'megaphone' },
-      { name: '문의 게시판', icon: 'chat' },
-      { name: '커뮤니티', icon: 'community' },
+      { name: '공지사항', icon: 'megaphone', path: '/b/notice' },
+      { name: '문의 게시판', icon: 'chat', path: '/b/inquiry' },
+      { name: '커뮤니티', icon: 'community', path: '/boards' },
       { name: '이미지 갤러리', icon: 'gallery' },
     ],
   },
   {
     title: '보관함',
     items: [
-      { name: '보관함', icon: 'library' },
+      { name: '보관함', icon: 'bookmark' },
       { name: '기록', icon: 'history' },
     ],
   },
@@ -48,12 +48,12 @@ const menuSections = [
 
 const iconPaths: Record<string, string[]> = {
   home: ['M3 10.5l9-7 9 7', 'M5 9.5V21h14V9.5'],
-  subscriptions: ['M4 7h16v10H4z', 'M10 10l4 2.5-4 2.5z'],
+  stack: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
   megaphone: ['M3 11l8-4v10l-8-4z', 'M11 9h4a4 4 0 0 1 0 6h-4'],
   chat: ['M4 6h16v9H7l-3 3V6z'],
   community: ['M7 11a3 3 0 1 0 0-6', 'M17 12a3 3 0 1 0 0-6', 'M3 20v-1a4 4 0 0 1 4-4h2', 'M13 19v-1a4 4 0 0 1 4-4h2'],
   gallery: ['M4 6h16v12H4z', 'M8 12l2 2 4-5 6 7'],
-  library: ['M4 5h4v14H4z', 'M10 5h10v14H10z', 'M10 9h10'],
+  bookmark: ['M6 4h12v16l-6-4-6 4z'],
   history: ['M12 7v5l3 2', 'M4 12a8 8 0 1 0 8-8'],
   settings: ['M4 6h16', 'M4 12h10', 'M4 18h16', 'M16 12h4'],
   help: ['M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4', 'M12 17h.01'],

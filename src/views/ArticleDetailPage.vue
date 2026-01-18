@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import ArticleList from '../components/ArticleList.vue';
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import CommentList from '../components/CommentList.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
@@ -10,11 +11,14 @@ import { ApiError } from '../lib/api';
 import { resolveFileUrl } from '../lib/files';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
-import { getArticleDetail } from '../services/articles';
-import type { CommentPageResponse, CommentTreeResponse } from '../services/comments';
-import { createComment, createReply, deleteComment, getArticleComments, updateComment } from '../services/comments';
+import { deleteArticle, getArticleDetail, toggleArticleReaction } from '../services/articles';
+import type { ArticleSummaryResponse } from '../services/boards';
+import { getBoardArticles } from '../services/boards';
+import type { CommentPageResponse, CommentReactionSummaryResponse, CommentTreeResponse } from '../services/comments';
+import { createComment, createReply, deleteComment, getArticleComments, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
+import { ARTICLE_LIST_PAGE_SIZES, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { isAuthenticated } from '../stores/auth';
 
@@ -33,7 +37,22 @@ const commentPage = ref(0);
 const commentError = ref('');
 const isCommentLoading = ref(false);
 const isCommentSubmitting = ref(false);
+const commentReactionLoading = ref(new Set<number>());
 const newComment = ref('');
+const isReactionLoading = ref(false);
+const boardArticles = ref<ArticleSummaryResponse[]>([]);
+const boardListError = ref('');
+const isBoardArticlesLoading = ref(false);
+const boardPage = ref(0);
+const boardTotalPages = ref(0);
+const boardHasNext = ref(false);
+const boardHasPrevious = ref(false);
+
+const boardPageSize = computed(() => articleListPageSize.value);
+const boardPageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
+const isDeleteModalOpen = ref(false);
+const deleteError = ref('');
+const isDeleting = ref(false);
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -89,6 +108,14 @@ const boardLink = computed(() => {
   return slug ? `/b/${slug}` : '/';
 });
 
+const handleBoardPageSizeChange = (size: number) => {
+  setArticleListPageSize(size);
+};
+
+const handleBoardPageChange = (nextPage: number) => {
+  loadBoardArticles(nextPage);
+};
+
 const isAuthor = computed(() => {
   if (!profile.value || !article.value) {
     return false;
@@ -139,6 +166,14 @@ const goBoard = () => {
   }
 };
 
+const goBoardArticle = (targetId: number) => {
+  const slugValue = article.value?.board?.slug ?? String(route.params.slug ?? '');
+  if (!slugValue) {
+    return;
+  }
+  router.push(`/b/${slugValue}/articles/${targetId}`);
+};
+
 const goEdit = () => {
   if (!article.value) {
     return;
@@ -147,26 +182,96 @@ const goEdit = () => {
   router.push(`/b/${slug}/articles/${article.value.id}/edit`);
 };
 
+const openDeleteModal = () => {
+  deleteError.value = '';
+  isDeleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+  if (isDeleting.value) {
+    return;
+  }
+  isDeleteModalOpen.value = false;
+};
+
+const confirmDelete = async () => {
+  if (!article.value) {
+    return;
+  }
+  isDeleting.value = true;
+  deleteError.value = '';
+  try {
+    await deleteArticle(article.value.id);
+    isDeleteModalOpen.value = false;
+    router.push(boardLink.value || '/');
+  } catch (error) {
+    deleteError.value = error instanceof ApiError ? error.message : '게시글 삭제에 실패했습니다.';
+  } finally {
+    isDeleting.value = false;
+  }
+};
+
 const resolveAttachmentUrl = (file: FileResponse) => resolveFileUrl(file.storageKey);
 
-const loadComments = async (reset = false) => {
+const commentPageSize = 10;
+
+const loadCommentsPage = async (page: number) => {
   if (!Number.isFinite(articleId.value)) {
     return;
   }
   commentError.value = '';
   isCommentLoading.value = true;
   try {
-    const page = reset ? 0 : commentPage.value;
-    const response = await getArticleComments(articleId.value, page, 10);
-    if (reset || !comments.value) {
-      comments.value = response;
+    const response = await getArticleComments(articleId.value, page, commentPageSize);
+    comments.value = response;
+    commentPage.value = response.page;
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
+  } finally {
+    isCommentLoading.value = false;
+  }
+};
+
+const loadBoardArticles = async (page: number) => {
+  if (!article.value?.board?.id) {
+    return;
+  }
+  boardListError.value = '';
+  isBoardArticlesLoading.value = true;
+  try {
+    const response = await getBoardArticles(article.value.board.id, page, boardPageSize.value);
+    boardArticles.value = response.page.items ?? [];
+    boardPage.value = response.page.page;
+    boardTotalPages.value = response.page.totalPages;
+    boardHasNext.value = response.page.hasNext;
+    boardHasPrevious.value = response.page.hasPrevious;
+  } catch (error) {
+    boardListError.value = error instanceof ApiError ? error.message : '게시글 목록을 불러오지 못했습니다.';
+    boardHasNext.value = false;
+    boardHasPrevious.value = false;
+    boardTotalPages.value = 0;
+  } finally {
+    isBoardArticlesLoading.value = false;
+  }
+};
+
+const loadLastCommentPage = async () => {
+  if (!Number.isFinite(articleId.value)) {
+    return;
+  }
+  commentError.value = '';
+  isCommentLoading.value = true;
+  try {
+    const first = await getArticleComments(articleId.value, 0, commentPageSize);
+    if (first.totalPages <= 1) {
+      comments.value = first;
+      commentPage.value = first.page;
     } else {
-      comments.value = {
-        ...response,
-        items: [...comments.value.items, ...response.items],
-      };
+      const lastPage = first.totalPages - 1;
+      const last = await getArticleComments(articleId.value, lastPage, commentPageSize);
+      comments.value = last;
+      commentPage.value = last.page;
     }
-    commentPage.value = response.page + 1;
   } catch (error) {
     commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
   } finally {
@@ -175,8 +280,7 @@ const loadComments = async (reset = false) => {
 };
 
 const refreshComments = async () => {
-  commentPage.value = 0;
-  await loadComments(true);
+  await loadLastCommentPage();
   await loadArticle();
 };
 
@@ -235,24 +339,94 @@ const handleDelete = async (commentId: number) => {
   }
 };
 
-const loadMoreComments = async () => {
-  if (!comments.value || !comments.value.hasNext) {
+const updateCommentReaction = (nodes: CommentTreeResponse[], summary: CommentReactionSummaryResponse) => {
+  for (const node of nodes) {
+    if (node.id === summary.commentId) {
+      node.likeCount = summary.likeCount;
+      node.dislikeCount = summary.dislikeCount;
+      node.myReaction = summary.myReaction;
+      return true;
+    }
+    if (node.children.length > 0 && updateCommentReaction(node.children, summary)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const setCommentReactionLoading = (commentId: number, isLoading: boolean) => {
+  const next = new Set(commentReactionLoading.value);
+  if (isLoading) {
+    next.add(commentId);
+  } else {
+    next.delete(commentId);
+  }
+  commentReactionLoading.value = next;
+};
+
+const handleCommentReaction = async (payload: { commentId: number; reactionType: number }) => {
+  if (!comments.value || !isAuthenticated.value || commentReactionLoading.value.has(payload.commentId)) {
     return;
   }
-  await loadComments(false);
+  setCommentReactionLoading(payload.commentId, true);
+  try {
+    const summary = await toggleCommentReaction(payload.commentId, payload.reactionType);
+    updateCommentReaction(comments.value.items, summary);
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글 반응 처리에 실패했습니다.';
+  } finally {
+    setCommentReactionLoading(payload.commentId, false);
+  }
+};
+
+const handleReaction = async (reactionType: number) => {
+  if (!article.value || isReactionLoading.value || !isAuthenticated.value) {
+    return;
+  }
+  isReactionLoading.value = true;
+  try {
+    const summary = await toggleArticleReaction(article.value.id, reactionType);
+    article.value.likeCount = summary.likeCount;
+    article.value.dislikeCount = summary.dislikeCount;
+    article.value.myReaction = summary.myReaction;
+  } catch (error) {
+    errorMessage.value = error instanceof ApiError ? error.message : '반응 처리에 실패했습니다.';
+  } finally {
+    isReactionLoading.value = false;
+  }
+};
+
+const handleCommentPage = async (page: number) => {
+  if (!comments.value) {
+    return;
+  }
+  const totalPages = comments.value.totalPages;
+  if (page < 0 || page >= totalPages) {
+    return;
+  }
+  await loadCommentsPage(page);
 };
 
 onMounted(async () => {
   await loadArticle();
   await loadProfile();
   await refreshComments();
+  await loadBoardArticles(0);
 });
 
 watch(
   () => route.params.articleId,
+  async () => {
+    await loadArticle();
+    await refreshComments();
+    await loadBoardArticles(0);
+  },
+);
+
+watch(
+  () => boardPageSize.value,
   () => {
-    loadArticle();
-    refreshComments();
+    loadBoardArticles(0);
   },
 );
 </script>
@@ -286,6 +460,14 @@ watch(
                 >
                   수정
                 </button>
+                <button
+                  v-if="isAuthor"
+                  type="button"
+                  class="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
+                  @click="openDeleteModal"
+                >
+                  삭제
+                </button>
               </div>
             </template>
           </BoardHeaderCard>
@@ -310,6 +492,35 @@ watch(
               <h1 class="mt-4 text-2xl font-semibold text-slate-900 dark:text-slate-100">
                 {{ article?.title ?? '' }}
               </h1>
+              <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  type="button"
+                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  :class="
+                    article?.myReaction === 1
+                      ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                  "
+                  :disabled="!isAuthenticated || isReactionLoading"
+                  @click="handleReaction(1)"
+                >
+                  좋아요 {{ article?.likeCount ?? 0 }}
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  :class="
+                    article?.myReaction === -1
+                      ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                  "
+                  :disabled="!isAuthenticated || isReactionLoading"
+                  @click="handleReaction(-1)"
+                >
+                  싫어요 {{ article?.dislikeCount ?? 0 }}
+                </button>
+                <span v-if="!isAuthenticated" class="text-xs text-slate-400">로그인 후 반응할 수 있습니다.</span>
+              </div>
               <div v-if="article?.content" class="mt-6 text-sm leading-relaxed text-slate-700 dark:text-slate-300" v-html="sanitizedContent"></div>
               <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
             </div>
@@ -390,31 +601,98 @@ watch(
                 <CommentList
                   :comments="comments.items"
                   :current-user-id="currentUserId"
+                  :article-author-id="article?.userId ?? null"
                   :is-authenticated="isAuthenticated"
                   @reply="handleReply"
                   @update="handleUpdate"
                   @delete="handleDelete"
+                  @reaction="handleCommentReaction"
                 />
               </div>
 
-              <div v-if="comments?.hasNext" class="mt-4 flex justify-center">
+              <div v-if="comments && comments.totalPages > 1" class="mt-4 flex items-center justify-between text-xs text-slate-500">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300"
-                  :disabled="isCommentLoading"
-                  @click="loadMoreComments"
+                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                  :disabled="!comments.hasPrevious || isCommentLoading"
+                  @click="handleCommentPage(commentPage - 1)"
                 >
-                  더 보기
+                  이전
+                </button>
+                <span>페이지 {{ commentPage + 1 }} / {{ comments.totalPages }}</span>
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                  :disabled="!comments.hasNext || isCommentLoading"
+                  @click="handleCommentPage(commentPage + 1)"
+                >
+                  다음
                 </button>
               </div>
 
               <div v-if="isCommentLoading" class="mt-3 text-xs text-slate-500">댓글을 불러오는 중입니다...</div>
+            </section>
+
+            <section class="mt-10">
+              <div
+                v-if="boardListError"
+                class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
+              >
+                {{ boardListError }}
+              </div>
+              <ArticleList
+                :articles="boardArticles"
+                :is-loading="isBoardArticlesLoading"
+                :page-size="boardPageSize"
+                :page-size-options="boardPageSizeOptions"
+                :page="boardPage"
+                :total-pages="boardTotalPages"
+                :has-next="boardHasNext"
+                :has-previous="boardHasPrevious"
+                @select="goBoardArticle"
+                @update:page-size="handleBoardPageSizeChange"
+                @update:page="handleBoardPageChange"
+              />
+              <div v-if="isBoardArticlesLoading" class="mt-4 text-xs text-slate-500">게시글 목록을 불러오는 중입니다...</div>
             </section>
           </div>
 
           <div v-if="isLoading" class="mt-6 text-sm text-slate-500">게시글을 불러오는 중입니다...</div>
         </div>
       </main>
+    </div>
+
+    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
+      <div class="absolute inset-0 bg-slate-900/40" @click="closeDeleteModal"></div>
+      <div class="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">게시글 삭제</h3>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">삭제한 게시글은 복구할 수 없습니다. 계속 진행하시겠어요?</p>
+        <p
+          v-if="deleteError"
+          class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
+          role="alert"
+        >
+          {{ deleteError }}
+        </p>
+        <div class="mt-6 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+            :disabled="isDeleting"
+            @click="closeDeleteModal"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            class="rounded-full border border-rose-300 bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-800"
+            :disabled="isDeleting"
+            @click="confirmDelete"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>

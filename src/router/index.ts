@@ -16,6 +16,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: MainPage },
+    { path: '/boards', name: 'boards', component: MainPage },
     { path: '/boards/create', name: 'board-create', component: BoardCreatePage, meta: { requiresAuth: true } },
     { path: '/b/:slug', name: 'board', component: BoardPage },
     { path: '/b/:slug/articles/new', name: 'article-create', component: ArticleCreatePage, meta: { requiresAuth: true } },

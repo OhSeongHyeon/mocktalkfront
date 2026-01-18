@@ -17,7 +17,17 @@ export interface CommentTreeResponse {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  likeCount: number;
+  dislikeCount: number;
+  myReaction: number;
   children: CommentTreeResponse[];
+}
+
+export interface CommentReactionSummaryResponse {
+  commentId: number;
+  likeCount: number;
+  dislikeCount: number;
+  myReaction: number;
 }
 
 export interface CommentPageResponse<T> {
@@ -78,4 +88,15 @@ const deleteComment = async (commentId: number) => {
   return unwrap(response);
 };
 
-export { createComment, createReply, deleteComment, getArticleComments, updateComment };
+const toggleCommentReaction = async (commentId: number, reactionType: number) => {
+  const response = await request<ApiEnvelope<CommentReactionSummaryResponse>>(`/comments/${commentId}/reactions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ reactionType }),
+  });
+  return unwrap(response);
+};
+
+export { createComment, createReply, deleteComment, getArticleComments, toggleCommentReaction, updateComment };

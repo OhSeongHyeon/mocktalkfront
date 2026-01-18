@@ -6,6 +6,7 @@ import type { CommentTreeResponse } from '../services/comments';
 interface CommentItemProps {
   comment: CommentTreeResponse;
   currentUserId: number | null;
+  articleAuthorId: number | null;
   isAuthenticated: boolean;
 }
 
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   (event: 'reply', payload: { parentId: number; content: string }): void;
   (event: 'update', payload: { commentId: number; content: string }): void;
   (event: 'delete', commentId: number): void;
+  (event: 'reaction', payload: { commentId: number; reactionType: number }): void;
 }>();
 
 const isReplying = ref(false);
@@ -23,6 +25,7 @@ const editContent = ref(props.comment.content);
 
 const isDeleted = computed(() => props.comment.deletedAt !== null || props.comment.content === '삭제된 댓글입니다.');
 const isOwner = computed(() => props.currentUserId !== null && props.comment.userId === props.currentUserId);
+const isArticleAuthor = computed(() => props.articleAuthorId !== null && props.comment.userId === props.articleAuthorId);
 const cardClass = computed(() =>
   [
     'rounded-2xl border px-4 py-3 shadow-sm',
@@ -65,6 +68,31 @@ const remove = () => {
   emit('delete', props.comment.id);
 };
 
+const toggleReaction = (reactionType: number) => {
+  if (!props.isAuthenticated || isDeleted.value) {
+    return;
+  }
+  emit('reaction', { commentId: props.comment.id, reactionType });
+};
+
+const likeButtonClass = computed(() =>
+  [
+    'flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-60',
+    props.comment.myReaction === 1
+      ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
+      : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900',
+  ].join(' '),
+);
+
+const dislikeButtonClass = computed(() =>
+  [
+    'flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-60',
+    props.comment.myReaction === -1
+      ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200'
+      : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900',
+  ].join(' '),
+);
+
 const formattedCreatedAt = computed(() => {
   const date = new Date(props.comment.createdAt);
   if (Number.isNaN(date.getTime())) {
@@ -100,6 +128,11 @@ const isEdited = computed(() => {
   if (!props.comment.updatedAt) {
     return false;
   }
+  const created = new Date(props.comment.createdAt);
+  const updated = new Date(props.comment.updatedAt);
+  if (!Number.isNaN(created.getTime()) && !Number.isNaN(updated.getTime())) {
+    return created.getTime() !== updated.getTime();
+  }
   return props.comment.updatedAt !== props.comment.createdAt;
 });
 </script>
@@ -108,17 +141,60 @@ const isEdited = computed(() => {
   <div :class="cardClass">
     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="font-semibold" :class="isOwner ? 'text-emerald-600 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'">
+        <span class="font-semibold" :class="isOwner ? 'text-blue-600 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'">
           {{ comment.authorName }}
         </span>
-        <span v-if="isOwner" class="text-[11px] font-semibold text-emerald-500/80 dark:text-emerald-300/80">작성자</span>
+        <span
+          v-if="isOwner && !isArticleAuthor"
+          class="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200"
+        >
+          내 댓글
+        </span>
+        <span
+          v-if="isArticleAuthor"
+          class="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          게시글 작성자
+        </span>
         <span>{{ formattedCreatedAt }}</span>
-        <span v-if="isEdited" class="text-[11px] text-slate-400">수정 {{ formattedUpdatedAt }}</span>
+        <span v-if="isEdited" class="text-[11px] font-semibold text-slate-500 dark:text-slate-300">수정 {{ formattedUpdatedAt }}</span>
       </div>
-      <div v-if="isAuthenticated && !isDeleted" class="flex items-center gap-2 text-[11px]">
-        <button type="button" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700" @click="toggleReply">답글</button>
-        <button v-if="isOwner" type="button" class="text-xs font-semibold text-slate-500 hover:text-slate-700" @click="toggleEdit">수정</button>
-        <button v-if="isOwner" type="button" class="text-xs font-semibold text-rose-500 hover:text-rose-600" @click="remove">삭제</button>
+      <div v-if="!isDeleted" class="flex flex-wrap items-center gap-3 text-[11px]">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            :class="likeButtonClass"
+            :disabled="!isAuthenticated"
+            aria-label="댓글 좋아요"
+            @click="toggleReaction(1)"
+          >
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current" aria-hidden="true">
+              <path
+                d="M9 21H7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2h2v11zM21 10c0-.55-.45-1-1-1h-6.31l.95-4.57.02-.23c0-.29-.12-.56-.31-.75L13.17 2 6.59 8.59C6.22 8.95 6 9.45 6 10v9c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1z"
+              />
+            </svg>
+            <span>{{ comment.likeCount }}</span>
+          </button>
+          <button
+            type="button"
+            :class="dislikeButtonClass"
+            :disabled="!isAuthenticated"
+            aria-label="댓글 싫어요"
+            @click="toggleReaction(-1)"
+          >
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current" aria-hidden="true">
+              <path
+                d="M15 3h2c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-2V3zm-2 0H6c-.82 0-1.54.5-1.84 1.22L1.14 11.27c-.09.23-.14.47-.14.73v1c0 .55.45 1 1 1h6.31l-.95 4.57-.02.23c0 .29.12.56.31.75L10.83 22l6.59-6.59c.36-.36.58-.86.58-1.41v-9c0-1.1-.9-2-2-2z"
+              />
+            </svg>
+            <span>{{ comment.dislikeCount }}</span>
+          </button>
+        </div>
+        <div v-if="isAuthenticated" class="flex items-center gap-2 text-[11px]">
+          <button type="button" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700" @click="toggleReply">답글</button>
+          <button v-if="isOwner" type="button" class="text-xs font-semibold text-slate-500 hover:text-slate-700" @click="toggleEdit">수정</button>
+          <button v-if="isOwner" type="button" class="text-xs font-semibold text-rose-500 hover:text-rose-600" @click="remove">삭제</button>
+        </div>
       </div>
     </div>
 

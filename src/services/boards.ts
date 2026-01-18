@@ -56,6 +56,8 @@ export interface ArticleSummaryResponse {
   title: string;
   hit: number;
   commentCount: number;
+  likeCount: number;
+  dislikeCount: number;
   notice: boolean;
   createdAt: string;
 }
@@ -125,7 +127,7 @@ const unsubscribeBoard = async (boardId: number) => {
 };
 
 const requestBoardJoin = async (boardId: number) => {
-  const response = await request<ApiEnvelope<{ memberStatus: BoardMemberStatus }>>(`/boards/${boardId}/members`, { method: 'POST' });
+  const response = await request<ApiEnvelope<{ memberStatus: BoardMemberStatus | null }>>(`/boards/${boardId}/members`, { method: 'POST' });
   return unwrap(response);
 };
 

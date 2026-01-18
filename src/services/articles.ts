@@ -37,6 +37,9 @@ export interface ArticleDetailResponse {
   content: string;
   hit: number;
   commentCount: number;
+  likeCount: number;
+  dislikeCount: number;
+  myReaction: number;
   notice: boolean;
   createdAt: string;
   updatedAt: string;
@@ -56,6 +59,13 @@ export interface ArticleResponse {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+}
+
+export interface ArticleReactionSummaryResponse {
+  articleId: number;
+  likeCount: number;
+  dislikeCount: number;
+  myReaction: number;
 }
 
 export interface ArticleCreateRequest {
@@ -105,4 +115,22 @@ const updateArticle = async (articleId: number, payload: ArticleUpdateRequest) =
   return unwrap(response);
 };
 
-export { createArticle, getArticleDetail, updateArticle };
+const deleteArticle = async (articleId: number) => {
+  const response = await request<ApiEnvelope<void>>(`/articles/${articleId}`, {
+    method: 'DELETE',
+  });
+  return unwrap(response);
+};
+
+const toggleArticleReaction = async (articleId: number, reactionType: number) => {
+  const response = await request<ApiEnvelope<ArticleReactionSummaryResponse>>(`/articles/${articleId}/reactions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ reactionType }),
+  });
+  return unwrap(response);
+};
+
+export { createArticle, deleteArticle, getArticleDetail, toggleArticleReaction, updateArticle };

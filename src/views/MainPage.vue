@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
@@ -9,6 +10,7 @@ import { getBoards } from '../services/boards';
 import type { BoardResponse } from '../services/boards';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
+const route = useRoute();
 const isMobileMenuOpen = ref(false);
 const scrollAreaRef = ref<HTMLElement | null>(null);
 const sentinelRef = ref<HTMLDivElement | null>(null);
@@ -37,6 +39,13 @@ const closeMobileMenu = () => {
 };
 
 const isInitialLoading = computed(() => isLoading.value && boards.value.length === 0);
+const isCommunityList = computed(() => route.path === '/boards');
+const visibleBoards = computed(() => {
+  if (!isCommunityList.value) {
+    return boards.value;
+  }
+  return boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug));
+});
 
 const resolveBoardImage = (board: BoardResponse) => resolveFileUrl(board.boardImage?.storageKey ?? null);
 
@@ -118,9 +127,9 @@ onBeforeUnmount(() => {
             {{ listError }}
           </div>
 
-          <div v-if="boards.length > 0" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div v-if="visibleBoards.length > 0" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <RouterLink
-              v-for="board in boards"
+              v-for="board in visibleBoards"
               :key="board.id"
               :to="`/b/${board.slug}`"
               class="group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
@@ -173,7 +182,7 @@ onBeforeUnmount(() => {
             게시판을 불러오는 중입니다.
           </div>
 
-          <div v-if="isLoading && boards.length > 0" class="mt-6 text-sm text-slate-500">더 불러오는 중...</div>
+          <div v-if="isLoading && visibleBoards.length > 0" class="mt-6 text-sm text-slate-500">더 불러오는 중...</div>
 
           <div ref="sentinelRef" class="h-8 w-full"></div>
         </div>
