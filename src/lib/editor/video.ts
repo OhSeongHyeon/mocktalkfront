@@ -1,7 +1,24 @@
 import { Node, mergeAttributes } from '@tiptap/core';
+import type { CommandProps } from '@tiptap/core';
 
 interface VideoOptions {
   HTMLAttributes: Record<string, string>;
+}
+
+type VideoAttributes = {
+  src?: string | null;
+  controls?: boolean;
+  poster?: string | null;
+  width?: number | string | null;
+  height?: number | string | null;
+};
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    video: {
+      setVideo: (attributes: VideoAttributes) => ReturnType;
+    };
+  }
 }
 
 const Video = Node.create<VideoOptions>({
@@ -50,8 +67,8 @@ const Video = Node.create<VideoOptions>({
   addCommands() {
     return {
       setVideo:
-        (attributes) =>
-        ({ commands }) =>
+        (attributes: VideoAttributes) =>
+        ({ commands }: CommandProps) =>
           commands.insertContent({
             type: this.name,
             attrs: attributes,

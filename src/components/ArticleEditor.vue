@@ -7,6 +7,7 @@ import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
+import type { Level } from '@tiptap/extension-heading';
 import TextAlign from '@tiptap/extension-text-align';
 import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
@@ -168,8 +169,7 @@ const insertUploadedFile = (kind: UploadKind, url: string, file: File) => {
   if (!nodeType) {
     return;
   }
-  const attrs =
-    kind === 'image' ? { src: url, alt: file.name } : { src: url, controls: true };
+  const attrs = kind === 'image' ? { src: url, alt: file.name } : { src: url, controls: true };
   const node = nodeType.create(attrs);
   const insertPos = state.selection.from;
   const tr = state.tr.replaceSelectionWith(node, false);
@@ -250,7 +250,7 @@ const toggleOrderedList = () => editor.value?.chain().focus().toggleOrderedList(
 const toggleBlockquote = () => editor.value?.chain().focus().toggleBlockquote().run();
 const toggleCodeBlock = () => editor.value?.chain().focus().toggleCodeBlock().run();
 const setParagraph = () => editor.value?.chain().focus().setParagraph().run();
-const setHeading = (level: number) => editor.value?.chain().focus().toggleHeading({ level }).run();
+const setHeading = (level: Level) => editor.value?.chain().focus().toggleHeading({ level }).run();
 const setHorizontalRule = () => editor.value?.chain().focus().setHorizontalRule().run();
 const setTextAlign = (alignment: 'left' | 'center' | 'right' | 'justify') => editor.value?.chain().focus().setTextAlign(alignment).run();
 const undo = () => editor.value?.chain().focus().undo().run();
@@ -374,14 +374,10 @@ const toolbarDividerClass = 'h-5 w-px bg-slate-200 dark:bg-slate-800';
       <button type="button" :class="buttonClass()" @click="redo">다시</button>
       <span v-if="uploadCount > 0" class="text-xs font-semibold text-emerald-600 dark:text-emerald-300"> 업로드 중... </span>
     </div>
-    <EditorContent
-      :editor="editor"
-      class="min-h-[360px] px-4 py-4 text-sm leading-relaxed text-slate-700 dark:text-slate-200"
-      @click="focusEditor"
-    />
+    <EditorContent :editor="editor" class="min-h-[360px] px-4 py-4 text-sm leading-relaxed text-slate-700 dark:text-slate-200" @click="focusEditor" />
     <div class="border-t border-slate-200 px-4 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400">
-      단축키: Ctrl/Cmd+B 굵게, Ctrl/Cmd+I 기울임, Ctrl/Cmd+K 링크, Ctrl/Cmd+Z 되돌리기, Ctrl/Cmd+Y 다시,
-      Enter 줄바꿈, Shift+Enter 문단. 이미지/영상은 드래그&드롭 가능.
+      단축키: Ctrl/Cmd+B 굵게, Ctrl/Cmd+I 기울임, Ctrl/Cmd+K 링크, Ctrl/Cmd+Z 되돌리기, Ctrl/Cmd+Y 다시, Enter 줄바꿈, Shift+Enter 문단. 이미지/영상은
+      드래그&드롭 가능.
     </div>
     <div v-if="errorMessage" class="border-t border-slate-200 px-4 py-2 text-xs text-rose-600 dark:border-slate-800">
       {{ errorMessage }}

@@ -6,7 +6,7 @@ import { searchMentions } from '../../services/users';
 import { resolveFileUrl } from '../files';
 import type { MentionItem } from './mentionTypes';
 
-const mentionSuggestion: SuggestionOptions<MentionItem> = {
+const mentionSuggestion: Omit<SuggestionOptions<MentionItem>, 'editor'> = {
   char: '@',
   allowSpaces: false,
   items: async ({ query }) => {
@@ -31,7 +31,7 @@ const mentionSuggestion: SuggestionOptions<MentionItem> = {
     let component: VueRenderer | null = null;
     let popup: HTMLDivElement | null = null;
 
-    const updatePosition = (clientRect: (() => DOMRect | null) | null) => {
+    const updatePosition = (clientRect?: (() => DOMRect | null) | null) => {
       if (!popup || !clientRect) {
         return;
       }
@@ -52,7 +52,9 @@ const mentionSuggestion: SuggestionOptions<MentionItem> = {
         popup = document.createElement('div');
         popup.style.position = 'absolute';
         popup.style.zIndex = '9999';
-        popup.appendChild(component.element);
+        if (component.element) {
+          popup.appendChild(component.element);
+        }
         document.body.appendChild(popup);
         updatePosition(props.clientRect);
       },
