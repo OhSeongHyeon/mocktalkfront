@@ -6,10 +6,13 @@ import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { resolveFileUrl } from '../lib/files';
+import { formatNotificationMessage } from '../lib/notifications';
 import { applyProfileSummary } from '../lib/profile';
 import { logout } from '../services/auth';
 import { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile } from '../services/mypage';
 import type { ArticleResponse, CommentResponse, PageResponse, UserProfileResponse } from '../services/mypage';
+import { deleteAllNotifications, deleteNotification, getNotifications, markNotificationRead } from '../services/notifications';
+import type { NotificationResponse } from '../services/notifications';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { clearAccessToken } from '../stores/auth';
 
@@ -35,13 +38,15 @@ const form = reactive({
 const previewUrl = ref<string | null>(null);
 
 const mainTab = ref<'activity' | 'profile'>('activity');
-const activeTab = ref<'articles' | 'comments'>('articles');
+const activeTab = ref<'articles' | 'comments' | 'notifications'>('articles');
 const listLoading = ref(false);
 const listError = ref('');
 const articles = ref<PageResponse<ArticleResponse> | null>(null);
 const comments = ref<PageResponse<CommentResponse> | null>(null);
+const notifications = ref<PageResponse<NotificationResponse> | null>(null);
 const articlePage = ref(0);
 const commentPage = ref(0);
+const notificationPage = ref(0);
 const pageSize = 10;
 
 const isDeleteModalOpen = ref(false);
@@ -135,15 +140,37 @@ const loadComments = async (page = 0) => {
   }
 };
 
+const loadNotifications = async (page = 0) => {
+  listError.value = '';
+  listLoading.value = true;
+  try {
+    const data = await getNotifications(page, pageSize);
+    notifications.value = data;
+    notificationPage.value = data.page;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      await router.push('/login');
+      return;
+    }
+    listError.value = error instanceof ApiError ? error.message : '알림 조회에 실패했습니다.';
+  } finally {
+    listLoading.value = false;
+  }
+};
+
 const loadActiveTab = async () => {
   if (activeTab.value === 'articles') {
     await loadArticles(articlePage.value);
     return;
   }
-  await loadComments(commentPage.value);
+  if (activeTab.value === 'comments') {
+    await loadComments(commentPage.value);
+    return;
+  }
+  await loadNotifications(notificationPage.value);
 };
 
-const setTab = async (tab: 'articles' | 'comments') => {
+const setTab = async (tab: 'articles' | 'comments' | 'notifications') => {
   activeTab.value = tab;
   await loadActiveTab();
 };
@@ -153,7 +180,11 @@ const setPage = async (page: number) => {
     await loadArticles(page);
     return;
   }
-  await loadComments(page);
+  if (activeTab.value === 'comments') {
+    await loadComments(page);
+    return;
+  }
+  await loadNotifications(page);
 };
 
 const handleFileChange = (event: Event) => {
@@ -274,7 +305,13 @@ const formatDate = (value?: string | null) => {
 };
 
 const currentList = computed(() => {
-  return activeTab.value === 'articles' ? articles.value : comments.value;
+  if (activeTab.value === 'articles') {
+    return articles.value;
+  }
+  if (activeTab.value === 'comments') {
+    return comments.value;
+  }
+  return notifications.value;
 });
 
 const isListEmpty = computed(() => {
@@ -283,8 +320,64 @@ const isListEmpty = computed(() => {
 });
 
 const currentPage = computed(() => {
-  return activeTab.value === 'articles' ? articlePage.value : commentPage.value;
+  if (activeTab.value === 'articles') {
+    return articlePage.value;
+  }
+  if (activeTab.value === 'comments') {
+    return commentPage.value;
+  }
+  return notificationPage.value;
 });
+
+const handleNotificationClick = async (notification: NotificationResponse) => {
+  if (!notification.read) {
+    try {
+      const updated = await markNotificationRead(notification.id);
+      notification.read = updated.read;
+    } catch (error) {
+      listError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
+    }
+  }
+  if (notification.redirectUrl) {
+    await router.push(notification.redirectUrl);
+  }
+};
+
+const handleDeleteNotification = async (notification: NotificationResponse) => {
+  listError.value = '';
+  try {
+    await deleteNotification(notification.id);
+    if (!notifications.value) {
+      return;
+    }
+    notifications.value = {
+      ...notifications.value,
+      items: notifications.value.items.filter((item) => item.id !== notification.id),
+      totalElements: Math.max(0, notifications.value.totalElements - 1),
+    };
+  } catch (error) {
+    listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
+  }
+};
+
+const handleDeleteAllNotifications = async () => {
+  listError.value = '';
+  try {
+    await deleteAllNotifications();
+    notifications.value = {
+      items: [],
+      page: 0,
+      size: pageSize,
+      totalElements: 0,
+      totalPages: 0,
+      hasNext: false,
+      hasPrevious: false,
+    };
+    notificationPage.value = 0;
+  } catch (error) {
+    listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
+  }
+};
 
 onMounted(async () => {
   const ok = await loadProfile();
@@ -583,9 +676,30 @@ onBeforeUnmount(() => {
                 >
                   내 댓글
                 </button>
+                <button
+                  type="button"
+                  class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                  :class="
+                    activeTab === 'notifications'
+                      ? 'bg-[color:var(--accent-soft)] text-slate-900'
+                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                  "
+                  @click="setTab('notifications')"
+                >
+                  알림목록
+                </button>
               </div>
 
-              <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <button
+                  v-if="activeTab === 'notifications' && currentList?.items.length"
+                  type="button"
+                  class="rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/40 dark:text-red-300 dark:hover:bg-red-950/40"
+                  :disabled="listLoading"
+                  @click="handleDeleteAllNotifications"
+                >
+                  전체 삭제
+                </button>
                 <button
                   type="button"
                   class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -621,17 +735,54 @@ onBeforeUnmount(() => {
                 :key="item.id"
                 class="rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/70 dark:text-slate-200"
               >
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div class="font-semibold text-slate-900 dark:text-white">
-                    {{ activeTab === 'articles' ? (item as ArticleResponse).title : '댓글' }}
+                <button
+                  v-if="activeTab === 'notifications'"
+                  type="button"
+                  class="flex w-full flex-col gap-2 text-left"
+                  @click="handleNotificationClick(item as NotificationResponse)"
+                >
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span
+                        v-if="!(item as NotificationResponse).read"
+                        class="inline-flex h-2 w-2 rounded-full bg-rose-400"
+                        aria-hidden="true"
+                      ></span>
+                      <div
+                        class="font-semibold"
+                        :class="(item as NotificationResponse).read ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'"
+                      >
+                        {{ formatNotificationMessage(item as NotificationResponse) }}
+                      </div>
+                    </div>
+                    <div class="text-xs text-slate-400">
+                      {{ formatDate((item as NotificationResponse).createdAt) }}
+                    </div>
                   </div>
-                  <div class="text-xs text-slate-400">
-                    {{ formatDate(item.createdAt) }}
+                  <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <p>알림을 눌러 상세 화면으로 이동하세요.</p>
+                    <button
+                      type="button"
+                      class="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                      @click.stop="handleDeleteNotification(item as NotificationResponse)"
+                    >
+                      삭제
+                    </button>
                   </div>
+                </button>
+                <div v-else>
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="font-semibold text-slate-900 dark:text-white">
+                      {{ activeTab === 'articles' ? (item as ArticleResponse).title : '댓글' }}
+                    </div>
+                    <div class="text-xs text-slate-400">
+                      {{ formatDate(item.createdAt) }}
+                    </div>
+                  </div>
+                  <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                    {{ activeTab === 'articles' ? (item as ArticleResponse).content : (item as CommentResponse).content }}
+                  </p>
                 </div>
-                <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  {{ activeTab === 'articles' ? (item as ArticleResponse).content : (item as CommentResponse).content }}
-                </p>
               </div>
             </div>
           </section>

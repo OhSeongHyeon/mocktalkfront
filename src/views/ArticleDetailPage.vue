@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
+import CommentList from '../components/CommentList.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
@@ -10,6 +11,8 @@ import { resolveFileUrl } from '../lib/files';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
 import { getArticleDetail } from '../services/articles';
+import type { CommentPageResponse, CommentTreeResponse } from '../services/comments';
+import { createComment, createReply, deleteComment, getArticleComments, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
@@ -24,6 +27,13 @@ const article = ref<ArticleDetailResponse | null>(null);
 const profile = ref<UserProfileResponse | null>(null);
 const isLoading = ref(false);
 const errorMessage = ref('');
+
+const comments = ref<CommentPageResponse<CommentTreeResponse> | null>(null);
+const commentPage = ref(0);
+const commentError = ref('');
+const isCommentLoading = ref(false);
+const isCommentSubmitting = ref(false);
+const newComment = ref('');
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -86,6 +96,8 @@ const isAuthor = computed(() => {
   return profile.value.userId === article.value.userId;
 });
 
+const currentUserId = computed(() => profile.value?.userId ?? null);
+
 const loadArticle = async () => {
   errorMessage.value = '';
   if (!Number.isFinite(articleId.value)) {
@@ -137,15 +149,110 @@ const goEdit = () => {
 
 const resolveAttachmentUrl = (file: FileResponse) => resolveFileUrl(file.storageKey);
 
+const loadComments = async (reset = false) => {
+  if (!Number.isFinite(articleId.value)) {
+    return;
+  }
+  commentError.value = '';
+  isCommentLoading.value = true;
+  try {
+    const page = reset ? 0 : commentPage.value;
+    const response = await getArticleComments(articleId.value, page, 10);
+    if (reset || !comments.value) {
+      comments.value = response;
+    } else {
+      comments.value = {
+        ...response,
+        items: [...comments.value.items, ...response.items],
+      };
+    }
+    commentPage.value = response.page + 1;
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
+  } finally {
+    isCommentLoading.value = false;
+  }
+};
+
+const refreshComments = async () => {
+  commentPage.value = 0;
+  await loadComments(true);
+  await loadArticle();
+};
+
+const submitComment = async () => {
+  if (!article.value || !newComment.value.trim()) {
+    return;
+  }
+  isCommentSubmitting.value = true;
+  try {
+    await createComment(article.value.id, newComment.value.trim());
+    newComment.value = '';
+    await refreshComments();
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글 작성에 실패했습니다.';
+  } finally {
+    isCommentSubmitting.value = false;
+  }
+};
+
+const handleReply = async (payload: { parentId: number; content: string }) => {
+  if (!article.value) {
+    return;
+  }
+  isCommentSubmitting.value = true;
+  try {
+    await createReply(article.value.id, payload.parentId, payload.content);
+    await refreshComments();
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '답글 작성에 실패했습니다.';
+  } finally {
+    isCommentSubmitting.value = false;
+  }
+};
+
+const handleUpdate = async (payload: { commentId: number; content: string }) => {
+  isCommentSubmitting.value = true;
+  try {
+    await updateComment(payload.commentId, payload.content);
+    await refreshComments();
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글 수정에 실패했습니다.';
+  } finally {
+    isCommentSubmitting.value = false;
+  }
+};
+
+const handleDelete = async (commentId: number) => {
+  isCommentSubmitting.value = true;
+  try {
+    await deleteComment(commentId);
+    await refreshComments();
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글 삭제에 실패했습니다.';
+  } finally {
+    isCommentSubmitting.value = false;
+  }
+};
+
+const loadMoreComments = async () => {
+  if (!comments.value || !comments.value.hasNext) {
+    return;
+  }
+  await loadComments(false);
+};
+
 onMounted(async () => {
   await loadArticle();
   await loadProfile();
+  await refreshComments();
 });
 
 watch(
   () => route.params.articleId,
   () => {
     loadArticle();
+    refreshComments();
   },
 );
 </script>
@@ -233,6 +340,75 @@ watch(
                   </span>
                 </a>
               </div>
+            </section>
+
+            <section class="mt-10">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">댓글</h2>
+                <span class="text-xs text-slate-500 dark:text-slate-400">총 {{ article?.commentCount ?? 0 }}개</span>
+              </div>
+
+              <div
+                v-if="isAuthenticated"
+                class="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+              >
+                <textarea
+                  v-model="newComment"
+                  rows="3"
+                  placeholder="댓글을 입력하세요"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-emerald-500/20"
+                ></textarea>
+                <div class="mt-3 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    class="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700"
+                    :disabled="isCommentSubmitting"
+                    @click="submitComment"
+                  >
+                    댓글 등록
+                  </button>
+                </div>
+              </div>
+
+              <div
+                v-else
+                class="mt-4 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
+              >
+                댓글 작성은 로그인 후 이용할 수 있습니다.
+              </div>
+
+              <div
+                v-if="commentError"
+                class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
+              >
+                {{ commentError }}
+              </div>
+
+              <div v-if="comments && comments.items.length === 0" class="mt-4 text-sm text-slate-500 dark:text-slate-400">아직 댓글이 없습니다.</div>
+
+              <div v-else-if="comments" class="mt-4">
+                <CommentList
+                  :comments="comments.items"
+                  :current-user-id="currentUserId"
+                  :is-authenticated="isAuthenticated"
+                  @reply="handleReply"
+                  @update="handleUpdate"
+                  @delete="handleDelete"
+                />
+              </div>
+
+              <div v-if="comments?.hasNext" class="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:border-slate-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300"
+                  :disabled="isCommentLoading"
+                  @click="loadMoreComments"
+                >
+                  더 보기
+                </button>
+              </div>
+
+              <div v-if="isCommentLoading" class="mt-3 text-xs text-slate-500">댓글을 불러오는 중입니다...</div>
             </section>
           </div>
 

@@ -158,7 +158,7 @@ const handleSubmit = async () => {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label for="register-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 사용자명(선택) </label>
+            <label for="register-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 사용자명 </label>
             <input
               id="register-user-name"
               v-model="userName"
