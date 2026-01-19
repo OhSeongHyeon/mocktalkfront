@@ -1,4 +1,5 @@
 import { request } from '../lib/api';
+import type { ArticleSummaryResponse, PageResponse } from './boards';
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -40,6 +41,7 @@ export interface ArticleDetailResponse {
   likeCount: number;
   dislikeCount: number;
   myReaction: number;
+  bookmarked: boolean;
   notice: boolean;
   createdAt: string;
   updatedAt: string;
@@ -66,6 +68,15 @@ export interface ArticleReactionSummaryResponse {
   likeCount: number;
   dislikeCount: number;
   myReaction: number;
+}
+
+export interface ArticleBookmarkStatusResponse {
+  articleId: number;
+  bookmarked: boolean;
+}
+
+export interface ArticleBookmarkItemResponse extends ArticleSummaryResponse {
+  boardSlug: string;
 }
 
 export interface ArticleCreateRequest {
@@ -133,4 +144,52 @@ const toggleArticleReaction = async (articleId: number, reactionType: number) =>
   return unwrap(response);
 };
 
-export { createArticle, deleteArticle, getArticleDetail, toggleArticleReaction, updateArticle };
+const bookmarkArticle = async (articleId: number) => {
+  const response = await request<ApiEnvelope<ArticleBookmarkStatusResponse>>(`/articles/${articleId}/bookmark`, {
+    method: 'POST',
+  });
+  return unwrap(response);
+};
+
+const unbookmarkArticle = async (articleId: number) => {
+  const response = await request<ApiEnvelope<ArticleBookmarkStatusResponse>>(`/articles/${articleId}/bookmark`, {
+    method: 'DELETE',
+  });
+  return unwrap(response);
+};
+
+const getArticleBookmarks = async (page: number, size: number) => {
+  const response = await request<ApiEnvelope<PageResponse<ArticleBookmarkItemResponse>>>(`/articles/bookmarks?page=${page}&size=${size}`);
+  return unwrap(response);
+};
+
+const deleteArticleBookmarks = async (articleIds: number[]) => {
+  const response = await request<ApiEnvelope<void>>('/articles/bookmarks/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ articleIds }),
+  });
+  return unwrap(response);
+};
+
+const deleteAllArticleBookmarks = async () => {
+  const response = await request<ApiEnvelope<void>>('/articles/bookmarks', {
+    method: 'DELETE',
+  });
+  return unwrap(response);
+};
+
+export {
+  bookmarkArticle,
+  createArticle,
+  deleteAllArticleBookmarks,
+  deleteArticle,
+  deleteArticleBookmarks,
+  getArticleBookmarks,
+  getArticleDetail,
+  toggleArticleReaction,
+  unbookmarkArticle,
+  updateArticle,
+};

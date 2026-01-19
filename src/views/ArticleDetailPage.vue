@@ -11,7 +11,7 @@ import { ApiError } from '../lib/api';
 import { resolveFileUrl } from '../lib/files';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
-import { deleteArticle, getArticleDetail, toggleArticleReaction } from '../services/articles';
+import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction, unbookmarkArticle } from '../services/articles';
 import type { ArticleSummaryResponse } from '../services/boards';
 import { getBoardArticles } from '../services/boards';
 import type { CommentPageResponse, CommentReactionSummaryResponse, CommentTreeResponse } from '../services/comments';
@@ -40,6 +40,7 @@ const isCommentSubmitting = ref(false);
 const commentReactionLoading = ref(new Set<number>());
 const newComment = ref('');
 const isReactionLoading = ref(false);
+const isBookmarkLoading = ref(false);
 const boardArticles = ref<ArticleSummaryResponse[]>([]);
 const boardListError = ref('');
 const isBoardArticlesLoading = ref(false);
@@ -396,6 +397,21 @@ const handleReaction = async (reactionType: number) => {
   }
 };
 
+const handleBookmark = async () => {
+  if (!article.value || isBookmarkLoading.value || !isAuthenticated.value) {
+    return;
+  }
+  isBookmarkLoading.value = true;
+  try {
+    const response = article.value.bookmarked ? await unbookmarkArticle(article.value.id) : await bookmarkArticle(article.value.id);
+    article.value.bookmarked = response.bookmarked;
+  } catch (error) {
+    errorMessage.value = error instanceof ApiError ? error.message : '북마크 처리에 실패했습니다.';
+  } finally {
+    isBookmarkLoading.value = false;
+  }
+};
+
 const handleCommentPage = async (page: number) => {
   if (!comments.value) {
     return;
@@ -519,7 +535,20 @@ watch(
                 >
                   싫어요 {{ article?.dislikeCount ?? 0 }}
                 </button>
-                <span v-if="!isAuthenticated" class="text-xs text-slate-400">로그인 후 반응할 수 있습니다.</span>
+                <button
+                  type="button"
+                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  :class="
+                    article?.bookmarked
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                  "
+                  :disabled="!isAuthenticated || isBookmarkLoading"
+                  @click="handleBookmark"
+                >
+                  {{ article?.bookmarked ? '북마크됨' : '북마크' }}
+                </button>
+                <span v-if="!isAuthenticated" class="text-xs text-slate-400">로그인 후 반응/북마크가 가능합니다.</span>
               </div>
               <div v-if="article?.content" class="mt-6 text-sm leading-relaxed text-slate-700 dark:text-slate-300" v-html="sanitizedContent"></div>
               <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>

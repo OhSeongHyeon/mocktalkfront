@@ -48,6 +48,17 @@ export interface BoardDetailResponse extends BoardResponse {
   subscribed: boolean;
 }
 
+export interface BoardSubscribeItemResponse {
+  id: number;
+  boardId: number;
+  boardName: string;
+  slug: string;
+  description: string | null;
+  visibility: string;
+  boardImage: FileResponse | null;
+  subscribedAt: string;
+}
+
 export interface ArticleSummaryResponse {
   id: number;
   boardId: number;
@@ -91,6 +102,11 @@ const getBoardArticles = async (boardId: number, page: number, size: number) => 
   return unwrap(response);
 };
 
+const getBoardSubscribes = async (page: number, size: number) => {
+  const response = await request<ApiEnvelope<PageResponse<BoardSubscribeItemResponse>>>(`/boards/subscribes?page=${page}&size=${size}`);
+  return unwrap(response);
+};
+
 const createBoard = async (payload: BoardCreateRequest) => {
   const response = await request<ApiEnvelope<BoardResponse>>('/boards', {
     method: 'POST',
@@ -131,4 +147,4 @@ const requestBoardJoin = async (boardId: number) => {
   return unwrap(response);
 };
 
-export { createBoard, getBoardArticles, getBoardBySlug, getBoards, requestBoardJoin, subscribeBoard, unsubscribeBoard, uploadBoardImage };
+export { createBoard, getBoardArticles, getBoardBySlug, getBoardSubscribes, getBoards, requestBoardJoin, subscribeBoard, unsubscribeBoard, uploadBoardImage };

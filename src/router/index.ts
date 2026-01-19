@@ -7,9 +7,11 @@ import OAuthCallbackPage from '../views/OAuthCallbackPage.vue';
 import RegisterPage from '../views/RegisterPage.vue';
 import BoardCreatePage from '../views/BoardCreatePage.vue';
 import BoardPage from '../views/BoardPage.vue';
+import BoardSubscribePage from '../views/BoardSubscribePage.vue';
 import ArticleDetailPage from '../views/ArticleDetailPage.vue';
 import ArticleCreatePage from '../views/ArticleCreatePage.vue';
 import ArticleEditPage from '../views/ArticleEditPage.vue';
+import ArticleBookmarkPage from '../views/ArticleBookmarkPage.vue';
 import { getAccessToken } from '../stores/auth';
 
 const router = createRouter({
@@ -17,6 +19,8 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: MainPage },
     { path: '/boards', name: 'boards', component: MainPage },
+    { path: '/boards/subscribes', name: 'board-subscribes', component: BoardSubscribePage, meta: { requiresAuth: true } },
+    { path: '/bookmarks', name: 'bookmarks', component: ArticleBookmarkPage, meta: { requiresAuth: true } },
     { path: '/boards/create', name: 'board-create', component: BoardCreatePage, meta: { requiresAuth: true } },
     { path: '/b/:slug', name: 'board', component: BoardPage },
     { path: '/b/:slug/articles/new', name: 'article-create', component: ArticleCreatePage, meta: { requiresAuth: true } },

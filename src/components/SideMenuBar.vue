@@ -18,7 +18,7 @@ const menuSections = [
     title: '메인',
     items: [
       { name: '홈', icon: 'home', path: '/' },
-      { name: '구독', icon: 'stack' },
+      { name: '구독', icon: 'stack', path: '/boards/subscribes' },
     ],
   },
   {
@@ -33,7 +33,7 @@ const menuSections = [
   {
     title: '보관함',
     items: [
-      { name: '보관함', icon: 'bookmark' },
+      { name: '보관함', icon: 'bookmark', path: '/bookmarks' },
       { name: '기록', icon: 'history' },
     ],
   },
@@ -65,6 +65,9 @@ const isActive = (path?: string) => {
   }
   if (path === '/') {
     return route.path === '/';
+  }
+  if (path === '/boards') {
+    return route.path === '/boards';
   }
   return route.path.startsWith(path);
 };
