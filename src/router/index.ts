@@ -12,6 +12,7 @@ import ArticleDetailPage from '../views/ArticleDetailPage.vue';
 import ArticleCreatePage from '../views/ArticleCreatePage.vue';
 import ArticleEditPage from '../views/ArticleEditPage.vue';
 import ArticleBookmarkPage from '../views/ArticleBookmarkPage.vue';
+import SearchPage from '../views/SearchPage.vue';
 import { getAccessToken } from '../stores/auth';
 
 const router = createRouter({
@@ -19,6 +20,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: MainPage },
     { path: '/boards', name: 'boards', component: MainPage },
+    { path: '/search', name: 'search', component: SearchPage },
     { path: '/boards/subscribes', name: 'board-subscribes', component: BoardSubscribePage, meta: { requiresAuth: true } },
     { path: '/bookmarks', name: 'bookmarks', component: ArticleBookmarkPage, meta: { requiresAuth: true } },
     { path: '/boards/create', name: 'board-create', component: BoardCreatePage, meta: { requiresAuth: true } },

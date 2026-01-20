@@ -10,7 +10,8 @@ import { ApiError } from '../lib/api';
 import { resolveFileUrl } from '../lib/files';
 import type { ArticleSummaryResponse, BoardDetailResponse } from '../services/boards';
 import { getBoardArticles, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
-import { ARTICLE_LIST_PAGE_SIZES, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
+import { search } from '../services/search';
+import { ARTICLE_LIST_ORDERS, ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListOrder, setArticleListPageSize } from '../stores/articleList';
 import { isAuthenticated } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
@@ -35,6 +36,10 @@ const hasNext = ref(false);
 const hasPrevious = ref(false);
 const pageSize = computed(() => articleListPageSize.value);
 const pageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
+const orderOptions = ARTICLE_LIST_ORDERS;
+const selectedOrder = computed(() => articleListOrder.value);
+const searchKeyword = ref('');
+const isSearching = computed(() => searchKeyword.value.trim().length > 0);
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -112,6 +117,18 @@ const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing
 
 const handlePageSizeChange = (size: number) => {
   setArticleListPageSize(size);
+};
+
+const handleOrderChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement | null;
+  if (!target) {
+    return;
+  }
+  const value = target.value;
+  if (value !== 'LATEST' && value !== 'OLDEST') {
+    return;
+  }
+  setArticleListOrder(value);
 };
 
 const resetList = () => {
@@ -200,13 +217,42 @@ const loadPage = async (pageIndex: number) => {
   isLoading.value = true;
   listError.value = '';
   try {
-    const response = await getBoardArticles(board.value.id, pageIndex, pageSize.value);
-    pinned.value = pageIndex === 0 ? response.pinned ?? [] : [];
-    articles.value = response.page.items;
-    page.value = response.page.page;
-    totalPages.value = response.page.totalPages;
-    hasNext.value = response.page.hasNext;
-    hasPrevious.value = response.page.hasPrevious;
+    if (isSearching.value) {
+      const response = await search({
+        q: searchKeyword.value.trim(),
+        type: 'ARTICLE',
+        order: selectedOrder.value,
+        page: pageIndex,
+        size: pageSize.value,
+        boardSlug: slug.value,
+      });
+      pinned.value = [];
+      articles.value = response.articles.items.map((item) => ({
+        id: item.id,
+        boardId: item.boardId,
+        userId: item.userId,
+        authorName: item.authorName,
+        title: item.title,
+        hit: item.hit,
+        commentCount: item.commentCount,
+        likeCount: item.likeCount,
+        dislikeCount: item.dislikeCount,
+        notice: item.notice,
+        createdAt: item.createdAt,
+      }));
+      page.value = response.articles.page;
+      totalPages.value = 0;
+      hasNext.value = response.articles.hasNext;
+      hasPrevious.value = response.articles.hasPrevious;
+    } else {
+      const response = await getBoardArticles(board.value.id, pageIndex, pageSize.value, selectedOrder.value);
+      pinned.value = pageIndex === 0 ? response.pinned ?? [] : [];
+      articles.value = response.page.items;
+      page.value = response.page.page;
+      totalPages.value = response.page.totalPages;
+      hasNext.value = response.page.hasNext;
+      hasPrevious.value = response.page.hasPrevious;
+    }
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       listError.value = '게시판을 찾을 수 없습니다.';
@@ -243,6 +289,18 @@ const handlePageChange = async (nextPage: number) => {
   await loadPage(nextPage);
 };
 
+const handleSearch = async () => {
+  if (!searchKeyword.value.trim()) {
+    return;
+  }
+  await loadPage(0);
+};
+
+const clearSearch = async () => {
+  searchKeyword.value = '';
+  await loadPage(0);
+};
+
 onMounted(async () => {
   resetList();
   await loadBoard();
@@ -253,6 +311,7 @@ watch(
   () => slug.value,
   async () => {
     resetList();
+    searchKeyword.value = '';
     await loadBoard();
     await loadPage(0);
   },
@@ -265,6 +324,14 @@ watch(
     if (!board.value && slug.value) {
       await loadBoard();
     }
+    await loadPage(0);
+  },
+);
+
+watch(
+  () => articleListOrder.value,
+  async () => {
+    resetList();
     await loadPage(0);
   },
 );
@@ -325,6 +392,50 @@ watch(
           </div>
 
           <div v-if="isBoardLoading" class="mt-6 text-sm text-slate-500">게시판 정보를 불러오는 중입니다...</div>
+
+          <form
+            class="mt-6 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-950"
+            @submit.prevent="handleSearch"
+          >
+            <label for="board-search" class="text-xs font-semibold text-slate-500 dark:text-slate-400">게시글 검색</label>
+            <input
+              id="board-search"
+              v-model="searchKeyword"
+              type="search"
+              placeholder="게시글 제목/본문 검색"
+              class="h-9 flex-1 rounded-full border border-slate-200 px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+            />
+            <button
+              type="submit"
+              class="inline-flex h-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+              :disabled="!searchKeyword.trim() || isLoading"
+            >
+              검색
+            </button>
+            <button
+              v-if="isSearching"
+              type="button"
+              class="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-4 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+              :disabled="isLoading"
+              @click="clearSearch"
+            >
+              초기화
+            </button>
+          </form>
+
+          <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <label for="article-order" class="font-semibold text-slate-600 dark:text-slate-300">정렬</label>
+            <select
+              id="article-order"
+              class="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:focus:ring-emerald-500/20"
+              :value="selectedOrder"
+              @change="handleOrderChange"
+            >
+              <option v-for="option in orderOptions" :key="option" :value="option">
+                {{ option === 'LATEST' ? '최신순' : '과거순' }}
+              </option>
+            </select>
+          </div>
 
           <ArticleList
             :pinned="pinned"

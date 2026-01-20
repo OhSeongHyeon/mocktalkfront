@@ -43,7 +43,13 @@ const canGoNext = computed(() => {
   }
   return currentPage.value + 1 < totalPages.value;
 });
-const showPagination = computed(() => totalPages.value > 1);
+const showPagination = computed(() => {
+  if (totalPages.value > 1) {
+    return true;
+  }
+  return Boolean(props.hasNext || props.hasPrevious);
+});
+const showPageNumbers = computed(() => totalPages.value > 1);
 const pageNumbers = computed(() => Array.from({ length: totalPages.value }, (_, index) => index));
 
 const formatDate = (value: string) => {
@@ -75,10 +81,16 @@ const handlePageSizeChange = (event: Event) => {
 };
 
 const handlePageChange = (page: number) => {
-  if (totalPages.value === 0) {
+  if (page < 0) {
     return;
   }
-  if (page < 0 || page >= totalPages.value) {
+  if (totalPages.value > 0 && page >= totalPages.value) {
+    return;
+  }
+  if (page > currentPage.value && !canGoNext.value) {
+    return;
+  }
+  if (page < currentPage.value && !canGoPrevious.value) {
     return;
   }
   emit('update:page', page);
@@ -172,7 +184,7 @@ const handlePageChange = (page: number) => {
         >
           이전
         </button>
-        <div class="flex flex-wrap items-center gap-1">
+        <div v-if="showPageNumbers" class="flex flex-wrap items-center gap-1">
           <button
             v-for="pageIndex in pageNumbers"
             :key="pageIndex"
@@ -198,7 +210,8 @@ const handlePageChange = (page: number) => {
           다음
         </button>
       </div>
-      <span>페이지 {{ currentPage + 1 }} / {{ totalPages }}</span>
+      <span v-if="totalPages > 0">페이지 {{ currentPage + 1 }} / {{ totalPages }}</span>
+      <span v-else>페이지 {{ currentPage + 1 }}</span>
     </div>
   </section>
 </template>

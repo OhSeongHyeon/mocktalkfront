@@ -18,7 +18,7 @@ import type { CommentPageResponse, CommentReactionSummaryResponse, CommentTreeRe
 import { createComment, createReply, deleteComment, getArticleComments, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
-import { ARTICLE_LIST_PAGE_SIZES, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
+import { ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { isAuthenticated } from '../stores/auth';
 
@@ -51,6 +51,7 @@ const boardHasPrevious = ref(false);
 
 const boardPageSize = computed(() => articleListPageSize.value);
 const boardPageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
+const boardOrder = computed(() => articleListOrder.value);
 const isDeleteModalOpen = ref(false);
 const deleteError = ref('');
 const isDeleting = ref(false);
@@ -240,7 +241,7 @@ const loadBoardArticles = async (page: number) => {
   boardListError.value = '';
   isBoardArticlesLoading.value = true;
   try {
-    const response = await getBoardArticles(article.value.board.id, page, boardPageSize.value);
+    const response = await getBoardArticles(article.value.board.id, page, boardPageSize.value, boardOrder.value);
     boardArticles.value = response.page.items ?? [];
     boardPage.value = response.page.page;
     boardTotalPages.value = response.page.totalPages;
@@ -441,6 +442,13 @@ watch(
 
 watch(
   () => boardPageSize.value,
+  () => {
+    loadBoardArticles(0);
+  },
+);
+
+watch(
+  () => boardOrder.value,
   () => {
     loadBoardArticles(0);
   },

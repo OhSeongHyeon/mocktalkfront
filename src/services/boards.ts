@@ -16,6 +16,14 @@ export interface PageResponse<T> {
   hasPrevious: boolean;
 }
 
+export interface SliceResponse<T> {
+  items: T[];
+  page: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
 export interface FileResponse {
   id: number;
   fileClassId: number;
@@ -97,8 +105,12 @@ const getBoardBySlug = async (slug: string) => {
   return unwrap(response);
 };
 
-const getBoardArticles = async (boardId: number, page: number, size: number) => {
-  const response = await request<ApiEnvelope<BoardArticleListResponse>>(`/boards/${boardId}/articles?page=${page}&size=${size}`);
+const getBoardArticles = async (boardId: number, page: number, size: number, order?: 'LATEST' | 'OLDEST') => {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  if (order) {
+    query.set('order', order);
+  }
+  const response = await request<ApiEnvelope<BoardArticleListResponse>>(`/boards/${boardId}/articles?${query.toString()}`);
   return unwrap(response);
 };
 

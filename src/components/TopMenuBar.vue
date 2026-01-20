@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 import { ApiError } from '../lib/api';
 import { formatNotificationMessage } from '../lib/notifications';
@@ -15,6 +15,7 @@ const emit = defineEmits<{
   (event: 'toggle-menu'): void;
 }>();
 
+const route = useRoute();
 const router = useRouter();
 const isDark = ref(false);
 const isProfileMenuOpen = ref(false);
@@ -32,6 +33,7 @@ const notificationError = ref('');
 const notificationUnreadCount = ref(0);
 const notificationPageSize = 5;
 const hasUnreadNotifications = computed(() => notificationUnreadCount.value > 0);
+const searchKeyword = ref('');
 
 onMounted(() => {
   isDark.value = globalThis.document?.documentElement.classList.contains('dark') ?? false;
@@ -43,6 +45,14 @@ onMounted(() => {
   globalThis.addEventListener('auth:logout', handleAuthLogout);
   loadUnreadCount();
 });
+
+watch(
+  () => route.query.q,
+  (value) => {
+    searchKeyword.value = typeof value === 'string' ? value : '';
+  },
+  { immediate: true },
+);
 
 onBeforeUnmount(() => {
   if (!globalThis.document) {
@@ -59,6 +69,17 @@ const openLogin = () => {
   if (router.currentRoute.value.path !== '/login') {
     router.push('/login');
   }
+};
+
+const openSearch = async () => {
+  closeNotificationMenu();
+  closeProfileMenu();
+  const trimmed = searchKeyword.value.trim();
+  if (trimmed) {
+    await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
+    return;
+  }
+  await router.push('/search');
 };
 
 const openMyPage = async () => {
@@ -174,6 +195,14 @@ const loadNotifications = async () => {
   } finally {
     notificationLoading.value = false;
   }
+};
+
+const handleSearch = async () => {
+  const trimmed = searchKeyword.value.trim();
+  if (!trimmed) {
+    return;
+  }
+  await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
 };
 
 const loadUnreadCount = async () => {
@@ -300,11 +329,14 @@ const handleDeleteAllNotifications = async () => {
             type="search"
             placeholder="검색"
             class="h-11 w-full rounded-l-full border border-slate-200/80 bg-white px-5 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+            v-model="searchKeyword"
+            @keydown.enter.prevent="handleSearch"
           />
           <button
             type="button"
             class="flex h-11 w-14 items-center justify-center rounded-r-full border border-l-0 border-slate-200/80 bg-slate-50 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
             aria-label="검색"
+            @click="handleSearch"
           >
             <svg
               viewBox="0 0 24 24"
@@ -328,6 +360,7 @@ const handleDeleteAllNotifications = async () => {
           type="button"
           class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200/80 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white sm:hidden"
           aria-label="검색"
+          @click="openSearch"
         >
           <svg
             viewBox="0 0 24 24"
