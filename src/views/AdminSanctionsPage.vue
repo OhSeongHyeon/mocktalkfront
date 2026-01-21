@@ -372,31 +372,31 @@ watch(scopeFilter, async () => {
     </div>
 
     <BaseModal :open="Boolean(revokeTarget)" overlay-class="bg-slate-900/50" aria-label="제재 해제" @close="closeRevokeModal">
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">제재 해제</h3>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">제재 #{{ revokeTarget.id }} 해제 사유를 입력하세요.</p>
-        <textarea
-          v-model="revokeReason"
-          rows="4"
-          class="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-          placeholder="해제 사유"
-        ></textarea>
-        <div class="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-            @click="closeRevokeModal"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-            :disabled="isSubmitting"
-            @click="submitRevoke"
-          >
-            해제
-          </button>
-        </div>
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">제재 해제</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">제재 #{{ revokeTarget?.id ?? '' }} 해제 사유를 입력하세요.</p>
+      <textarea
+        v-model="revokeReason"
+        rows="4"
+        class="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+        placeholder="해제 사유"
+      ></textarea>
+      <div class="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+          @click="closeRevokeModal"
+        >
+          취소
+        </button>
+        <button
+          type="button"
+          class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+          :disabled="isSubmitting"
+          @click="submitRevoke"
+        >
+          해제
+        </button>
+      </div>
     </BaseModal>
   </div>
 </template>

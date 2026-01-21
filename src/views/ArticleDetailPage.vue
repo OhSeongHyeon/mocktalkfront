@@ -9,7 +9,7 @@ import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveFileUrl, resolveImageUrl } from '../lib/files';
 import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
@@ -72,7 +72,7 @@ const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
 
-const boardImageUrl = computed(() => resolveFileUrl(article.value?.board?.boardImage?.storageKey ?? null));
+const boardImageUrl = computed(() => resolveImageUrl(article.value?.board?.boardImage ?? null, 'medium'));
 
 const formatDateTime = (value: string) => {
   const date = new Date(value);
@@ -223,7 +223,12 @@ const confirmDelete = async () => {
   }
 };
 
-const resolveAttachmentUrl = (file: FileResponse) => resolveFileUrl(file.storageKey);
+const resolveAttachmentUrl = (file: FileResponse) => {
+  if (file.mimeType?.startsWith('image/')) {
+    return resolveImageUrl(file, 'original');
+  }
+  return resolveFileUrl(file.storageKey);
+};
 
 const commentPageSize = 10;
 

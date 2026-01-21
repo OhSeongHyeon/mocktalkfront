@@ -6,7 +6,7 @@ import BaseModal from '../components/BaseModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import { formatNotificationMessage } from '../lib/notifications';
 import { applyProfileSummary } from '../lib/profile';
 import { logout } from '../services/auth';
@@ -75,7 +75,7 @@ const resolvedProfileImage = computed(() => {
   if (previewUrl.value) {
     return previewUrl.value;
   }
-  return resolveFileUrl(profile.value?.profileImage?.storageKey ?? null);
+  return resolveImageUrl(profile.value?.profileImage ?? null, 'medium');
 });
 
 const loadProfile = async () => {
@@ -792,47 +792,47 @@ onBeforeUnmount(() => {
     </div>
 
     <BaseModal :open="isDeleteModalOpen" aria-label="계정 삭제" @close="closeDeleteModal">
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">계정 삭제</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
-          <span class="font-semibold text-red-500">탈퇴</span>를 입력하세요.
-        </p>
-        <div class="mt-4 grid gap-2">
-          <label for="delete-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 재확인 문구 </label>
-          <input
-            id="delete-confirm"
-            v-model="deleteConfirmText"
-            type="text"
-            placeholder="탈퇴"
-            class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-            :disabled="isDeleting"
-          />
-        </div>
-        <p
-          v-if="deleteError"
-          class="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-          role="alert"
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">계정 삭제</h3>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
+        <span class="font-semibold text-red-500">탈퇴</span>를 입력하세요.
+      </p>
+      <div class="mt-4 grid gap-2">
+        <label for="delete-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 재확인 문구 </label>
+        <input
+          id="delete-confirm"
+          v-model="deleteConfirmText"
+          type="text"
+          placeholder="탈퇴"
+          class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+          :disabled="isDeleting"
+        />
+      </div>
+      <p
+        v-if="deleteError"
+        class="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
+        role="alert"
+      >
+        {{ deleteError }}
+      </p>
+      <div class="mt-5 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+          :disabled="isDeleting"
+          @click="closeDeleteModal"
         >
-          {{ deleteError }}
-        </p>
-        <div class="mt-5 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-            :disabled="isDeleting"
-            @click="closeDeleteModal"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            class="rounded-full border border-red-300 bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-800"
-            :disabled="isDeleting"
-            @click="confirmDelete"
-          >
-            삭제
-          </button>
-        </div>
+          취소
+        </button>
+        <button
+          type="button"
+          class="rounded-full border border-red-300 bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-800"
+          :disabled="isDeleting"
+          @click="confirmDelete"
+        >
+          삭제
+        </button>
+      </div>
     </BaseModal>
   </div>
 </template>

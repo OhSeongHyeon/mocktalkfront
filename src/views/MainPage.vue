@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import { getBoards } from '../services/boards';
 import type { BoardResponse } from '../services/boards';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
@@ -48,7 +48,7 @@ const visibleBoards = computed(() => {
   return boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug));
 });
 
-const resolveBoardImage = (board: BoardResponse) => resolveFileUrl(board.boardImage?.storageKey ?? null);
+const resolveBoardImage = (board: BoardResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
 
 const resolveDescription = (description: string | null) => {
   const trimmed = description?.trim();

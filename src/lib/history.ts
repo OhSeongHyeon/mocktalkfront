@@ -60,9 +60,7 @@ export const getHistoryItems = (): HistoryItem[] => {
     if (!Array.isArray(parsed)) {
       return [];
     }
-    return parsed
-      .map((item) => normalizeItem(item as HistoryItemInput))
-      .filter((item): item is HistoryItem => Boolean(item));
+    return parsed.map((item) => normalizeItem(item as HistoryItemInput)).filter((item): item is HistoryItem => Boolean(item));
   } catch {
     return [];
   }

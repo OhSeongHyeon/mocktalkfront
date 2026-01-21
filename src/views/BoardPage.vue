@@ -7,7 +7,7 @@ import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import type { ArticleSummaryResponse, BoardDetailResponse } from '../services/boards';
 import { getBoardArticles, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
 import { search } from '../services/search';
@@ -62,7 +62,7 @@ const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
 
-const boardImageUrl = computed(() => resolveFileUrl(board.value?.boardImage?.storageKey ?? null));
+const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 const ownerDisplayName = computed(() => board.value?.ownerDisplayName ?? '정보 없음');
 const visibilityLabel = computed(() => {
   switch (board.value?.visibility) {

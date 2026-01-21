@@ -87,6 +87,7 @@ export interface ArticleCreateRequest {
   title: string;
   content: string;
   notice: boolean;
+  fileIds?: number[];
 }
 
 export interface ArticleUpdateRequest {
@@ -95,6 +96,7 @@ export interface ArticleUpdateRequest {
   title: string;
   content: string;
   notice: boolean;
+  fileIds?: number[];
 }
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;

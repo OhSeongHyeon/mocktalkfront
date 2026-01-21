@@ -7,7 +7,8 @@ import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
+import { resolveImageUrl } from '../lib/files';
 import type { ArticleCreateRequest } from '../services/articles';
 import { createArticle } from '../services/articles';
 import type { BoardDetailResponse } from '../services/boards';
@@ -47,7 +48,7 @@ const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
 
-const boardImageUrl = computed(() => resolveFileUrl(board.value?.boardImage?.storageKey ?? null));
+const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 
 const visibilityOptions = [
   { value: 'PUBLIC', label: '전체 공개' },
@@ -141,6 +142,7 @@ const submit = async () => {
     title: title.value.trim(),
     content: content.value,
     notice: canUseNotice.value ? notice.value : false,
+    fileIds: extractFileIdsFromContent(content.value),
   };
   try {
     const response = await createArticle(payload);

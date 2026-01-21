@@ -29,8 +29,12 @@ export default defineConfig({
   server: {
     // Vite proxy 설정
     proxy: {
-      // 프론트에서 /api 로 보내면 → 백엔드 8081으로 중계
+      // 프론트에서 /api 로 보내면 → 백엔드 port로 중계
       '/api': {
+        target: 'http://localhost:8082',
+        changeOrigin: true,
+      },
+      '/uploads': {
         target: 'http://localhost:8082',
         changeOrigin: true,
       },

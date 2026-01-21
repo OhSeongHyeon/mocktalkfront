@@ -301,33 +301,35 @@ onMounted(async () => {
     </div>
 
     <BaseModal :open="Boolean(roleTarget)" overlay-class="bg-slate-900/50" aria-label="권한 변경" @close="closeRoleModal">
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">권한 변경</h3>
-        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ roleTarget.displayName }}(#{{ roleTarget.id }})의 권한을 변경합니다.</p>
-        <select
-          v-model="nextRole"
-          class="mt-4 h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+      <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">권한 변경</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        {{ roleTarget?.displayName ?? '' }}(#{{ roleTarget?.id ?? '' }})의 권한을 변경합니다.
+      </p>
+      <select
+        v-model="nextRole"
+        class="mt-4 h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+      >
+        <option v-for="role in roleOptions" :key="role" :value="role">
+          {{ role }}
+        </option>
+      </select>
+      <div class="mt-4 flex justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+          @click="closeRoleModal"
         >
-          <option v-for="role in roleOptions" :key="role" :value="role">
-            {{ role }}
-          </option>
-        </select>
-        <div class="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-            @click="closeRoleModal"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-            :disabled="isSubmitting"
-            @click="submitRoleChange"
-          >
-            변경
-          </button>
-        </div>
+          취소
+        </button>
+        <button
+          type="button"
+          class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+          :disabled="isSubmitting"
+          @click="submitRoleChange"
+        >
+          변경
+        </button>
+      </div>
     </BaseModal>
   </div>
 </template>

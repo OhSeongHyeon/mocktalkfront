@@ -4,7 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import {
   createAdminBoard,
   deleteAdminBoard,
@@ -144,7 +144,7 @@ const resolveBoardErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const currentEditImageUrl = computed(() => resolveFileUrl(selectedBoard.value?.boardImage?.storageKey ?? null));
+const currentEditImageUrl = computed(() => resolveImageUrl(selectedBoard.value?.boardImage ?? null, 'medium'));
 const editPreviewImageUrl = computed(() => editPreviewUrl.value ?? currentEditImageUrl.value);
 
 const clearPreviewUrl = (target: 'create' | 'edit') => {
@@ -529,8 +529,8 @@ onBeforeUnmount(() => {
                   <div class="flex flex-wrap items-center gap-3">
                     <div class="h-12 w-12 overflow-hidden rounded-2xl bg-slate-100">
                       <img
-                        v-if="resolveFileUrl(item.boardImage?.storageKey ?? null)"
-                        :src="resolveFileUrl(item.boardImage?.storageKey ?? null) ?? undefined"
+                        v-if="resolveImageUrl(item.boardImage ?? null, 'thumb')"
+                        :src="resolveImageUrl(item.boardImage ?? null, 'thumb') ?? undefined"
                         alt="게시판 대표 이미지"
                         class="h-full w-full object-cover"
                       />

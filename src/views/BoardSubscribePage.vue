@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import { getBoardSubscribes } from '../services/boards';
 import type { BoardSubscribeItemResponse } from '../services/boards';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
@@ -34,7 +34,7 @@ const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
 
-const resolveBoardImage = (board: BoardSubscribeItemResponse) => resolveFileUrl(board.boardImage?.storageKey ?? null);
+const resolveBoardImage = (board: BoardSubscribeItemResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
 
 const resolveDescription = (description: string | null) => {
   const trimmed = description?.trim();

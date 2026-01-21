@@ -20,7 +20,7 @@ import { TextSelection } from 'prosemirror-state';
 import { Video } from '../lib/editor/video';
 import { mentionSuggestion } from '../lib/editor/mentionSuggestion';
 import { uploadEditorFile } from '../services/files';
-import { resolveFileUrl } from '../lib/files';
+import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../lib/files';
 
 interface ArticleEditorProps {
   modelValue: string;
@@ -197,7 +197,8 @@ const handleFiles = async (files: File[]) => {
       }
       try {
         const uploaded = await uploadEditorFile(file);
-        const url = resolveFileUrl(uploaded.storageKey);
+        const url =
+          kind === 'image' ? resolveImageUrl(uploaded, 'large') : (resolveFileViewUrl(uploaded.id ?? null) ?? resolveFileUrl(uploaded.storageKey));
         if (!url) {
           showError('파일 URL 생성에 실패했습니다.');
           continue;

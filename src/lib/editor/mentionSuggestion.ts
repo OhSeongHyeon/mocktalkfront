@@ -3,7 +3,7 @@ import type { SuggestionOptions } from '@tiptap/suggestion';
 
 import MentionList from '../../components/MentionList.vue';
 import { searchMentions } from '../../services/users';
-import { resolveFileUrl } from '../files';
+import { resolveImageUrl } from '../files';
 import type { MentionItem } from './mentionTypes';
 
 const mentionSuggestion: Omit<SuggestionOptions<MentionItem>, 'editor'> = {
@@ -21,7 +21,7 @@ const mentionSuggestion: Omit<SuggestionOptions<MentionItem>, 'editor'> = {
         label: user.handle,
         handle: user.handle,
         displayName: user.displayName,
-        profileImageUrl: resolveFileUrl(user.profileImage?.storageKey),
+        profileImageUrl: resolveImageUrl(user.profileImage ?? null, 'medium'),
       }));
     } catch {
       return [];

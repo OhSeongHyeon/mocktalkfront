@@ -6,7 +6,7 @@ import BoardAdminNav from '../components/BoardAdminNav.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../services/boards';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../services/boardSettings';
@@ -64,7 +64,7 @@ const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMe
 const boardSlug = computed(() => String(route.params.slug ?? ''));
 const boardName = computed(() => board.value?.boardName ?? '게시판');
 
-const currentImageUrl = computed(() => resolveFileUrl(board.value?.boardImage?.storageKey ?? null));
+const currentImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 const previewImageUrl = computed(() => previewUrl.value ?? currentImageUrl.value);
 
 const resetImageInput = () => {

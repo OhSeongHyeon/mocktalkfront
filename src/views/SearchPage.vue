@@ -5,7 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import { search, type SearchResponse, type SearchType } from '../services/search';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
@@ -377,8 +377,8 @@ watch(
                   <div class="flex items-center gap-3">
                     <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
                       <img
-                        v-if="resolveFileUrl(board.boardImage?.storageKey ?? null)"
-                        :src="resolveFileUrl(board.boardImage?.storageKey ?? null) ?? undefined"
+                        v-if="resolveImageUrl(board.boardImage ?? null, 'thumb')"
+                        :src="resolveImageUrl(board.boardImage ?? null, 'thumb') ?? undefined"
                         :alt="board.boardName"
                         class="h-full w-full object-cover"
                       />
@@ -502,8 +502,8 @@ watch(
                   <div class="flex items-center gap-3">
                     <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
                       <img
-                        v-if="resolveFileUrl(board.boardImage?.storageKey ?? null)"
-                        :src="resolveFileUrl(board.boardImage?.storageKey ?? null) ?? undefined"
+                        v-if="resolveImageUrl(board.boardImage ?? null, 'thumb')"
+                        :src="resolveImageUrl(board.boardImage ?? null, 'thumb') ?? undefined"
                         :alt="board.boardName"
                         class="h-full w-full object-cover"
                       />
