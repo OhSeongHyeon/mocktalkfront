@@ -5,10 +5,12 @@ import { useRoute, useRouter } from 'vue-router';
 import ArticleList from '../components/ArticleList.vue';
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import CommentList from '../components/CommentList.vue';
+import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { resolveFileUrl } from '../lib/files';
+import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
 import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction, unbookmarkArticle } from '../services/articles';
@@ -136,6 +138,14 @@ const loadArticle = async () => {
   isLoading.value = true;
   try {
     article.value = await getArticleDetail(articleId.value);
+    if (article.value) {
+      recordHistoryItem({
+        articleId: article.value.id,
+        title: article.value.title ?? '',
+        boardSlug: article.value.board?.slug ?? String(route.params.slug ?? ''),
+        boardName: article.value.board?.boardName ?? null,
+      });
+    }
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       errorMessage.value = '게시글을 찾을 수 없습니다.';
@@ -699,37 +709,24 @@ watch(
       </main>
     </div>
 
-    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
-      <div class="absolute inset-0 bg-slate-900/40" @click="closeDeleteModal"></div>
-      <div class="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">게시글 삭제</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">삭제한 게시글은 복구할 수 없습니다. 계속 진행하시겠어요?</p>
-        <p
-          v-if="deleteError"
-          class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
-          role="alert"
-        >
-          {{ deleteError }}
-        </p>
-        <div class="mt-6 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-            :disabled="isDeleting"
-            @click="closeDeleteModal"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            class="rounded-full border border-rose-300 bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-800"
-            :disabled="isDeleting"
-            @click="confirmDelete"
-          >
-            삭제
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      :open="isDeleteModalOpen"
+      title="게시글 삭제"
+      description="삭제한 게시글은 복구할 수 없습니다. 계속 진행하시겠어요?"
+      confirm-label="삭제"
+      confirm-variant="danger"
+      :confirm-disabled="isDeleting"
+      :cancel-disabled="isDeleting"
+      @close="closeDeleteModal"
+      @confirm="confirmDelete"
+    >
+      <p
+        v-if="deleteError"
+        class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
+        role="alert"
+      >
+        {{ deleteError }}
+      </p>
+    </ConfirmModal>
   </div>
 </template>

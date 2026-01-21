@@ -49,7 +49,7 @@ const baseSections = [
     title: '보관함',
     items: [
       { name: '보관함', icon: 'bookmark', path: '/bookmarks' },
-      { name: '기록', icon: 'history' },
+      { name: '기록', icon: 'history', path: '/history' },
     ],
   },
   {

@@ -14,6 +14,7 @@ const ArticleDetailPage = () => import('../views/ArticleDetailPage.vue');
 const ArticleCreatePage = () => import('../views/ArticleCreatePage.vue');
 const ArticleEditPage = () => import('../views/ArticleEditPage.vue');
 const ArticleBookmarkPage = () => import('../views/ArticleBookmarkPage.vue');
+const HistoryPage = () => import('../views/HistoryPage.vue');
 const SearchPage = () => import('../views/SearchPage.vue');
 const AdminReportsPage = () => import('../views/AdminReportsPage.vue');
 const AdminSanctionsPage = () => import('../views/AdminSanctionsPage.vue');
@@ -35,6 +36,7 @@ const router = createRouter({
     { path: '/search', name: 'search', component: SearchPage },
     { path: '/boards/subscribes', name: 'board-subscribes', component: BoardSubscribePage, meta: { requiresAuth: true } },
     { path: '/bookmarks', name: 'bookmarks', component: ArticleBookmarkPage, meta: { requiresAuth: true } },
+    { path: '/history', name: 'history', component: HistoryPage, meta: { requiresAuth: true } },
     { path: '/admin/users', name: 'admin-users', component: AdminUsersPage, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/admin/boards', name: 'admin-boards', component: AdminBoardsPage, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/admin/reports', name: 'admin-reports', component: AdminReportsPage, meta: { requiresAuth: true, requiresAdmin: true } },

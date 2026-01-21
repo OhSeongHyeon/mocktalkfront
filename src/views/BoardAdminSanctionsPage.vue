@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
+import BaseModal from '../components/BaseModal.vue';
 import BoardAdminNav from '../components/BoardAdminNav.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
@@ -369,8 +370,7 @@ onMounted(async () => {
       </main>
     </div>
 
-    <div v-if="revokeTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-      <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+    <BaseModal :open="Boolean(revokeTarget)" overlay-class="bg-slate-900/50" aria-label="제재 해제" @close="closeRevokeModal">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">제재 해제</h3>
         <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">제재 #{{ revokeTarget.id }} 해제 사유를 입력하세요.</p>
         <textarea
@@ -396,7 +396,6 @@ onMounted(async () => {
             해제
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   </div>
 </template>

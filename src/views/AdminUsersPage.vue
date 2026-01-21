@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue';
 
+import BaseModal from '../components/BaseModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
@@ -299,8 +300,7 @@ onMounted(async () => {
       </main>
     </div>
 
-    <div v-if="roleTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-      <div class="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+    <BaseModal :open="Boolean(roleTarget)" overlay-class="bg-slate-900/50" aria-label="권한 변경" @close="closeRoleModal">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">권한 변경</h3>
         <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ roleTarget.displayName }}(#{{ roleTarget.id }})의 권한을 변경합니다.</p>
         <select
@@ -328,7 +328,6 @@ onMounted(async () => {
             변경
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   </div>
 </template>

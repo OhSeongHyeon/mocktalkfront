@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+import BaseModal from '../components/BaseModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
@@ -790,9 +791,7 @@ onBeforeUnmount(() => {
       </main>
     </div>
 
-    <div v-if="isDeleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
-      <div class="absolute inset-0 bg-slate-900/40" @click="closeDeleteModal"></div>
-      <div class="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
+    <BaseModal :open="isDeleteModalOpen" aria-label="계정 삭제" @close="closeDeleteModal">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">계정 삭제</h3>
         <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
           계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
@@ -834,7 +833,6 @@ onBeforeUnmount(() => {
             삭제
           </button>
         </div>
-      </div>
-    </div>
+    </BaseModal>
   </div>
 </template>

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import BookmarkList from '../components/BookmarkList.vue';
+import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
@@ -204,39 +205,24 @@ onMounted(() => {
       </main>
     </div>
 
-    <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
-      <div class="absolute inset-0 bg-slate-900/40" @click="closeDeleteModal"></div>
-      <div class="relative w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950">
-        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">북마크 삭제</h3>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          {{ deleteMode === 'all' ? '모든 북마크를 삭제할까요?' : '선택한 북마크를 삭제할까요?' }}
-        </p>
-        <p
-          v-if="deleteError"
-          class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
-          role="alert"
-        >
-          {{ deleteError }}
-        </p>
-        <div class="mt-6 flex items-center justify-end gap-2">
-          <button
-            type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-            :disabled="isDeleting"
-            @click="closeDeleteModal"
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            class="rounded-full border border-rose-300 bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-800"
-            :disabled="isDeleting"
-            @click="confirmDelete"
-          >
-            삭제
-          </button>
-        </div>
-      </div>
-    </div>
+    <ConfirmModal
+      :open="showDeleteModal"
+      title="북마크 삭제"
+      :description="deleteMode === 'all' ? '모든 북마크를 삭제할까요?' : '선택한 북마크를 삭제할까요?'"
+      confirm-label="삭제"
+      confirm-variant="danger"
+      :confirm-disabled="isDeleting"
+      :cancel-disabled="isDeleting"
+      @close="closeDeleteModal"
+      @confirm="confirmDelete"
+    >
+      <p
+        v-if="deleteError"
+        class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
+        role="alert"
+      >
+        {{ deleteError }}
+      </p>
+    </ConfirmModal>
   </div>
 </template>
