@@ -22,6 +22,10 @@ const apiBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BAS
 const googleAuthUrl = `${apiBase}/oauth2/authorization/google`;
 const githubAuthUrl = `${apiBase}/oauth2/authorization/github`;
 
+const handleForgotPassword = () => {
+  alert('아직 구현안됨.');
+};
+
 const handleSubmit = async () => {
   errorMessage.value = '';
   const trimmedId = loginId.value.trim();
@@ -67,28 +71,14 @@ const handleSubmit = async () => {
   <div class="min-h-screen text-slate-900 dark:text-slate-100">
     <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
       <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-        <span class="hidden sm:inline">MockTalk</span>
+        <span class="inline">MockTalk</span>
       </RouterLink>
       <RouterLink to="/" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
         홈으로
       </RouterLink>
     </header>
 
-    <main class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8">
-      <section class="flex w-full flex-1 flex-col gap-6 pt-4">
-        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">MockTalk Login</p>
-        <h1 class="text-3xl font-semibold leading-tight text-slate-900 dark:text-white sm:text-4xl">
-          크리에이터처럼 꾸미고,<br />
-          커뮤니티처럼 소통하세요.
-        </h1>
-        <p class="text-base text-slate-600 dark:text-slate-300">로그인 아이디로 빠르게 입장해서 게시판, 갤러리, 알림을 한곳에서 관리합니다.</p>
-        <div class="flex flex-wrap gap-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 게시판 </span>
-          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 갤러리 </span>
-          <span class="rounded-full border border-slate-200 bg-white px-3 py-1 dark:border-slate-800 dark:bg-slate-900"> 알림 </span>
-        </div>
-      </section>
-
+    <main class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-8">
       <section class="w-full max-w-md">
         <form
           class="flex flex-col gap-6 rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/90"
@@ -127,7 +117,11 @@ const handleSubmit = async () => {
               <input v-model="rememberMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-red-500 dark:border-slate-700" />
               로그인 유지
             </label>
-            <a href="#" class="font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+            <a
+              href="#"
+              class="font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+              @click.prevent="handleForgotPassword"
+            >
               비밀번호 찾기
             </a>
           </div>

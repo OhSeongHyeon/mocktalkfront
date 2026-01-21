@@ -118,6 +118,7 @@ const joinDisabled = computed(() => {
   const status = board.value?.memberStatus;
   return !isAuthenticated.value || status === 'MEMBER' || status === 'MODERATOR' || status === 'OWNER' || status === 'BANNED' || isJoining.value;
 });
+const showJoinButton = computed(() => Boolean(board.value && board.value.visibility !== 'PUBLIC'));
 const subscribeLabel = computed(() => (board.value?.subscribed ? '구독중' : '구독'));
 const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing.value);
 
@@ -356,12 +357,17 @@ watch(
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl">
-          <BoardHeaderCard :title="board?.boardName ?? '커뮤니티'" :description="board?.description ?? '설명이 없습니다.'" :image-url="boardImageUrl">
+        <div class="mx-auto w-full max-w-7xl">
+          <BoardHeaderCard
+            :title="board?.boardName ?? '커뮤니티'"
+            :description="board?.description ?? '설명이 없습니다.'"
+            :image-url="boardImageUrl"
+            :link-to="board ? `/b/${board.slug}` : undefined"
+          >
             <template #meta>
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                 <span>운영자 {{ ownerDisplayName }}</span>
-                <span>가시성 {{ visibilityLabel }}</span>
+                <span>{{ visibilityLabel }} 커뮤니티</span>
               </div>
             </template>
             <template #actions>
@@ -383,6 +389,7 @@ watch(
                   {{ subscribeLabel }}
                 </button>
                 <button
+                  v-if="showJoinButton"
                   type="button"
                   class="rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200"
                   :disabled="joinDisabled"

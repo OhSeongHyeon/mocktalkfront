@@ -15,7 +15,7 @@ import iconMegaphone from '../assets/icons/icon-megaphone.svg';
 import iconPulse from '../assets/icons/icon-pulse.svg';
 import iconSettings from '../assets/icons/icon-settings.svg';
 import iconShield from '../assets/icons/icon-shield.svg';
-import iconStack from '../assets/icons/icon-stack.svg';
+import iconSubscribe from '../assets/icons/icon-subscribe.svg';
 import iconUsers from '../assets/icons/icon-users.svg';
 const props = defineProps<{
   collapsed: boolean;
@@ -28,12 +28,19 @@ const emit = defineEmits<{
 
 const route = useRoute();
 
+type SideMenuItem = {
+  name: string;
+  icon: string;
+  path?: string;
+  active?: boolean;
+};
+
 const baseSections = [
   {
     title: '메인',
     items: [
       { name: '홈', icon: 'home', path: '/' },
-      { name: '구독', icon: 'stack', path: '/boards/subscribes' },
+      { name: '구독', icon: 'subscribe', path: '/boards/subscribes' },
     ],
   },
   {
@@ -63,7 +70,7 @@ const baseSections = [
 
 const iconAssets: Record<string, string> = {
   home: iconHome,
-  stack: iconStack,
+  subscribe: iconSubscribe,
   megaphone: iconMegaphone,
   chat: iconChat,
   community: iconCommunity,
@@ -97,7 +104,10 @@ const closeMobileMenu = () => {
   emit('close');
 };
 
-const handleMenuClick = () => {
+const handleMenuClick = (item: SideMenuItem) => {
+  if (!item.path) {
+    alert('아직 구현안됨.');
+  }
   if (props.mobileOpen) {
     emit('close');
   }
@@ -158,7 +168,7 @@ const sections = computed(() =>
           :aria-current="item.active ? 'page' : undefined"
           :title="isCompact ? item.name : undefined"
           :type="item.path ? undefined : 'button'"
-          @click="handleMenuClick"
+          @click="handleMenuClick(item)"
         >
           <span
             class="grid h-9 w-9 place-items-center rounded-xl"

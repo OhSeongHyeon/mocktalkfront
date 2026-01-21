@@ -10,6 +10,7 @@ interface CommentItemProps {
   currentUserId: number | null;
   articleAuthorId: number | null;
   isAuthenticated: boolean;
+  focusCommentId?: number | null;
 }
 
 const props = defineProps<CommentItemProps>();
@@ -35,6 +36,11 @@ const cardClass = computed(() =>
       ? 'border-slate-200/70 bg-slate-50 text-slate-400 dark:border-slate-800/70 dark:bg-slate-900/40 dark:text-slate-500'
       : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200',
   ].join(' '),
+);
+const focusClass = computed(() =>
+  props.focusCommentId === props.comment.id
+    ? 'ring-2 ring-emerald-300/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/40 dark:ring-offset-slate-950'
+    : '',
 );
 
 const toggleReply = () => {
@@ -140,7 +146,7 @@ const isEdited = computed(() => {
 </script>
 
 <template>
-  <div :class="cardClass">
+  <div :id="`comment-${comment.id}`" :class="[cardClass, focusClass]">
     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
       <div class="flex flex-wrap items-center gap-2">
         <span class="font-semibold" :class="isOwner ? 'text-blue-600 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'">

@@ -20,9 +20,12 @@ export interface FileResponse {
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
 
-const uploadEditorFile = async (file: File) => {
+const uploadEditorFile = async (file: File, options?: { preserveMetadata?: boolean }) => {
   const formData = new FormData();
   formData.append('file', file);
+  if (options?.preserveMetadata) {
+    formData.append('preserveMetadata', 'true');
+  }
   const response = await request<ApiEnvelope<FileResponse>>('/files/editor', {
     method: 'POST',
     body: formData,

@@ -6,6 +6,7 @@ import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { createBoard, uploadBoardImage } from '../services/boards';
+import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
@@ -185,7 +186,7 @@ onBeforeUnmount(() => {
                     <option value="PUBLIC">공개</option>
                     <option value="GROUP">구독 멤버만</option>
                     <option value="PRIVATE">소유자만</option>
-                    <option value="UNLISTED">운영자만</option>
+                    <option v-if="isAdmin" value="UNLISTED">운영자만</option>
                   </select>
                 </div>
               </div>

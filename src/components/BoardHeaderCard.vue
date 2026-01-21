@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router';
+
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 interface BoardHeaderCardProps {
   title: string;
   description?: string | null;
   imageUrl?: string | null;
+  linkTo?: string;
 }
 
 const props = defineProps<BoardHeaderCardProps>();
@@ -21,7 +24,14 @@ const props = defineProps<BoardHeaderCardProps>();
     </div>
     <div class="px-6 py-6">
       <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-        {{ props.title }}
+        <RouterLink
+          v-if="props.linkTo"
+          :to="props.linkTo"
+          class="transition hover:text-slate-700 dark:hover:text-white"
+        >
+          {{ props.title }}
+        </RouterLink>
+        <span v-else>{{ props.title }}</span>
       </h1>
       <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
         {{ props.description ?? '설명이 없습니다.' }}

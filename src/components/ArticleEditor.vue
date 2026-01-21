@@ -21,6 +21,7 @@ import { Video } from '../lib/editor/video';
 import { mentionSuggestion } from '../lib/editor/mentionSuggestion';
 import { uploadEditorFile } from '../services/files';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../lib/files';
+import BaseModal from './BaseModal.vue';
 
 interface ArticleEditorProps {
   modelValue: string;
@@ -41,6 +42,22 @@ const errorMessage = ref<string | null>(null);
 const uploadCount = ref(0);
 const imageInputRef = ref<HTMLInputElement | null>(null);
 const videoInputRef = ref<HTMLInputElement | null>(null);
+const isDropActive = ref(false);
+const isYoutubeModalOpen = ref(false);
+const youtubeUrlInput = ref('');
+const youtubeErrorMessage = ref('');
+const youtubeInputRef = ref<HTMLInputElement | null>(null);
+
+const youtubeSizeOptions = [
+  { value: 'sm', label: '작게 (480x270)', width: 480, height: 270 },
+  { value: 'md', label: '기본 (640x360)', width: 640, height: 360 },
+  { value: 'lg', label: '크게 (800x450)', width: 800, height: 450 },
+  { value: 'xl', label: '와이드 (960x540)', width: 960, height: 540 },
+];
+
+type YoutubeSizeValue = (typeof youtubeSizeOptions)[number]['value'];
+
+const youtubeSize = ref<YoutubeSizeValue>('md');
 
 const CustomHardBreak = HardBreak.extend({
   addKeyboardShortcuts() {
@@ -137,6 +154,19 @@ watch(
   },
 );
 
+watch(
+  () => isYoutubeModalOpen.value,
+  (open) => {
+    if (!open) {
+      return;
+    }
+    youtubeErrorMessage.value = '';
+    window.setTimeout(() => {
+      youtubeInputRef.value?.focus();
+    }, 0);
+  },
+);
+
 onBeforeUnmount(() => {
   editor.value?.destroy();
 });
@@ -213,6 +243,39 @@ const handleFiles = async (files: File[]) => {
   }
 };
 
+const resolveYoutubeSize = () => youtubeSizeOptions.find((option) => option.value === youtubeSize.value) ?? youtubeSizeOptions[1];
+
+const isFileDrag = (event: DragEvent) => {
+  const types = event.dataTransfer?.types ? Array.from(event.dataTransfer.types) : [];
+  return types.includes('Files');
+};
+
+const handleDropZoneDragOver = (event: DragEvent) => {
+  if (!isFileDrag(event)) {
+    return;
+  }
+  event.preventDefault();
+  isDropActive.value = true;
+};
+
+const handleDropZoneDragLeave = () => {
+  isDropActive.value = false;
+};
+
+const handleDropZoneDrop = async (event: DragEvent) => {
+  if (!isFileDrag(event)) {
+    return;
+  }
+  event.preventDefault();
+  isDropActive.value = false;
+  const files = Array.from(event.dataTransfer?.files ?? []);
+  if (files.length === 0) {
+    return;
+  }
+  focusEditor();
+  await handleFiles(files);
+};
+
 const openImagePicker = () => imageInputRef.value?.click();
 const openVideoPicker = () => videoInputRef.value?.click();
 
@@ -274,20 +337,35 @@ const setLink = () => {
   editor.value.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run();
 };
 
-const addYoutube = () => {
+const openYoutubeModal = () => {
+  youtubeUrlInput.value = '';
+  youtubeErrorMessage.value = '';
+  isYoutubeModalOpen.value = true;
+};
+
+const closeYoutubeModal = () => {
+  isYoutubeModalOpen.value = false;
+  youtubeErrorMessage.value = '';
+};
+
+const confirmYoutube = () => {
   if (!editor.value) {
     return;
   }
-  const url = window.prompt('유튜브 URL을 입력하세요.');
-  if (!url) {
+  const trimmed = youtubeUrlInput.value.trim();
+  if (!trimmed) {
+    youtubeErrorMessage.value = '유튜브 URL을 입력하세요.';
     return;
   }
-  const embedUrl = normalizeYoutubeUrl(url.trim());
+  const embedUrl = normalizeYoutubeUrl(trimmed);
   if (!embedUrl) {
-    window.alert('유튜브 URL 형식이 올바르지 않습니다.');
+    youtubeErrorMessage.value = '유튜브 URL 형식이 올바르지 않습니다.';
     return;
   }
-  editor.value.chain().focus().setYoutubeVideo({ src: embedUrl }).run();
+  const size = resolveYoutubeSize();
+  editor.value.chain().focus().setYoutubeVideo({ src: embedUrl, width: size.width, height: size.height }).run();
+  isYoutubeModalOpen.value = false;
+  youtubeUrlInput.value = '';
 };
 
 const normalizeYoutubeUrl = (raw: string) => {
@@ -323,6 +401,18 @@ const deleteColumn = () => editor.value?.chain().focus().deleteColumn().run();
 const addRowAfter = () => editor.value?.chain().focus().addRowAfter().run();
 const deleteRow = () => editor.value?.chain().focus().deleteRow().run();
 const deleteTable = () => editor.value?.chain().focus().deleteTable().run();
+
+const applyYoutubeSize = () => {
+  if (!editor.value) {
+    return;
+  }
+  if (!editor.value.isActive('youtube')) {
+    showError('크기를 변경할 유튜브를 선택하세요.');
+    return;
+  }
+  const size = resolveYoutubeSize();
+  editor.value.chain().focus().updateAttributes('youtube', { width: size.width, height: size.height }).run();
+};
 
 const buttonClass = (active = false) =>
   [
@@ -361,7 +451,17 @@ const toolbarDividerClass = 'h-5 w-px bg-slate-200 dark:bg-slate-800';
       <button type="button" :class="buttonClass(editor?.isActive('link'))" @click="setLink">링크</button>
       <button type="button" :class="buttonClass()" @click="openImagePicker">이미지</button>
       <button type="button" :class="buttonClass()" @click="openVideoPicker">영상</button>
-      <button type="button" :class="buttonClass()" @click="addYoutube">유튜브</button>
+      <button type="button" :class="buttonClass()" @click="openYoutubeModal">유튜브</button>
+      <select
+        v-model="youtubeSize"
+        class="h-7 rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-600 transition focus:border-emerald-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+        aria-label="유튜브 크기"
+      >
+        <option v-for="option in youtubeSizeOptions" :key="option.value" :value="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+      <button type="button" :class="buttonClass()" @click="applyYoutubeSize">크기 적용</button>
       <button type="button" :class="buttonClass()" @click="startMention">멘션</button>
       <span :class="toolbarDividerClass" aria-hidden="true"></span>
       <button type="button" :class="buttonClass()" @click="insertTable">테이블</button>
@@ -375,16 +475,71 @@ const toolbarDividerClass = 'h-5 w-px bg-slate-200 dark:bg-slate-800';
       <button type="button" :class="buttonClass()" @click="redo">다시</button>
       <span v-if="uploadCount > 0" class="text-xs font-semibold text-emerald-600 dark:text-emerald-300"> 업로드 중... </span>
     </div>
+    <div
+      class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-dashed px-4 py-2 text-xs font-semibold transition"
+      :class="
+        isDropActive
+          ? 'border-emerald-400 bg-emerald-50 text-emerald-700 dark:border-emerald-500/70 dark:bg-emerald-500/10 dark:text-emerald-200'
+          : 'border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400'
+      "
+      @dragenter.prevent="handleDropZoneDragOver"
+      @dragover.prevent="handleDropZoneDragOver"
+      @dragleave="handleDropZoneDragLeave"
+      @drop.prevent="handleDropZoneDrop"
+    >
+      <span>이미지/영상 파일을 여기에 드래그하세요.</span>
+      <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500">최대 50MB</span>
+    </div>
     <EditorContent :editor="editor" class="min-h-[360px] px-4 py-4 text-sm leading-relaxed text-slate-700 dark:text-slate-200" @click="focusEditor" />
     <div class="border-t border-slate-200 px-4 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400">
       단축키: Ctrl/Cmd+B 굵게, Ctrl/Cmd+I 기울임, Ctrl/Cmd+K 링크, Ctrl/Cmd+Z 되돌리기, Ctrl/Cmd+Y 다시, Enter 줄바꿈, Shift+Enter 문단. 이미지/영상은
-      드래그&드롭 가능.
+      본문 또는 업로드 영역에서 드래그&드롭 가능합니다.
     </div>
     <div v-if="errorMessage" class="border-t border-slate-200 px-4 py-2 text-xs text-rose-600 dark:border-slate-800">
       {{ errorMessage }}
     </div>
     <input ref="imageInputRef" type="file" accept="image/*" class="hidden" multiple @change="onImagePicked" />
     <input ref="videoInputRef" type="file" accept="video/mp4,video/webm" class="hidden" multiple @change="onVideoPicked" />
+
+    <BaseModal :open="isYoutubeModalOpen" aria-label="유튜브 링크 입력" @close="closeYoutubeModal">
+      <template #default="{ titleId }">
+        <div class="space-y-4">
+          <div>
+            <h2 :id="titleId" class="text-lg font-semibold text-slate-900 dark:text-slate-100">유튜브 링크 추가</h2>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">유튜브 URL을 입력하면 자동으로 임베드됩니다.</p>
+          </div>
+          <form class="space-y-3" @submit.prevent="confirmYoutube">
+            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+              URL
+              <input
+                ref="youtubeInputRef"
+                v-model="youtubeUrlInput"
+                type="url"
+                inputmode="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </label>
+            <p v-if="youtubeErrorMessage" class="text-xs font-semibold text-rose-500">{{ youtubeErrorMessage }}</p>
+            <div class="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+                @click="closeYoutubeModal"
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600"
+              >
+                추가
+              </button>
+            </div>
+          </form>
+        </div>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -414,6 +569,10 @@ const toolbarDividerClass = 'h-5 w-px bg-slate-200 dark:bg-slate-800';
   background: rgba(15, 23, 42, 0.04);
   border-radius: 0.5rem;
   padding: 0.75rem;
+}
+
+:deep(.ProseMirror iframe) {
+  max-width: 100%;
 }
 
 :deep(.dark .ProseMirror pre) {

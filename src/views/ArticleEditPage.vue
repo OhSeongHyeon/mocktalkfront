@@ -11,8 +11,11 @@ import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
 import { resolveImageUrl } from '../lib/files';
 import type { ArticleDetailResponse, ArticleUpdateRequest } from '../services/articles';
 import { getArticleDetail, updateArticle } from '../services/articles';
+import type { BoardDetailResponse } from '../services/boards';
+import { getBoardBySlug } from '../services/boards';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
+import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const route = useRoute();
@@ -23,12 +26,12 @@ const slug = computed(() => String(route.params.slug ?? ''));
 
 const isMobileMenuOpen = ref(false);
 const article = ref<ArticleDetailResponse | null>(null);
+const board = ref<BoardDetailResponse | null>(null);
 const profile = ref<UserProfileResponse | null>(null);
 
 const title = ref('');
 const content = ref('');
 const visibility = ref('PUBLIC');
-const notice = ref(false);
 
 const errorMessage = ref('');
 const isLoading = ref(false);
@@ -50,12 +53,24 @@ const closeMobileMenu = () => {
 
 const boardImageUrl = computed(() => resolveImageUrl(article.value?.board?.boardImage ?? null, 'medium'));
 
-const visibilityOptions = [
-  { value: 'PUBLIC', label: '전체 공개' },
-  { value: 'MEMBERS', label: '로그인 사용자' },
-  { value: 'MODERATORS', label: '운영진' },
-  { value: 'ADMINS', label: '사이트 관리자' },
-];
+const isBoardAdmin = computed(() => {
+  const role = board.value?.memberStatus;
+  return role === 'OWNER' || role === 'MODERATOR';
+});
+
+const visibilityOptions = computed(() => {
+  const base = [
+    { value: 'PUBLIC', label: '전체 공개' },
+    { value: 'MEMBERS', label: '로그인 사용자' },
+  ];
+  if (isAdmin.value) {
+    return [...base, { value: 'MODERATORS', label: '운영진' }, { value: 'ADMINS', label: '사이트 관리자' }];
+  }
+  if (isBoardAdmin.value) {
+    return [...base, { value: 'MODERATORS', label: '운영진' }];
+  }
+  return base;
+});
 
 const isAuthor = computed(() => {
   if (!profile.value || !article.value) {
@@ -63,8 +78,6 @@ const isAuthor = computed(() => {
   }
   return profile.value.userId === article.value.userId;
 });
-
-const canUseNotice = computed(() => isAuthor.value);
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
 
@@ -90,7 +103,7 @@ const loadArticle = async () => {
     title.value = article.value.title;
     content.value = article.value.content;
     visibility.value = article.value.visibility;
-    notice.value = article.value.notice;
+    await loadBoard(article.value.board?.slug ?? '');
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       errorMessage.value = '게시글을 찾을 수 없습니다.';
@@ -103,6 +116,18 @@ const loadArticle = async () => {
     errorMessage.value = error instanceof ApiError ? error.message : '게시글을 불러오지 못했습니다.';
   } finally {
     isLoading.value = false;
+  }
+};
+
+const loadBoard = async (slugValue: string) => {
+  if (!slugValue) {
+    board.value = null;
+    return;
+  }
+  try {
+    board.value = await getBoardBySlug(slugValue);
+  } catch {
+    board.value = null;
   }
 };
 
@@ -132,7 +157,7 @@ const submit = async () => {
     visibility: visibility.value,
     title: title.value.trim(),
     content: content.value,
-    notice: canUseNotice.value ? notice.value : false,
+    notice: article.value.notice,
     fileIds: extractFileIdsFromContent(content.value),
   };
   try {
@@ -178,6 +203,7 @@ watch(
             :title="article?.board?.boardName ?? '커뮤니티'"
             :description="article?.board?.description ?? '설명이 없습니다.'"
             :image-url="boardImageUrl"
+            :link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
           />
 
           <div
@@ -202,7 +228,7 @@ watch(
                   />
                 </label>
 
-                <div class="grid gap-4 sm:grid-cols-2">
+                <div class="flex flex-col gap-4">
                   <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
                     공개 범위
                     <select
@@ -213,16 +239,6 @@ watch(
                         {{ option.label }}
                       </option>
                     </select>
-                  </label>
-
-                  <label class="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    <input
-                      v-model="notice"
-                      type="checkbox"
-                      class="h-4 w-4 rounded border-slate-300 text-amber-500 focus:ring-amber-400 disabled:opacity-50"
-                      :disabled="!canUseNotice"
-                    />
-                    공지글로 등록
                   </label>
                 </div>
               </div>

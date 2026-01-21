@@ -101,20 +101,18 @@ const handlePageChange = (page: number) => {
   <section v-if="showPinned" class="mt-8">
     <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">공지</h2>
     <div class="mt-3 space-y-3">
-      <article
+      <button
         v-for="article in pinnedList"
         :key="article.id"
-        class="flex flex-col gap-2 rounded-2xl border border-amber-200/70 bg-amber-50/70 px-5 py-4 transition hover:-translate-y-0.5 dark:border-amber-900/40 dark:bg-amber-950/30"
+        type="button"
+        class="flex w-full flex-col gap-2 rounded-2xl border border-amber-200/70 bg-amber-50/70 px-5 py-4 text-left transition hover:-translate-y-0.5 dark:border-amber-900/40 dark:bg-amber-950/30"
+        @click="handleSelect(article.id)"
       >
         <div class="flex items-center gap-2">
           <span class="inline-flex rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white"> 공지 </span>
-          <button
-            type="button"
-            class="text-left text-sm font-semibold text-slate-900 hover:text-slate-700 dark:text-slate-100 dark:hover:text-white"
-            @click="handleSelect(article.id)"
-          >
+          <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
             {{ article.title }}
-          </button>
+          </span>
         </div>
         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           <span>{{ article.authorName }}</span>
@@ -124,7 +122,7 @@ const handlePageChange = (page: number) => {
           <span>싫어요 {{ article.dislikeCount }}</span>
           <span>조회 {{ article.hit }}</span>
         </div>
-      </article>
+      </button>
     </div>
   </section>
 
@@ -153,18 +151,16 @@ const handlePageChange = (page: number) => {
     </div>
 
     <div v-else class="mt-4 space-y-3">
-      <article
+      <button
         v-for="article in articles"
         :key="article.id"
-        class="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:border-slate-800 dark:bg-slate-950"
+        type="button"
+        class="flex w-full flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white px-5 py-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:border-slate-800 dark:bg-slate-950"
+        @click="handleSelect(article.id)"
       >
-        <button
-          type="button"
-          class="text-left text-sm font-semibold text-slate-900 hover:text-slate-700 dark:text-slate-100 dark:hover:text-white"
-          @click="handleSelect(article.id)"
-        >
+        <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
           {{ article.title }}
-        </button>
+        </span>
         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           <span>{{ article.authorName }}</span>
           <span>{{ formatDate(article.createdAt) }}</span>
@@ -173,7 +169,7 @@ const handlePageChange = (page: number) => {
           <span>싫어요 {{ article.dislikeCount }}</span>
           <span>조회 {{ article.hit }}</span>
         </div>
-      </article>
+      </button>
     </div>
 
     <div v-if="showPagination" class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">

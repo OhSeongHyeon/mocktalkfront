@@ -9,6 +9,7 @@ interface CommentListProps {
   articleAuthorId: number | null;
   isAuthenticated: boolean;
   depth?: number;
+  focusCommentId?: number | null;
 }
 
 const props = defineProps<CommentListProps>();
@@ -32,6 +33,7 @@ const depthValue = props.depth ?? 0;
           :current-user-id="currentUserId"
           :article-author-id="articleAuthorId"
           :is-authenticated="isAuthenticated"
+          :focus-comment-id="focusCommentId"
           @reply="emit('reply', $event)"
           @update="emit('update', $event)"
           @delete="emit('delete', $event)"
@@ -44,6 +46,7 @@ const depthValue = props.depth ?? 0;
             :article-author-id="articleAuthorId"
             :is-authenticated="isAuthenticated"
             :depth="depthValue + 1"
+            :focus-comment-id="focusCommentId"
             @reply="emit('reply', $event)"
             @update="emit('update', $event)"
             @delete="emit('delete', $event)"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleList from '../components/ArticleList.vue';
@@ -50,6 +50,8 @@ const boardPage = ref(0);
 const boardTotalPages = ref(0);
 const boardHasNext = ref(false);
 const boardHasPrevious = ref(false);
+const focusCommentId = ref<number | null>(null);
+const focusTimer = ref<number | null>(null);
 
 const boardPageSize = computed(() => articleListPageSize.value);
 const boardPageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
@@ -112,12 +114,56 @@ const boardLink = computed(() => {
   return slug ? `/b/${slug}` : '/';
 });
 
+const parseCommentId = () => {
+  const raw = route.query.commentId;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const id = Number(value);
+  return Number.isFinite(id) ? id : null;
+};
+
 const handleBoardPageSizeChange = (size: number) => {
   setArticleListPageSize(size);
 };
 
 const handleBoardPageChange = (nextPage: number) => {
   loadBoardArticles(nextPage);
+};
+
+const hasComment = (nodes: CommentTreeResponse[], targetId: number): boolean => {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      return true;
+    }
+    if (node.children.length > 0 && hasComment(node.children, targetId)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const clearFocusTimer = () => {
+  if (focusTimer.value) {
+    window.clearTimeout(focusTimer.value);
+    focusTimer.value = null;
+  }
+};
+
+const setFocusHighlight = (targetId: number) => {
+  focusCommentId.value = targetId;
+  clearFocusTimer();
+  focusTimer.value = window.setTimeout(() => {
+    focusCommentId.value = null;
+  }, 3000);
+};
+
+const scrollToComment = async (targetId: number) => {
+  await nextTick();
+  const element = document.getElementById(`comment-${targetId}`);
+  if (!element) {
+    return;
+  }
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setFocusHighlight(targetId);
 };
 
 const isAuthor = computed(() => {
@@ -296,6 +342,53 @@ const loadLastCommentPage = async () => {
   }
 };
 
+const loadCommentPageWithTarget = async (targetId: number) => {
+  if (!Number.isFinite(articleId.value)) {
+    return false;
+  }
+  if (comments.value && hasComment(comments.value.items, targetId)) {
+    return true;
+  }
+  commentError.value = '';
+  isCommentLoading.value = true;
+  try {
+    const first = await getArticleComments(articleId.value, 0, commentPageSize);
+    if (hasComment(first.items, targetId)) {
+      comments.value = first;
+      commentPage.value = first.page;
+      return true;
+    }
+    const totalPages = first.totalPages;
+    for (let page = 1; page < totalPages; page += 1) {
+      const response = await getArticleComments(articleId.value, page, commentPageSize);
+      if (hasComment(response.items, targetId)) {
+        comments.value = response;
+        commentPage.value = response.page;
+        return true;
+      }
+    }
+    comments.value = first;
+    commentPage.value = first.page;
+    return false;
+  } catch (error) {
+    commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
+    return false;
+  } finally {
+    isCommentLoading.value = false;
+  }
+};
+
+const focusComment = async (targetId: number | null) => {
+  if (!targetId || !Number.isFinite(targetId)) {
+    focusCommentId.value = null;
+    return;
+  }
+  const found = await loadCommentPageWithTarget(targetId);
+  if (found) {
+    await scrollToComment(targetId);
+  }
+};
+
 const refreshComments = async () => {
   await loadLastCommentPage();
   await loadArticle();
@@ -442,7 +535,12 @@ const handleCommentPage = async (page: number) => {
 onMounted(async () => {
   await loadArticle();
   await loadProfile();
-  await refreshComments();
+  const targetId = parseCommentId();
+  if (targetId) {
+    await focusComment(targetId);
+  } else {
+    await refreshComments();
+  }
   await loadBoardArticles(0);
 });
 
@@ -450,8 +548,25 @@ watch(
   () => route.params.articleId,
   async () => {
     await loadArticle();
-    await refreshComments();
+    const targetId = parseCommentId();
+    if (targetId) {
+      await focusComment(targetId);
+    } else {
+      await refreshComments();
+    }
     await loadBoardArticles(0);
+  },
+);
+
+watch(
+  () => route.query.commentId,
+  async () => {
+    const targetId = parseCommentId();
+    if (!targetId) {
+      focusCommentId.value = null;
+      return;
+    }
+    await focusComment(targetId);
   },
 );
 
@@ -476,11 +591,12 @@ watch(
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-4xl">
+        <div class="mx-auto w-full max-w-7xl">
           <BoardHeaderCard
             :title="article?.board?.boardName ?? '커뮤니티'"
             :description="article?.board?.description ?? '설명이 없습니다.'"
             :image-url="boardImageUrl"
+            :link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
           >
             <template #actions>
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
@@ -655,6 +771,7 @@ watch(
                   :current-user-id="currentUserId"
                   :article-author-id="article?.userId ?? null"
                   :is-authenticated="isAuthenticated"
+                  :focus-comment-id="focusCommentId"
                   @reply="handleReply"
                   @update="handleUpdate"
                   @delete="handleDelete"

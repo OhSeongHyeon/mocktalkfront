@@ -10,6 +10,7 @@ import { resolveImageUrl } from '../lib/files';
 import { formatNotificationMessage } from '../lib/notifications';
 import { applyProfileSummary } from '../lib/profile';
 import { logout } from '../services/auth';
+import { getArticleDetail } from '../services/articles';
 import { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile } from '../services/mypage';
 import type { ArticleResponse, CommentResponse, PageResponse, UserProfileResponse } from '../services/mypage';
 import { deleteAllNotifications, deleteNotification, getNotifications, markNotificationRead } from '../services/notifications';
@@ -303,6 +304,46 @@ const formatDate = (value?: string | null) => {
     month: '2-digit',
     day: '2-digit',
   });
+};
+
+const resolveArticlePath = async (articleId: number) => {
+  listError.value = '';
+  try {
+    const detail = await getArticleDetail(articleId);
+    const slug = detail.board?.slug;
+    if (!slug) {
+      listError.value = '게시글 정보를 확인할 수 없습니다.';
+      return null;
+    }
+    return `/b/${slug}/articles/${articleId}`;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      await router.push('/login');
+      return null;
+    }
+    listError.value = error instanceof ApiError ? error.message : '게시글 이동에 실패했습니다.';
+    return null;
+  }
+};
+
+const handleActivityClick = async (item: ArticleResponse | CommentResponse) => {
+  if (listLoading.value) {
+    return;
+  }
+  if (activeTab.value === 'articles') {
+    const path = await resolveArticlePath((item as ArticleResponse).id);
+    if (path) {
+      await router.push(path);
+    }
+    return;
+  }
+  if (activeTab.value === 'comments') {
+    const commentItem = item as CommentResponse;
+    const path = await resolveArticlePath(commentItem.articleId);
+    if (path) {
+      await router.push({ path, query: { commentId: String(commentItem.id) } });
+    }
+  }
 };
 
 const currentList = computed(() => {
@@ -771,7 +812,12 @@ onBeforeUnmount(() => {
                     </button>
                   </div>
                 </button>
-                <div v-else>
+                <button
+                  v-else
+                  type="button"
+                  class="flex w-full flex-col gap-2 text-left"
+                  @click="handleActivityClick(item as ArticleResponse | CommentResponse)"
+                >
                   <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="font-semibold text-slate-900 dark:text-white">
                       {{ activeTab === 'articles' ? (item as ArticleResponse).title : '댓글' }}
@@ -780,10 +826,10 @@ onBeforeUnmount(() => {
                       {{ formatDate(item.createdAt) }}
                     </div>
                   </div>
-                  <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                    {{ activeTab === 'articles' ? (item as ArticleResponse).content : (item as CommentResponse).content }}
+                  <p v-if="activeTab === 'comments'" class="text-sm text-slate-600 dark:text-slate-300">
+                    {{ (item as CommentResponse).content }}
                   </p>
-                </div>
+                </button>
               </div>
             </div>
           </section>
