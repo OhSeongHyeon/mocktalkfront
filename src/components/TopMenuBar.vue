@@ -10,6 +10,11 @@ import { deleteAllNotifications, getNotifications, markAllNotificationsRead, mar
 import type { NotificationResponse } from '../services/notifications';
 import { clearAccessToken, displayName, isAuthenticated, profileImageUrl, userPoint } from '../stores/auth';
 import defaultAvatar from '../assets/default-avatar.svg';
+import iconBell from '../assets/icons/icon-bell.svg';
+import iconMoon from '../assets/icons/icon-moon.svg';
+import iconSearch from '../assets/icons/icon-search.svg';
+import iconStack from '../assets/icons/icon-stack.svg';
+import iconSun from '../assets/icons/icon-sun.svg';
 
 const emit = defineEmits<{
   (event: 'toggle-menu'): void;
@@ -291,32 +296,10 @@ const handleDeleteAllNotifications = async () => {
           aria-label="사이드 메뉴 열기"
           @click="emit('toggle-menu')"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="h-5 w-5"
-            aria-hidden="true"
-          >
-            <path d="M4 6h16" />
-            <path d="M4 12h16" />
-            <path d="M4 18h16" />
-          </svg>
+          <img :src="iconStack" alt="" aria-hidden="true" class="h-5 w-5" />
         </button>
 
         <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-          <!-- <span
-            class="grid h-9 w-9 place-items-center rounded-2xl shadow-sm"
-            style="background-color: var(--accent-strong)"
-            aria-hidden="true"
-          >
-            <svg viewBox="0 0 24 24" fill="white" class="h-4 w-4">
-              <path d="M9 7l8 5-8 5V7z" />
-            </svg>
-          </span> -->
           <span class="hidden sm:inline">MockTalk</span>
         </RouterLink>
       </div>
@@ -326,10 +309,10 @@ const handleDeleteAllNotifications = async () => {
           <label class="sr-only" for="global-search">검색</label>
           <input
             id="global-search"
+            v-model="searchKeyword"
             type="search"
             placeholder="검색"
             class="h-11 w-full rounded-l-full border border-slate-200/80 bg-white px-5 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-            v-model="searchKeyword"
             @keydown.enter.prevent="handleSearch"
           />
           <button
@@ -338,19 +321,7 @@ const handleDeleteAllNotifications = async () => {
             aria-label="검색"
             @click="handleSearch"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-4 w-4"
-              aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20l-3.5-3.5" />
-            </svg>
+            <img :src="iconSearch" alt="" aria-hidden="true" class="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -362,19 +333,7 @@ const handleDeleteAllNotifications = async () => {
           aria-label="검색"
           @click="openSearch"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="h-5 w-5"
-            aria-hidden="true"
-          >
-            <circle cx="11" cy="11" r="7" />
-            <path d="M20 20l-3.5-3.5" />
-          </svg>
+          <img :src="iconSearch" alt="" aria-hidden="true" class="h-5 w-5" />
         </button>
 
         <button
@@ -383,40 +342,8 @@ const handleDeleteAllNotifications = async () => {
           aria-label="다크/화이트 모드 전환"
           @click="toggleTheme"
         >
-          <svg
-            v-if="isDark"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="h-5 w-5"
-            aria-hidden="true"
-          >
-            <path d="M12 4V2" />
-            <path d="M12 22v-2" />
-            <path d="M4.9 4.9l1.4 1.4" />
-            <path d="M17.7 17.7l1.4 1.4" />
-            <path d="M2 12h2" />
-            <path d="M22 12h-2" />
-            <path d="M4.9 19.1l1.4-1.4" />
-            <path d="M17.7 6.3l1.4-1.4" />
-            <circle cx="12" cy="12" r="4" />
-          </svg>
-          <svg
-            v-else
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="h-5 w-5"
-            aria-hidden="true"
-          >
-            <path d="M21 12.8A9 9 0 0 1 11.2 3a7 7 0 1 0 9.8 9.8z" />
-          </svg>
+          <img v-if="isDark" :src="iconSun" alt="" aria-hidden="true" class="h-5 w-5" />
+          <img v-else :src="iconMoon" alt="" aria-hidden="true" class="h-5 w-5" />
         </button>
 
         <div class="relative">
@@ -429,19 +356,7 @@ const handleDeleteAllNotifications = async () => {
             :aria-expanded="isNotificationMenuOpen"
             @click="toggleNotificationMenu"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-5 w-5"
-              aria-hidden="true"
-            >
-              <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />
-              <path d="M10 19a2 2 0 0 0 4 0" />
-            </svg>
+            <img :src="iconBell" alt="" aria-hidden="true" class="h-5 w-5" />
             <span
               v-if="notificationUnreadCount > 0"
               class="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white"

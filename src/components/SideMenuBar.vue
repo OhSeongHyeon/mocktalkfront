@@ -2,6 +2,21 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
+import { isAdmin } from '../stores/auth';
+import iconBookmark from '../assets/icons/icon-bookmark.svg';
+import iconChat from '../assets/icons/icon-chat.svg';
+import iconCommunity from '../assets/icons/icon-community.svg';
+import iconGallery from '../assets/icons/icon-gallery.svg';
+import iconGavel from '../assets/icons/icon-gavel.svg';
+import iconHelp from '../assets/icons/icon-help.svg';
+import iconHistory from '../assets/icons/icon-history.svg';
+import iconHome from '../assets/icons/icon-home.svg';
+import iconMegaphone from '../assets/icons/icon-megaphone.svg';
+import iconPulse from '../assets/icons/icon-pulse.svg';
+import iconSettings from '../assets/icons/icon-settings.svg';
+import iconShield from '../assets/icons/icon-shield.svg';
+import iconStack from '../assets/icons/icon-stack.svg';
+import iconUsers from '../assets/icons/icon-users.svg';
 const props = defineProps<{
   collapsed: boolean;
   mobileOpen: boolean;
@@ -13,7 +28,7 @@ const emit = defineEmits<{
 
 const route = useRoute();
 
-const menuSections = [
+const baseSections = [
   {
     title: '메인',
     items: [
@@ -46,17 +61,21 @@ const menuSections = [
   },
 ];
 
-const iconPaths: Record<string, string[]> = {
-  home: ['M3 10.5l9-7 9 7', 'M5 9.5V21h14V9.5'],
-  stack: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
-  megaphone: ['M3 11l8-4v10l-8-4z', 'M11 9h4a4 4 0 0 1 0 6h-4'],
-  chat: ['M4 6h16v9H7l-3 3V6z'],
-  community: ['M7 11a3 3 0 1 0 0-6', 'M17 12a3 3 0 1 0 0-6', 'M3 20v-1a4 4 0 0 1 4-4h2', 'M13 19v-1a4 4 0 0 1 4-4h2'],
-  gallery: ['M4 6h16v12H4z', 'M8 12l2 2 4-5 6 7'],
-  bookmark: ['M6 4h12v16l-6-4-6 4z'],
-  history: ['M12 7v5l3 2', 'M4 12a8 8 0 1 0 8-8'],
-  settings: ['M4 6h16', 'M4 12h10', 'M4 18h16', 'M16 12h4'],
-  help: ['M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4', 'M12 17h.01'],
+const iconAssets: Record<string, string> = {
+  home: iconHome,
+  stack: iconStack,
+  megaphone: iconMegaphone,
+  chat: iconChat,
+  community: iconCommunity,
+  gallery: iconGallery,
+  bookmark: iconBookmark,
+  history: iconHistory,
+  shield: iconShield,
+  gavel: iconGavel,
+  pulse: iconPulse,
+  users: iconUsers,
+  settings: iconSettings,
+  help: iconHelp,
 };
 
 const isActive = (path?: string) => {
@@ -85,7 +104,23 @@ const handleMenuClick = () => {
 };
 
 const sections = computed(() =>
-  menuSections.map((section) => ({
+  [
+    ...baseSections,
+    ...(isAdmin.value
+      ? [
+          {
+            title: '관리',
+            items: [
+              { name: '사용자 관리', icon: 'users', path: '/admin/users' },
+              { name: '게시판 관리', icon: 'community', path: '/admin/boards' },
+              { name: '신고 관리', icon: 'shield', path: '/admin/reports' },
+              { name: '제재 관리', icon: 'gavel', path: '/admin/sanctions' },
+              { name: '운영 로그', icon: 'pulse', path: '/admin/audit-logs' },
+            ],
+          },
+        ]
+      : []),
+  ].map((section) => ({
     ...section,
     items: section.items.map((item) => ({
       ...item,
@@ -129,18 +164,7 @@ const sections = computed(() =>
             class="grid h-9 w-9 place-items-center rounded-xl"
             :class="item.active ? 'text-[color:var(--accent-strong)] dark:text-red-400' : 'text-slate-600 dark:text-slate-300'"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="h-5 w-5"
-              aria-hidden="true"
-            >
-              <path v-for="path in iconPaths[item.icon]" :key="path" :d="path" />
-            </svg>
+            <img :src="iconAssets[item.icon]" alt="" aria-hidden="true" class="h-5 w-5" />
           </span>
           <span v-if="!isCompact" class="truncate">{{ item.name }}</span>
         </component>

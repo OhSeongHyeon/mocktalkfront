@@ -8,6 +8,7 @@ import { resolveFileUrl } from '../lib/files';
 import { getBoardSubscribes } from '../services/boards';
 import type { BoardSubscribeItemResponse } from '../services/boards';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 const isMobileMenuOpen = ref(false);
 const isLoading = ref(false);
@@ -122,20 +123,7 @@ onMounted(() => {
                   class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                 />
                 <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.4"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="h-7 w-7"
-                    aria-hidden="true"
-                  >
-                    <path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" />
-                    <path d="M3 8l9 5 9-5" />
-                    <path d="M12 13v8" />
-                  </svg>
+                  <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
                   <span class="text-xs">대표 이미지 없음</span>
                 </div>
               </div>

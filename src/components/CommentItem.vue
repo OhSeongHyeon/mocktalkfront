@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue';
 
 import type { CommentTreeResponse } from '../services/comments';
+import thumbDownIcon from '../assets/icons/icon-thumb-down.svg';
+import thumbUpIcon from '../assets/icons/icon-thumb-up.svg';
 
 interface CommentItemProps {
   comment: CommentTreeResponse;
@@ -161,32 +163,12 @@ const isEdited = computed(() => {
       </div>
       <div v-if="!isDeleted" class="flex flex-wrap items-center gap-3 text-[11px]">
         <div class="flex items-center gap-2">
-          <button
-            type="button"
-            :class="likeButtonClass"
-            :disabled="!isAuthenticated"
-            aria-label="댓글 좋아요"
-            @click="toggleReaction(1)"
-          >
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current" aria-hidden="true">
-              <path
-                d="M9 21H7c-1.1 0-2-.9-2-2v-7c0-1.1.9-2 2-2h2v11zM21 10c0-.55-.45-1-1-1h-6.31l.95-4.57.02-.23c0-.29-.12-.56-.31-.75L13.17 2 6.59 8.59C6.22 8.95 6 9.45 6 10v9c0 1.1.9 2 2 2h7c.82 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1z"
-              />
-            </svg>
+          <button type="button" :class="likeButtonClass" :disabled="!isAuthenticated" aria-label="댓글 좋아요" @click="toggleReaction(1)">
+            <img :src="thumbUpIcon" alt="" aria-hidden="true" class="h-3.5 w-3.5" />
             <span>{{ comment.likeCount }}</span>
           </button>
-          <button
-            type="button"
-            :class="dislikeButtonClass"
-            :disabled="!isAuthenticated"
-            aria-label="댓글 싫어요"
-            @click="toggleReaction(-1)"
-          >
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current" aria-hidden="true">
-              <path
-                d="M15 3h2c1.1 0 2 .9 2 2v7c0 1.1-.9 2-2 2h-2V3zm-2 0H6c-.82 0-1.54.5-1.84 1.22L1.14 11.27c-.09.23-.14.47-.14.73v1c0 .55.45 1 1 1h6.31l-.95 4.57-.02.23c0 .29.12.56.31.75L10.83 22l6.59-6.59c.36-.36.58-.86.58-1.41v-9c0-1.1-.9-2-2-2z"
-              />
-            </svg>
+          <button type="button" :class="dislikeButtonClass" :disabled="!isAuthenticated" aria-label="댓글 싫어요" @click="toggleReaction(-1)">
+            <img :src="thumbDownIcon" alt="" aria-hidden="true" class="h-3.5 w-3.5" />
             <span>{{ comment.dislikeCount }}</span>
           </button>
         </div>

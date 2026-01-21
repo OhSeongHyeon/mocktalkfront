@@ -11,8 +11,15 @@ import { resolveFileUrl } from '../lib/files';
 import type { ArticleSummaryResponse, BoardDetailResponse } from '../services/boards';
 import { getBoardArticles, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
 import { search } from '../services/search';
-import { ARTICLE_LIST_ORDERS, ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListOrder, setArticleListPageSize } from '../stores/articleList';
-import { isAuthenticated } from '../stores/auth';
+import {
+  ARTICLE_LIST_ORDERS,
+  ARTICLE_LIST_PAGE_SIZES,
+  articleListOrder,
+  articleListPageSize,
+  setArticleListOrder,
+  setArticleListPageSize,
+} from '../stores/articleList';
+import { isAdmin, isAuthenticated } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const route = useRoute();
@@ -72,6 +79,12 @@ const visibilityLabel = computed(() => {
   }
 });
 const canInteract = computed(() => Boolean(isAuthenticated.value && board.value));
+const canBoardAdmin = computed(() => {
+  if (!board.value) {
+    return false;
+  }
+  return isAdmin.value || board.value.memberStatus === 'OWNER' || board.value.memberStatus === 'MODERATOR';
+});
 const canWrite = computed(() => {
   if (!isAuthenticated.value || !board.value) {
     return false;
@@ -103,14 +116,7 @@ const joinButtonLabel = computed(() => {
 });
 const joinDisabled = computed(() => {
   const status = board.value?.memberStatus;
-  return (
-    !isAuthenticated.value ||
-    status === 'MEMBER' ||
-    status === 'MODERATOR' ||
-    status === 'OWNER' ||
-    status === 'BANNED' ||
-    isJoining.value
-  );
+  return !isAuthenticated.value || status === 'MEMBER' || status === 'MODERATOR' || status === 'OWNER' || status === 'BANNED' || isJoining.value;
 });
 const subscribeLabel = computed(() => (board.value?.subscribed ? '구독중' : '구독'));
 const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing.value);
@@ -246,7 +252,7 @@ const loadPage = async (pageIndex: number) => {
       hasPrevious.value = response.articles.hasPrevious;
     } else {
       const response = await getBoardArticles(board.value.id, pageIndex, pageSize.value, selectedOrder.value);
-      pinned.value = pageIndex === 0 ? response.pinned ?? [] : [];
+      pinned.value = pageIndex === 0 ? (response.pinned ?? []) : [];
       articles.value = response.page.items;
       page.value = response.page.page;
       totalPages.value = response.page.totalPages;
@@ -283,6 +289,13 @@ const goWrite = () => {
     return;
   }
   router.push(`/b/${slug.value}/articles/new`);
+};
+
+const goBoardAdmin = () => {
+  if (!slug.value) {
+    return;
+  }
+  router.push(`/b/${slug.value}/admin/reports`);
 };
 
 const handlePageChange = async (nextPage: number) => {
@@ -353,6 +366,14 @@ watch(
             </template>
             <template #actions>
               <div v-if="canInteract" class="flex flex-wrap items-center gap-3">
+                <button
+                  v-if="canBoardAdmin"
+                  type="button"
+                  class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                  @click="goBoardAdmin"
+                >
+                  관리
+                </button>
                 <button
                   type="button"
                   class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"

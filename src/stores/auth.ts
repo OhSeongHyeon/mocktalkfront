@@ -10,6 +10,40 @@ const isAuthenticated = computed(() => Boolean(accessToken.value));
 
 const getAccessToken = () => accessToken.value;
 
+const decodeBase64Url = (value: string) => {
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+  return atob(padded);
+};
+
+const parseTokenPayload = (token: string | null) => {
+  if (!token) {
+    return null;
+  }
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return null;
+  }
+  try {
+    const payloadSegment = parts[1];
+    if (!payloadSegment) {
+      return null;
+    }
+    const decoded = decodeBase64Url(payloadSegment);
+    return JSON.parse(decoded) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+
+const userRole = computed(() => {
+  const payload = parseTokenPayload(accessToken.value);
+  const role = payload?.role;
+  return typeof role === 'string' ? role : null;
+});
+
+const isAdmin = computed(() => userRole.value === 'ADMIN');
+
 const setAccessToken = (token: string, expiresInSec: number) => {
   accessToken.value = token;
   accessTokenExpiresAt.value = Date.now() + expiresInSec * 1000;
@@ -40,6 +74,8 @@ export {
   clearAccessToken,
   getAccessToken,
   isAuthenticated,
+  isAdmin,
+  userRole,
   displayName,
   profileImageUrl,
   setAccessToken,

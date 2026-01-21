@@ -14,7 +14,17 @@ export default [
         ...globals.browser,
       },
     },
-    ignores: ['dist/**', 'node_modules/**', 'tailwind.config.js', 'postcss.config.js', 'vite.config.ts'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/.vite/**',
+      '**/*.min.*',
+      'tailwind.config.js',
+      'postcss.config.js',
+      'vite.config.ts',
+    ],
   },
 
   js.configs.recommended,

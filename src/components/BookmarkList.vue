@@ -88,7 +88,10 @@ const formatDate = (value: string) => {
       <span>선택 {{ selectedIds.length }}개</span>
     </div>
 
-    <div v-if="items.length === 0" class="mt-4 rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+    <div
+      v-if="items.length === 0"
+      class="mt-4 rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
+    >
       북마크한 게시글이 없습니다.
     </div>
 

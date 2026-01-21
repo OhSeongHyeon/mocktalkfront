@@ -7,6 +7,7 @@ import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { createBoard, uploadBoardImage } from '../services/boards';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 const router = useRouter();
 const isMobileMenuOpen = ref(false);
@@ -210,20 +211,7 @@ onBeforeUnmount(() => {
                   <div class="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 sm:w-60">
                     <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-full w-full object-cover" />
                     <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="h-6 w-6"
-                        aria-hidden="true"
-                      >
-                        <path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" />
-                        <path d="M3 8l9 5 9-5" />
-                        <path d="M12 13v8" />
-                      </svg>
+                      <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-6 w-6" />
                       <span class="text-xs">이미지 미리보기</span>
                     </div>
                   </div>

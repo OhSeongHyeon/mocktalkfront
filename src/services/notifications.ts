@@ -16,13 +16,7 @@ export interface PageResponse<T> {
   hasPrevious: boolean;
 }
 
-export type NotificationType =
-  | 'ARTICLE_COMMENT'
-  | 'COMMENT_REPLY'
-  | 'BOARD_NOTICE'
-  | 'SYSTEM'
-  | 'REACTION'
-  | 'MENTION';
+export type NotificationType = 'ARTICLE_COMMENT' | 'COMMENT_REPLY' | 'BOARD_NOTICE' | 'SYSTEM' | 'REACTION' | 'MENTION';
 
 export interface NotificationResponse {
   id: number;
@@ -79,10 +73,4 @@ const deleteAllNotifications = async () => {
   return unwrap(response);
 };
 
-export {
-  deleteAllNotifications,
-  deleteNotification,
-  getNotifications,
-  markAllNotificationsRead,
-  markNotificationRead,
-};
+export { deleteAllNotifications, deleteNotification, getNotifications, markAllNotificationsRead, markNotificationRead };

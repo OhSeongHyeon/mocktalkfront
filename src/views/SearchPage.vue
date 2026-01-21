@@ -108,12 +108,8 @@ const paginationPages = computed(() => {
   }
   return pages;
 });
-const showTrailingEllipsis = computed(
-  () => currentPageInfo.value.hasNext && paginationPages.value.length > 0,
-);
-const canJumpBackWindow = computed(
-  () => currentPageInfo.value.hasPrevious && currentPageInfo.value.page - paginationWindow >= 0,
-);
+const showTrailingEllipsis = computed(() => currentPageInfo.value.hasNext && paginationPages.value.length > 0);
+const canJumpBackWindow = computed(() => currentPageInfo.value.hasPrevious && currentPageInfo.value.page - paginationWindow >= 0);
 const canJumpForwardWindow = computed(() => currentPageInfo.value.hasNext);
 
 const resolveVisibilityLabel = (visibility: string) => {
@@ -274,7 +270,10 @@ watch(
         <div class="mx-auto w-full max-w-6xl">
           <div class="flex flex-col gap-3">
             <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">검색</h1>
-            <form class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950" @submit.prevent="handleSubmit">
+            <form
+              class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+              @submit.prevent="handleSubmit"
+            >
               <div class="flex flex-wrap items-center gap-2">
                 <label for="global-search-page" class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색어</label>
                 <input
@@ -482,7 +481,10 @@ watch(
           </div>
 
           <div v-else class="mt-6">
-            <div v-if="currentPageInfo.items.length === 0" class="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <div
+              v-if="currentPageInfo.items.length === 0"
+              class="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
+            >
               ‘{{ keyword }}’ 검색 결과가 없습니다.
             </div>
             <div v-else class="space-y-3">

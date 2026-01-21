@@ -6,6 +6,25 @@ export default defineConfig({
   build: {
     // outDir: "../mocktalkback/src/main/resources/static/front",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) {
+            return undefined;
+          }
+          if (id.includes('@tiptap') || id.includes('prosemirror')) {
+            return 'editor';
+          }
+          if (id.includes('dompurify')) {
+            return 'vendor-sanitize';
+          }
+          if (id.includes('vue')) {
+            return 'vendor-vue';
+          }
+          return 'vendor';
+        },
+      },
+    },
   },
   server: {
     // Vite proxy 설정

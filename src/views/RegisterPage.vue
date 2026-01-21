@@ -64,15 +64,6 @@ const handleSubmit = async () => {
   <div class="min-h-screen text-slate-900 dark:text-slate-100">
     <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
       <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-        <!-- <span
-          class="grid h-9 w-9 place-items-center rounded-2xl shadow-sm"
-          style="background-color: var(--accent-strong)"
-          aria-hidden="true"
-        >
-          <svg viewBox="0 0 24 24" fill="white" class="h-4 w-4">
-            <path d="M9 7l8 5-8 5V7z" />
-          </svg>
-        </span> -->
         <span class="hidden sm:inline">MockTalk</span>
       </RouterLink>
       <RouterLink to="/login" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">

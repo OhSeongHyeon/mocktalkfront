@@ -159,4 +159,14 @@ const requestBoardJoin = async (boardId: number) => {
   return unwrap(response);
 };
 
-export { createBoard, getBoardArticles, getBoardBySlug, getBoardSubscribes, getBoards, requestBoardJoin, subscribeBoard, unsubscribeBoard, uploadBoardImage };
+export {
+  createBoard,
+  getBoardArticles,
+  getBoardBySlug,
+  getBoardSubscribes,
+  getBoards,
+  requestBoardJoin,
+  subscribeBoard,
+  unsubscribeBoard,
+  uploadBoardImage,
+};
