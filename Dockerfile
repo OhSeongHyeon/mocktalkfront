@@ -19,18 +19,19 @@ RUN npm run format:check
 RUN npm run build
 
 # ================= STAGE 2: 실행 환경 (Nginx) =================
-# 가벼운 Nginx 이미지를 실행 베이스 이미지로 사용합니다.
 FROM nginx:stable-alpine
 
-# 빌드 단계에서 생성된 정적 파일들을 Nginx의 기본 웹 루트 디렉토리로 복사합니다.
+# envsubst 도구를 포함하는 gettext 패키지 설치
+RUN apk add --no-cache gettext
+
+# 빌드된 정적 파일 복사
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# 컨테이너 내부의 Nginx 설정을 우리가 만든 커스텀 설정으로 교체합니다.
-# 아래에서 생성할 nginx.conf 파일을 의미합니다.
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Nginx 설정 '템플릿' 파일을 복사합니다.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-# Nginx 컨테이너는 지정 포트를 사용합니다.
+# 포트 80 노출 (실제 리스닝 포트는 $PORT 환경변수에 의해 결정됨)
 EXPOSE 80
 
-# (Nginx를 포그라운드에서 실행)
-CMD ["nginx", "-g", "daemon off;"]
+# 컨테이너 시작 시 실행될 명령어
+CMD ["/bin/sh", "-c", "envsubst '$PORT $BACKEND_BASE_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
