@@ -22,9 +22,6 @@ RUN npm run build
 # 가벼운 Nginx 이미지를 실행 베이스 이미지로 사용합니다.
 FROM nginx:stable-alpine
 
-# nc (netcat)를 사용하기 위해 패키지를 설치합니다.
-RUN apk add --no-cache netcat-openbsd
-
 # 빌드 단계에서 생성된 정적 파일들을 Nginx의 기본 웹 루트 디렉토리로 복사합니다.
 COPY --from=builder /app/dist /usr/share/nginx/html
 
@@ -32,16 +29,8 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # 아래에서 생성할 nginx.conf 파일을 의미합니다.
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 새로 만든 엔트리포인트 스크립트를 복사하고 실행 권한을 부여합니다.
-COPY docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-
-# Nginx 컨테이너는 80번 포트를 사용합니다.
+# Nginx 컨테이너는 지정 포트를 사용합니다.
 EXPOSE 80
 
-# 컨테이너 시작 시 엔트리포인트 스크립트를 실행하도록 설정합니다.
-ENTRYPOINT ["/docker-entrypoint.sh"]
-
-# 엔트리포인트 스크립트가 실행할 기본 명령어를 지정합니다.
 # (Nginx를 포그라운드에서 실행)
 CMD ["nginx", "-g", "daemon off;"]
