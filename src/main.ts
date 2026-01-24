@@ -74,5 +74,5 @@ if ('development' === import.meta.env.MODE) {
   console.log('API:', import.meta.env.VITE_API_BASE_URL);
   console.log('API FILE:', import.meta.env.VITE_FILE_BASE_URL);
 } else {
-  console.log('모드 프로덕트인듯');
+  // console.log('모드 프로덕트인듯');
 }

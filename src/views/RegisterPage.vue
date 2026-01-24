@@ -71,7 +71,9 @@ const handleSubmit = async () => {
       </RouterLink>
     </header>
 
-    <main class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-8">
+    <main
+      class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-8"
+    >
       <section class="w-full max-w-md">
         <form
           class="flex flex-col gap-5 rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/90"

@@ -24,11 +24,7 @@ const props = defineProps<BoardHeaderCardProps>();
     </div>
     <div class="px-6 py-6">
       <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-        <RouterLink
-          v-if="props.linkTo"
-          :to="props.linkTo"
-          class="transition hover:text-slate-700 dark:hover:text-white"
-        >
+        <RouterLink v-if="props.linkTo" :to="props.linkTo" class="transition hover:text-slate-700 dark:hover:text-white">
           {{ props.title }}
         </RouterLink>
         <span v-else>{{ props.title }}</span>

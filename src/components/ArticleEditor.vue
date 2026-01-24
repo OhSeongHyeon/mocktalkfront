@@ -363,7 +363,9 @@ const confirmYoutube = () => {
     return;
   }
   const size = resolveYoutubeSize();
-  editor.value.chain().focus().setYoutubeVideo({ src: embedUrl, width: size.width, height: size.height }).run();
+  if (size) {
+    editor.value.chain().focus().setYoutubeVideo({ src: embedUrl, width: size.width, height: size.height }).run();
+  }
   isYoutubeModalOpen.value = false;
   youtubeUrlInput.value = '';
 };
@@ -411,7 +413,9 @@ const applyYoutubeSize = () => {
     return;
   }
   const size = resolveYoutubeSize();
-  editor.value.chain().focus().updateAttributes('youtube', { width: size.width, height: size.height }).run();
+  if (size) {
+    editor.value.chain().focus().updateAttributes('youtube', { width: size.width, height: size.height }).run();
+  }
 };
 
 const buttonClass = (active = false) =>
@@ -529,10 +533,7 @@ const toolbarDividerClass = 'h-5 w-px bg-slate-200 dark:bg-slate-800';
               >
                 취소
               </button>
-              <button
-                type="submit"
-                class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600"
-              >
+              <button type="submit" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600">
                 추가
               </button>
             </div>
