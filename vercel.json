@@ -1,12 +1,16 @@
 {
-  "rewrites": [
+  "version": 2,
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "https://mocktalk-workspace-backend-latest.onrender.com"
+      "src": "/api/(.*)",
+      "dest": "https://mocktalk-workspace-backend-latest.onrender.com/api/$1"
     },
     {
-      "source": "/:path*",
-      "destination": "/index.html"
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
