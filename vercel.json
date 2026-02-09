@@ -3,7 +3,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://mocktalk-workspace-backend-latest.onrender.com/api/$1"
+      "dest": "https://api.mocktalk.site/api/$1"
     },
     {
       "handle": "filesystem"
