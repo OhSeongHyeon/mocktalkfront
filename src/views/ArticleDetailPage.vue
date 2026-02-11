@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleList from '../components/ArticleList.vue';
@@ -20,6 +20,8 @@ import type { CommentPageResponse, CommentReactionSummaryResponse, CommentTreeRe
 import { createComment, createReply, deleteComment, getArticleComments, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
+import type { BoardRealtimeSubscription, RealtimeEventEnvelope } from '../services/realtime';
+import { subscribeBoardRealtime } from '../services/realtime';
 import { ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { isAuthenticated } from '../stores/auth';
@@ -59,6 +61,10 @@ const boardOrder = computed(() => articleListOrder.value);
 const isDeleteModalOpen = ref(false);
 const deleteError = ref('');
 const isDeleting = ref(false);
+const realtimeSubscription = ref<BoardRealtimeSubscription | null>(null);
+const realtimeRefreshTimer = ref<number | null>(null);
+const isRealtimeSyncing = ref(false);
+const hasPendingRealtimeSync = ref(false);
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -146,6 +152,18 @@ const clearFocusTimer = () => {
     window.clearTimeout(focusTimer.value);
     focusTimer.value = null;
   }
+};
+
+const clearRealtimeRefreshTimer = () => {
+  if (realtimeRefreshTimer.value) {
+    window.clearTimeout(realtimeRefreshTimer.value);
+    realtimeRefreshTimer.value = null;
+  }
+};
+
+const closeRealtimeSubscription = () => {
+  realtimeSubscription.value?.close();
+  realtimeSubscription.value = null;
 };
 
 const setFocusHighlight = (targetId: number) => {
@@ -394,6 +412,77 @@ const refreshComments = async () => {
   await loadArticle();
 };
 
+const syncCommentsByRealtime = async () => {
+  if (isRealtimeSyncing.value) {
+    hasPendingRealtimeSync.value = true;
+    return;
+  }
+  isRealtimeSyncing.value = true;
+  try {
+    if (comments.value) {
+      await loadCommentsPage(commentPage.value);
+    } else {
+      await loadLastCommentPage();
+    }
+    await loadArticle();
+  } finally {
+    isRealtimeSyncing.value = false;
+    if (hasPendingRealtimeSync.value) {
+      hasPendingRealtimeSync.value = false;
+      await syncCommentsByRealtime();
+    }
+  }
+};
+
+const scheduleRealtimeCommentSync = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  clearRealtimeRefreshTimer();
+  realtimeRefreshTimer.value = window.setTimeout(() => {
+    void syncCommentsByRealtime();
+  }, 250);
+};
+
+const handleRealtimeReactionChanged = (event: RealtimeEventEnvelope<Record<string, unknown>>) => {
+  const payload = event.data;
+  if (!payload || !article.value) {
+    return;
+  }
+  const targetType = payload.targetType;
+  if (targetType === 'ARTICLE') {
+    const targetArticleId = Number(payload.articleId);
+    if (targetArticleId !== article.value.id) {
+      return;
+    }
+    if (typeof payload.likeCount === 'number') {
+      article.value.likeCount = payload.likeCount;
+    }
+    if (typeof payload.dislikeCount === 'number') {
+      article.value.dislikeCount = payload.dislikeCount;
+    }
+    return;
+  }
+  if (targetType === 'COMMENT') {
+    scheduleRealtimeCommentSync();
+  }
+};
+
+const startRealtimeSubscription = (boardId: number) => {
+  closeRealtimeSubscription();
+  realtimeSubscription.value = subscribeBoardRealtime(boardId, {
+    onCommentChanged: () => {
+      scheduleRealtimeCommentSync();
+    },
+    onReactionChanged: (event) => {
+      handleRealtimeReactionChanged(event);
+    },
+    onError: () => {
+      // 재연결은 EventSource 기본 동작에 위임한다.
+    },
+  });
+};
+
 const submitComment = async () => {
   if (!article.value || !newComment.value.trim()) {
     return;
@@ -583,6 +672,23 @@ watch(
     loadBoardArticles(0);
   },
 );
+
+watch(
+  () => article.value?.board?.id,
+  (boardId) => {
+    if (!boardId) {
+      closeRealtimeSubscription();
+      return;
+    }
+    startRealtimeSubscription(boardId);
+  },
+);
+
+onUnmounted(() => {
+  closeRealtimeSubscription();
+  clearRealtimeRefreshTimer();
+  clearFocusTimer();
+});
 </script>
 
 <template>

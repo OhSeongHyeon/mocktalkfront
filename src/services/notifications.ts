@@ -59,6 +59,17 @@ const markAllNotificationsRead = async () => {
   return unwrap(response);
 };
 
+const markNotificationsReadByRedirectUrl = async (redirectUrl: string) => {
+  const response = await request<ApiEnvelope<void>>('/notifications/read-by-redirect-url', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ redirectUrl }),
+  });
+  return unwrap(response);
+};
+
 const deleteNotification = async (id: number) => {
   const response = await request<ApiEnvelope<void>>(`/notifications/${id}`, {
     method: 'DELETE',
@@ -73,4 +84,11 @@ const deleteAllNotifications = async () => {
   return unwrap(response);
 };
 
-export { deleteAllNotifications, deleteNotification, getNotifications, markAllNotificationsRead, markNotificationRead };
+export {
+  deleteAllNotifications,
+  deleteNotification,
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  markNotificationsReadByRedirectUrl,
+};
