@@ -16,8 +16,8 @@ import type { ArticleDetailResponse, FileResponse } from '../services/articles';
 import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction, unbookmarkArticle } from '../services/articles';
 import type { ArticleSummaryResponse } from '../services/boards';
 import { getBoardArticles } from '../services/boards';
-import type { CommentPageResponse, CommentReactionSummaryResponse, CommentTreeResponse } from '../services/comments';
-import { createComment, createReply, deleteComment, getArticleComments, toggleCommentReaction, updateComment } from '../services/comments';
+import type { CommentPageResponse, CommentReactionSummaryResponse, CommentSnapshotResponse, CommentTreeResponse } from '../services/comments';
+import { createComment, createReply, deleteComment, getArticleCommentSnapshot, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import type { BoardRealtimeSubscription, RealtimeEventEnvelope } from '../services/realtime';
@@ -65,6 +65,21 @@ const realtimeSubscription = ref<BoardRealtimeSubscription | null>(null);
 const realtimeRefreshTimer = ref<number | null>(null);
 const isRealtimeSyncing = ref(false);
 const hasPendingRealtimeSync = ref(false);
+const lastCommentSyncVersion = ref<number | null>(null);
+
+type CommentDeltaAction = 'CREATED' | 'UPDATED' | 'DELETED';
+
+interface CommentDeltaPayload {
+  targetType?: string;
+  action?: CommentDeltaAction;
+  boardId?: number;
+  articleId?: number;
+  commentId?: number;
+  parentCommentId?: number | null;
+  depth?: number;
+  syncVersion?: number;
+  comment?: CommentTreeResponse;
+}
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -296,6 +311,12 @@ const resolveAttachmentUrl = (file: FileResponse) => {
 
 const commentPageSize = 10;
 
+const applyCommentSnapshot = (snapshot: CommentSnapshotResponse) => {
+  comments.value = snapshot.page;
+  commentPage.value = snapshot.page.page;
+  lastCommentSyncVersion.value = snapshot.syncVersion;
+};
+
 const loadCommentsPage = async (page: number) => {
   if (!Number.isFinite(articleId.value)) {
     return;
@@ -303,9 +324,8 @@ const loadCommentsPage = async (page: number) => {
   commentError.value = '';
   isCommentLoading.value = true;
   try {
-    const response = await getArticleComments(articleId.value, page, commentPageSize);
-    comments.value = response;
-    commentPage.value = response.page;
+    const response = await getArticleCommentSnapshot(articleId.value, page, commentPageSize);
+    applyCommentSnapshot(response);
   } catch (error) {
     commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
   } finally {
@@ -343,15 +363,13 @@ const loadLastCommentPage = async () => {
   commentError.value = '';
   isCommentLoading.value = true;
   try {
-    const first = await getArticleComments(articleId.value, 0, commentPageSize);
-    if (first.totalPages <= 1) {
-      comments.value = first;
-      commentPage.value = first.page;
+    const first = await getArticleCommentSnapshot(articleId.value, 0, commentPageSize);
+    if (first.page.totalPages <= 1) {
+      applyCommentSnapshot(first);
     } else {
-      const lastPage = first.totalPages - 1;
-      const last = await getArticleComments(articleId.value, lastPage, commentPageSize);
-      comments.value = last;
-      commentPage.value = last.page;
+      const lastPage = first.page.totalPages - 1;
+      const last = await getArticleCommentSnapshot(articleId.value, lastPage, commentPageSize);
+      applyCommentSnapshot(last);
     }
   } catch (error) {
     commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
@@ -370,23 +388,20 @@ const loadCommentPageWithTarget = async (targetId: number) => {
   commentError.value = '';
   isCommentLoading.value = true;
   try {
-    const first = await getArticleComments(articleId.value, 0, commentPageSize);
-    if (hasComment(first.items, targetId)) {
-      comments.value = first;
-      commentPage.value = first.page;
+    const first = await getArticleCommentSnapshot(articleId.value, 0, commentPageSize);
+    if (hasComment(first.page.items, targetId)) {
+      applyCommentSnapshot(first);
       return true;
     }
-    const totalPages = first.totalPages;
+    const totalPages = first.page.totalPages;
     for (let page = 1; page < totalPages; page += 1) {
-      const response = await getArticleComments(articleId.value, page, commentPageSize);
-      if (hasComment(response.items, targetId)) {
-        comments.value = response;
-        commentPage.value = response.page;
+      const response = await getArticleCommentSnapshot(articleId.value, page, commentPageSize);
+      if (hasComment(response.page.items, targetId)) {
+        applyCommentSnapshot(response);
         return true;
       }
     }
-    comments.value = first;
-    commentPage.value = first.page;
+    applyCommentSnapshot(first);
     return false;
   } catch (error) {
     commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
@@ -444,6 +459,152 @@ const scheduleRealtimeCommentSync = () => {
   }, 250);
 };
 
+const findCommentNode = (nodes: CommentTreeResponse[], targetId: number): CommentTreeResponse | null => {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      return node;
+    }
+    const child = findCommentNode(node.children, targetId);
+    if (child) {
+      return child;
+    }
+  }
+  return null;
+};
+
+const recalculateCommentPageMeta = () => {
+  if (!comments.value) {
+    return;
+  }
+  const pageData = comments.value;
+  const size = pageData.size > 0 ? pageData.size : commentPageSize;
+  pageData.totalPages = Math.ceil(pageData.totalElements / size);
+  pageData.hasPrevious = pageData.page > 0;
+  pageData.hasNext = pageData.page + 1 < pageData.totalPages;
+};
+
+const mergeCommentNode = (target: CommentTreeResponse, source: CommentTreeResponse) => {
+  target.userId = source.userId;
+  target.authorName = source.authorName;
+  target.content = source.content;
+  target.depth = source.depth;
+  target.parentCommentId = source.parentCommentId;
+  target.rootCommentId = source.rootCommentId;
+  target.createdAt = source.createdAt;
+  target.updatedAt = source.updatedAt;
+  target.deletedAt = source.deletedAt;
+  target.likeCount = source.likeCount;
+  target.dislikeCount = source.dislikeCount;
+  target.myReaction = source.myReaction;
+};
+
+const updateArticleCommentCount = (action: CommentDeltaAction) => {
+  if (!article.value) {
+    return;
+  }
+  if (action === 'CREATED') {
+    article.value.commentCount += 1;
+    return;
+  }
+  if (action === 'DELETED') {
+    article.value.commentCount = Math.max(0, article.value.commentCount - 1);
+  }
+};
+
+const applyCommentDelta = (payload: CommentDeltaPayload) => {
+  if (!comments.value || !payload.action) {
+    return;
+  }
+
+  const action = payload.action;
+  const snapshot = payload.comment;
+  const resolvedCommentId = Number(payload.commentId ?? snapshot?.id);
+  if (!Number.isFinite(resolvedCommentId)) {
+    return;
+  }
+
+  if (action === 'CREATED') {
+    if (!snapshot) {
+      return;
+    }
+    updateArticleCommentCount(action);
+    if (snapshot.parentCommentId === null) {
+      if (comments.value.items.some((item) => item.id === snapshot.id)) {
+        return;
+      }
+      comments.value.totalElements += 1;
+      recalculateCommentPageMeta();
+      const isLastPage = !comments.value.hasNext;
+      const hasRoom = comments.value.items.length < comments.value.size;
+      if (isLastPage && hasRoom) {
+        comments.value.items.push(snapshot);
+      }
+      return;
+    }
+    const parent = findCommentNode(comments.value.items, snapshot.parentCommentId);
+    if (!parent) {
+      return;
+    }
+    if (!parent.children.some((child) => child.id === snapshot.id)) {
+      parent.children.push(snapshot);
+    }
+    return;
+  }
+
+  if (action === 'UPDATED') {
+    if (!snapshot) {
+      return;
+    }
+    const target = findCommentNode(comments.value.items, resolvedCommentId);
+    if (target) {
+      mergeCommentNode(target, snapshot);
+    }
+    return;
+  }
+
+  if (action === 'DELETED') {
+    updateArticleCommentCount(action);
+    const target = findCommentNode(comments.value.items, resolvedCommentId);
+    if (target && snapshot) {
+      mergeCommentNode(target, snapshot);
+    }
+  }
+};
+
+const handleRealtimeCommentChanged = (event: RealtimeEventEnvelope<Record<string, unknown>>) => {
+  const payload = event.data as CommentDeltaPayload;
+  if (!payload || !article.value) {
+    return;
+  }
+  const targetArticleId = Number(payload.articleId);
+  if (!Number.isFinite(targetArticleId) || targetArticleId !== article.value.id) {
+    return;
+  }
+
+  const syncVersion = Number(payload.syncVersion);
+  if (!Number.isFinite(syncVersion) || syncVersion <= 0) {
+    scheduleRealtimeCommentSync();
+    return;
+  }
+
+  if (lastCommentSyncVersion.value === null) {
+    scheduleRealtimeCommentSync();
+    return;
+  }
+
+  if (syncVersion <= lastCommentSyncVersion.value) {
+    return;
+  }
+
+  if (syncVersion !== lastCommentSyncVersion.value + 1) {
+    scheduleRealtimeCommentSync();
+    return;
+  }
+
+  applyCommentDelta(payload);
+  lastCommentSyncVersion.value = syncVersion;
+};
+
 const handleRealtimeReactionChanged = (event: RealtimeEventEnvelope<Record<string, unknown>>) => {
   const payload = event.data;
   if (!payload || !article.value) {
@@ -464,15 +625,31 @@ const handleRealtimeReactionChanged = (event: RealtimeEventEnvelope<Record<strin
     return;
   }
   if (targetType === 'COMMENT') {
-    scheduleRealtimeCommentSync();
+    const targetCommentId = Number(payload.commentId);
+    if (!Number.isFinite(targetCommentId) || !comments.value) {
+      return;
+    }
+    const target = findCommentNode(comments.value.items, targetCommentId);
+    if (!target) {
+      return;
+    }
+    if (typeof payload.likeCount === 'number') {
+      target.likeCount = payload.likeCount;
+    }
+    if (typeof payload.dislikeCount === 'number') {
+      target.dislikeCount = payload.dislikeCount;
+    }
+    if (typeof payload.myReaction === 'number') {
+      target.myReaction = payload.myReaction;
+    }
   }
 };
 
 const startRealtimeSubscription = (boardId: number) => {
   closeRealtimeSubscription();
   realtimeSubscription.value = subscribeBoardRealtime(boardId, {
-    onCommentChanged: () => {
-      scheduleRealtimeCommentSync();
+    onCommentChanged: (event) => {
+      handleRealtimeCommentChanged(event);
     },
     onReactionChanged: (event) => {
       handleRealtimeReactionChanged(event);
@@ -636,6 +813,7 @@ onMounted(async () => {
 watch(
   () => route.params.articleId,
   async () => {
+    lastCommentSyncVersion.value = null;
     await loadArticle();
     const targetId = parseCommentId();
     if (targetId) {
@@ -678,6 +856,7 @@ watch(
   (boardId) => {
     if (!boardId) {
       closeRealtimeSubscription();
+      lastCommentSyncVersion.value = null;
       return;
     }
     startRealtimeSubscription(boardId);

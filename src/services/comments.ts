@@ -40,11 +40,23 @@ export interface CommentPageResponse<T> {
   hasPrevious: boolean;
 }
 
+export interface CommentSnapshotResponse {
+  articleId: number;
+  syncVersion: number;
+  page: CommentPageResponse<CommentTreeResponse>;
+}
+
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
 
 const getArticleComments = async (articleId: number, page = 0, size = 10) => {
   const params = new URLSearchParams({ page: String(page), size: String(size) });
   const response = await request<ApiEnvelope<CommentPageResponse<CommentTreeResponse>>>(`/articles/${articleId}/comments?${params.toString()}`);
+  return unwrap(response);
+};
+
+const getArticleCommentSnapshot = async (articleId: number, page = 0, size = 10) => {
+  const params = new URLSearchParams({ page: String(page), size: String(size) });
+  const response = await request<ApiEnvelope<CommentSnapshotResponse>>(`/articles/${articleId}/comments/snapshot?${params.toString()}`);
   return unwrap(response);
 };
 
@@ -99,4 +111,4 @@ const toggleCommentReaction = async (commentId: number, reactionType: number) =>
   return unwrap(response);
 };
 
-export { createComment, createReply, deleteComment, getArticleComments, toggleCommentReaction, updateComment };
+export { createComment, createReply, deleteComment, getArticleCommentSnapshot, getArticleComments, toggleCommentReaction, updateComment };
