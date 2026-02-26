@@ -273,4 +273,26 @@ a {
     background: color-mix(in oklab, var(--surface-2) 88%, var(--surface-0));
     padding: 0.9rem;
   }
+
+  .ui-side-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--ink-2) 36%, transparent) transparent;
+  }
+
+  .ui-side-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ui-side-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ui-side-scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--ink-2) 42%, transparent);
+  }
+
+  .ui-side-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--ink-2) 56%, transparent);
+  }
 }

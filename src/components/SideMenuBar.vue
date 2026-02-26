@@ -150,7 +150,7 @@ const sections = computed(() =>
   >
     <div v-if="!isCompact" class="px-3 pt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">메뉴</div>
 
-    <nav class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto" aria-label="사이드 메뉴">
+    <nav class="ui-side-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto" aria-label="사이드 메뉴">
       <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
         <p v-if="!isCompact" class="px-3 pt-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           {{ section.title }}
