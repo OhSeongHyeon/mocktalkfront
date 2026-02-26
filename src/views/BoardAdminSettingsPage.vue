@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
 
 import BoardAdminNav from '../components/BoardAdminNav.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
@@ -8,6 +8,8 @@ import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { resolveImageUrl } from '../lib/files';
+import type { BoardCategoryResponse } from '../services/boardCategories';
+import { getBoardCategories } from '../services/boardCategories';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../services/boards';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../services/boardSettings';
@@ -25,6 +27,9 @@ const imageSuccess = ref('');
 const isSaving = ref(false);
 const isUploading = ref(false);
 const isRemoving = ref(false);
+const categories = ref<BoardCategoryResponse[]>([]);
+const isCategoryLoading = ref(false);
+const categoryError = ref('');
 const previewUrl = ref<string | null>(null);
 const imageFile = ref<File | null>(null);
 const fileInputKey = ref(0);
@@ -111,6 +116,24 @@ const loadBoard = async () => {
   }
 };
 
+const loadCategories = async () => {
+  if (!board.value || !hasPermission.value) {
+    categories.value = [];
+    categoryError.value = '';
+    return;
+  }
+  isCategoryLoading.value = true;
+  categoryError.value = '';
+  try {
+    categories.value = await getBoardCategories(board.value.id);
+  } catch (error) {
+    categories.value = [];
+    categoryError.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+  } finally {
+    isCategoryLoading.value = false;
+  }
+};
+
 const submitSettings = async () => {
   formError.value = '';
   formSuccess.value = '';
@@ -186,6 +209,7 @@ const removeImage = async () => {
 onMounted(async () => {
   await nextTick();
   await loadBoard();
+  await loadCategories();
 });
 
 onBeforeUnmount(() => {
@@ -344,6 +368,41 @@ onBeforeUnmount(() => {
                     {{ imageSuccess }}
                   </div>
                 </div>
+              </div>
+            </section>
+
+            <section class="ui-panel p-6">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">카테고리 관리</h2>
+                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
+                </div>
+                <RouterLink
+                  :to="`/b/${board.slug}/admin/categories`"
+                  class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900"
+                >
+                  카테고리 관리로 이동
+                </RouterLink>
+              </div>
+
+              <div v-if="isCategoryLoading" class="mt-4 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+              <div v-else-if="categoryError" class="ui-state ui-state-danger mt-4">
+                {{ categoryError }}
+              </div>
+              <div v-else-if="categories.length === 0" class="ui-state ui-state-empty mt-4">등록된 카테고리가 없습니다.</div>
+              <div v-else class="mt-4">
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="category in categories.slice(0, 10)"
+                    :key="category.id"
+                    class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                  >
+                    {{ category.categoryName }}
+                  </span>
+                </div>
+                <p v-if="categories.length > 10" class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  외 {{ categories.length - 10 }}개 카테고리
+                </p>
               </div>
             </section>
           </div>

@@ -105,10 +105,22 @@ const getBoardBySlug = async (slug: string) => {
   return unwrap(response);
 };
 
-const getBoardArticles = async (boardId: number, page: number, size: number, order?: 'LATEST' | 'OLDEST') => {
+const getBoardArticles = async (
+  boardId: number,
+  page: number,
+  size: number,
+  order?: 'LATEST' | 'OLDEST',
+  categoryId?: number,
+  uncategorized?: boolean,
+) => {
   const query = new URLSearchParams({ page: String(page), size: String(size) });
   if (order) {
     query.set('order', order);
+  }
+  if (uncategorized) {
+    query.set('uncategorized', 'true');
+  } else if (categoryId !== undefined && categoryId !== null) {
+    query.set('categoryId', String(categoryId));
   }
   const response = await request<ApiEnvelope<BoardArticleListResponse>>(`/boards/${boardId}/articles?${query.toString()}`);
   return unwrap(response);

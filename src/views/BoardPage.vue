@@ -2,51 +2,33 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import ArticleList from '../components/ArticleList.vue';
+import BoardArticlePanel from '../components/BoardArticlePanel.vue';
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { resolveImageUrl } from '../lib/files';
-import type { ArticleSummaryResponse, BoardDetailResponse } from '../services/boards';
-import { getBoardArticles, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
-import { search } from '../services/search';
-import {
-  ARTICLE_LIST_ORDERS,
-  ARTICLE_LIST_PAGE_SIZES,
-  articleListOrder,
-  articleListPageSize,
-  setArticleListOrder,
-  setArticleListPageSize,
-} from '../stores/articleList';
+import type { BoardDetailResponse } from '../services/boards';
+import { getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
 import { isAdmin, isAuthenticated } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+
+interface ArticleSelectPayload {
+  articleId: number;
+  query: Record<string, string>;
+}
 
 const route = useRoute();
 const router = useRouter();
 const slug = computed(() => String(route.params.slug ?? ''));
 
 const isMobileMenuOpen = ref(false);
-
 const board = ref<BoardDetailResponse | null>(null);
-const pinned = ref<ArticleSummaryResponse[]>([]);
-const articles = ref<ArticleSummaryResponse[]>([]);
-const isLoading = ref(false);
 const isBoardLoading = ref(false);
-const listError = ref('');
+const boardError = ref('');
 const actionError = ref('');
 const isSubscribing = ref(false);
 const isJoining = ref(false);
-const page = ref(0);
-const totalPages = ref(0);
-const hasNext = ref(false);
-const hasPrevious = ref(false);
-const pageSize = computed(() => articleListPageSize.value);
-const pageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
-const orderOptions = ARTICLE_LIST_ORDERS;
-const selectedOrder = computed(() => articleListOrder.value);
-const searchKeyword = ref('');
-const isSearching = computed(() => searchKeyword.value.trim().length > 0);
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -78,6 +60,7 @@ const visibilityLabel = computed(() => {
       return '알 수 없음';
   }
 });
+
 const canInteract = computed(() => Boolean(isAuthenticated.value && board.value));
 const canBoardAdmin = computed(() => {
   if (!board.value) {
@@ -141,51 +124,27 @@ const writeUnavailableReason = computed(() => {
   return '';
 });
 
-const handlePageSizeChange = (size: number) => {
-  setArticleListPageSize(size);
-};
-
-const handleOrderChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement | null;
-  if (!target) {
-    return;
-  }
-  const value = target.value;
-  if (value !== 'LATEST' && value !== 'OLDEST') {
-    return;
-  }
-  setArticleListOrder(value);
-};
-
-const resetList = () => {
-  pinned.value = [];
-  articles.value = [];
-  listError.value = '';
-  page.value = 0;
-  totalPages.value = 0;
-  hasNext.value = false;
-  hasPrevious.value = false;
-};
-
 const loadBoard = async () => {
   if (!slug.value) {
+    board.value = null;
     return;
   }
   isBoardLoading.value = true;
-  listError.value = '';
+  boardError.value = '';
   actionError.value = '';
+  board.value = null;
   try {
     board.value = await getBoardBySlug(slug.value);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      listError.value = '게시판을 찾을 수 없습니다.';
+      boardError.value = '게시판을 찾을 수 없습니다.';
       return;
     }
     if (error instanceof ApiError && error.status === 403) {
-      listError.value = '게시판 접근 권한이 없습니다.';
+      boardError.value = '게시판 접근 권한이 없습니다.';
       return;
     }
-    listError.value = error instanceof ApiError ? error.message : '게시판을 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : '게시판을 불러오지 못했습니다.';
   } finally {
     isBoardLoading.value = false;
   }
@@ -236,72 +195,11 @@ const handleJoin = async () => {
   }
 };
 
-const loadPage = async (pageIndex: number) => {
-  if (!board.value || isLoading.value) {
-    return;
-  }
-  isLoading.value = true;
-  listError.value = '';
-  try {
-    if (isSearching.value) {
-      const response = await search({
-        q: searchKeyword.value.trim(),
-        type: 'ARTICLE',
-        order: selectedOrder.value,
-        page: pageIndex,
-        size: pageSize.value,
-        boardSlug: slug.value,
-      });
-      pinned.value = [];
-      articles.value = response.articles.items.map((item) => ({
-        id: item.id,
-        boardId: item.boardId,
-        userId: item.userId,
-        authorName: item.authorName,
-        title: item.title,
-        hit: item.hit,
-        commentCount: item.commentCount,
-        likeCount: item.likeCount,
-        dislikeCount: item.dislikeCount,
-        notice: item.notice,
-        createdAt: item.createdAt,
-      }));
-      page.value = response.articles.page;
-      totalPages.value = 0;
-      hasNext.value = response.articles.hasNext;
-      hasPrevious.value = response.articles.hasPrevious;
-    } else {
-      const response = await getBoardArticles(board.value.id, pageIndex, pageSize.value, selectedOrder.value);
-      pinned.value = pageIndex === 0 ? (response.pinned ?? []) : [];
-      articles.value = response.page.items;
-      page.value = response.page.page;
-      totalPages.value = response.page.totalPages;
-      hasNext.value = response.page.hasNext;
-      hasPrevious.value = response.page.hasPrevious;
-    }
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
-      listError.value = '게시판을 찾을 수 없습니다.';
-      hasNext.value = false;
-      hasPrevious.value = false;
-      return;
-    }
-    if (error instanceof ApiError && error.status === 403) {
-      listError.value = '게시글 접근 권한이 없습니다.';
-      hasNext.value = false;
-      hasPrevious.value = false;
-      return;
-    }
-    listError.value = error instanceof ApiError ? error.message : '게시글을 불러오지 못했습니다.';
-    hasNext.value = false;
-    hasPrevious.value = false;
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-const goArticle = (articleId: number) => {
-  router.push(`/b/${slug.value}/articles/${articleId}`);
+const goArticle = ({ articleId, query }: ArticleSelectPayload) => {
+  router.push({
+    path: `/b/${slug.value}/articles/${articleId}`,
+    query,
+  });
 };
 
 const goWrite = () => {
@@ -315,57 +213,17 @@ const goBoardAdmin = () => {
   if (!slug.value) {
     return;
   }
-  router.push(`/b/${slug.value}/admin/reports`);
-};
-
-const handlePageChange = async (nextPage: number) => {
-  await loadPage(nextPage);
-};
-
-const handleSearch = async () => {
-  if (!searchKeyword.value.trim()) {
-    return;
-  }
-  await loadPage(0);
-};
-
-const clearSearch = async () => {
-  searchKeyword.value = '';
-  await loadPage(0);
+  router.push(`/b/${slug.value}/admin/settings`);
 };
 
 onMounted(async () => {
-  resetList();
   await loadBoard();
-  await loadPage(0);
 });
 
 watch(
   () => slug.value,
   async () => {
-    resetList();
-    searchKeyword.value = '';
     await loadBoard();
-    await loadPage(0);
-  },
-);
-
-watch(
-  () => articleListPageSize.value,
-  async () => {
-    resetList();
-    if (!board.value && slug.value) {
-      await loadBoard();
-    }
-    await loadPage(0);
-  },
-);
-
-watch(
-  () => articleListOrder.value,
-  async () => {
-    resetList();
-    await loadPage(0);
   },
 );
 </script>
@@ -432,69 +290,13 @@ watch(
             </template>
           </BoardHeaderCard>
 
-          <div v-if="listError" class="ui-state ui-state-danger mt-6">
-            {{ listError }}
+          <div v-if="boardError" class="ui-state ui-state-danger mt-6">
+            {{ boardError }}
           </div>
 
           <div v-if="isBoardLoading" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시판 정보를 불러오는 중입니다...</div>
 
-          <form class="ui-panel mt-6 flex flex-wrap items-center gap-2 px-4 py-3 text-sm sm:px-5" @submit.prevent="handleSearch">
-            <label for="board-search" class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">게시글 검색</label>
-            <input
-              id="board-search"
-              v-model="searchKeyword"
-              type="search"
-              placeholder="게시글 제목/본문 검색"
-              class="ui-input h-10 min-w-[220px] flex-1 rounded-full"
-            />
-            <button
-              type="submit"
-              class="ui-chip-button h-10 border-emerald-200 bg-emerald-50 px-4 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
-              :disabled="!searchKeyword.trim() || isLoading"
-            >
-              검색
-            </button>
-            <button
-              v-if="isSearching"
-              type="button"
-              class="ui-chip-button ui-chip-button-muted h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="isLoading"
-              @click="clearSearch"
-            >
-              초기화
-            </button>
-          </form>
-
-          <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <label for="article-order" class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</label>
-            <select
-              id="article-order"
-              class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold"
-              :value="selectedOrder"
-              @change="handleOrderChange"
-            >
-              <option v-for="option in orderOptions" :key="option" :value="option">
-                {{ option === 'LATEST' ? '최신순' : '과거순' }}
-              </option>
-            </select>
-          </div>
-
-          <ArticleList
-            :pinned="pinned"
-            :articles="articles"
-            :is-loading="isLoading"
-            :page-size="pageSize"
-            :page-size-options="pageSizeOptions"
-            :page="page"
-            :total-pages="totalPages"
-            :has-next="hasNext"
-            :has-previous="hasPrevious"
-            @select="goArticle"
-            @update:page-size="handlePageSizeChange"
-            @update:page="handlePageChange"
-          />
-
-          <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중...</div>
+          <BoardArticlePanel v-if="board" :board-id="board.id" :board-slug="board.slug" @select="goArticle" />
         </div>
       </main>
     </div>

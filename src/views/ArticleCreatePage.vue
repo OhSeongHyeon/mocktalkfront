@@ -11,6 +11,8 @@ import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
 import { resolveImageUrl } from '../lib/files';
 import type { ArticleCreateRequest } from '../services/articles';
 import { createArticle } from '../services/articles';
+import type { BoardCategoryResponse } from '../services/boardCategories';
+import { getBoardCategories } from '../services/boardCategories';
 import type { BoardDetailResponse } from '../services/boards';
 import { getBoardBySlug } from '../services/boards';
 import type { UserProfileResponse } from '../services/mypage';
@@ -29,6 +31,11 @@ const profile = ref<UserProfileResponse | null>(null);
 const title = ref('');
 const content = ref('');
 const visibility = ref('PUBLIC');
+const selectedCategoryId = ref<number | null>(null);
+const categories = ref<BoardCategoryResponse[]>([]);
+const isCategoryLoading = ref(false);
+const categoryErrorMessage = ref('');
+const isCategoryAccessDenied = ref(false);
 
 const errorMessage = ref('');
 const isLoading = ref(false);
@@ -54,6 +61,7 @@ const isBoardAdmin = computed(() => {
   const role = board.value?.memberStatus;
   return role === 'OWNER' || role === 'MODERATOR';
 });
+const canManageCategories = computed(() => isAdmin.value || isBoardAdmin.value);
 
 const visibilityOptions = computed(() => {
   const base = [
@@ -127,6 +135,31 @@ const loadProfile = async () => {
   }
 };
 
+const loadCategories = async () => {
+  if (!board.value) {
+    categories.value = [];
+    selectedCategoryId.value = null;
+    isCategoryAccessDenied.value = false;
+    return;
+  }
+  isCategoryLoading.value = true;
+  categoryErrorMessage.value = '';
+  isCategoryAccessDenied.value = false;
+  try {
+    categories.value = await getBoardCategories(board.value.id);
+  } catch (error) {
+    categories.value = [];
+    selectedCategoryId.value = null;
+    if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+      isCategoryAccessDenied.value = true;
+      return;
+    }
+    categoryErrorMessage.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+  } finally {
+    isCategoryLoading.value = false;
+  }
+};
+
 const submit = async () => {
   if (!board.value || !profile.value) {
     errorMessage.value = '게시글 작성에 필요한 정보를 불러오지 못했습니다.';
@@ -145,6 +178,7 @@ const submit = async () => {
   const payload: ArticleCreateRequest = {
     boardId: board.value.id,
     userId: profile.value.userId,
+    categoryId: selectedCategoryId.value,
     visibility: visibility.value,
     title: title.value.trim(),
     content: content.value,
@@ -171,6 +205,7 @@ const cancel = () => {
 
 onMounted(async () => {
   await loadBoard();
+  await loadCategories();
   await loadProfile();
 });
 </script>
@@ -209,6 +244,29 @@ onMounted(async () => {
                 </label>
 
                 <div class="flex flex-col gap-4">
+                  <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    카테고리
+                    <select
+                      v-model="selectedCategoryId"
+                      class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                      :disabled="isCategoryLoading || isCategoryAccessDenied || categories.length === 0"
+                    >
+                      <option :value="null">선택 안 함</option>
+                      <option v-for="category in categories" :key="category.id" :value="category.id">
+                        {{ category.categoryName }}
+                      </option>
+                    </select>
+                    <p v-if="isCategoryLoading" class="mt-1 text-xs text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</p>
+                    <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      카테고리 목록을 조회할 수 없습니다.
+                    </p>
+                    <p v-else-if="categoryErrorMessage" class="mt-1 text-xs text-rose-500">{{ categoryErrorMessage }}</p>
+                    <p v-else-if="categories.length === 0" class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      등록된 카테고리가 없습니다.
+                      <span v-if="canManageCategories">커뮤니티 관리에서 카테고리를 등록해 주세요.</span>
+                    </p>
+                  </label>
+
                   <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
                     공개 범위
                     <select

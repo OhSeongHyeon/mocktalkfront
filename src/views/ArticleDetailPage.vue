@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import ArticleList from '../components/ArticleList.vue';
+import BoardArticlePanel from '../components/BoardArticlePanel.vue';
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import CommentList from '../components/CommentList.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
@@ -14,17 +14,19 @@ import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
 import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction, unbookmarkArticle } from '../services/articles';
-import type { ArticleSummaryResponse } from '../services/boards';
-import { getBoardArticles } from '../services/boards';
 import type { CommentPageResponse, CommentReactionSummaryResponse, CommentSnapshotResponse, CommentTreeResponse } from '../services/comments';
 import { createComment, createReply, deleteComment, getArticleCommentSnapshot, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import type { BoardRealtimeSubscription, RealtimeEventEnvelope } from '../services/realtime';
 import { subscribeBoardRealtime } from '../services/realtime';
-import { ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { isAuthenticated } from '../stores/auth';
+
+interface ArticleSelectPayload {
+  articleId: number;
+  query: Record<string, string>;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -45,19 +47,8 @@ const commentReactionLoading = ref(new Set<number>());
 const newComment = ref('');
 const isReactionLoading = ref(false);
 const isBookmarkLoading = ref(false);
-const boardArticles = ref<ArticleSummaryResponse[]>([]);
-const boardListError = ref('');
-const isBoardArticlesLoading = ref(false);
-const boardPage = ref(0);
-const boardTotalPages = ref(0);
-const boardHasNext = ref(false);
-const boardHasPrevious = ref(false);
 const focusCommentId = ref<number | null>(null);
 const focusTimer = ref<number | null>(null);
-
-const boardPageSize = computed(() => articleListPageSize.value);
-const boardPageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
-const boardOrder = computed(() => articleListOrder.value);
 const isDeleteModalOpen = ref(false);
 const deleteError = ref('');
 const isDeleting = ref(false);
@@ -142,13 +133,45 @@ const parseCommentId = () => {
   return Number.isFinite(id) ? id : null;
 };
 
-const handleBoardPageSizeChange = (size: number) => {
-  setArticleListPageSize(size);
+const resolveCategoryFromRoute = () => {
+  const raw = route.query.categoryId;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const categoryId = Number(value);
+  if (!Number.isFinite(categoryId) || categoryId <= 0) {
+    return null;
+  }
+  return categoryId;
 };
 
-const handleBoardPageChange = (nextPage: number) => {
-  loadBoardArticles(nextPage);
+const resolveUncategorizedFromRoute = () => {
+  const raw = route.query.uncategorized;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return value === 'true';
 };
+
+const resolveBoardFilterQuery = () => {
+  const query: Record<string, string> = {};
+  const uncategorized = resolveUncategorizedFromRoute();
+  if (uncategorized) {
+    query.uncategorized = 'true';
+    return query;
+  }
+  const categoryId = resolveCategoryFromRoute();
+  if (categoryId !== null) {
+    query.categoryId = String(categoryId);
+  }
+  return query;
+};
+
+const boardLinkWithFilter = computed(() => {
+  if (!boardLink.value || boardLink.value === '/') {
+    return boardLink.value;
+  }
+  const query = resolveBoardFilterQuery();
+  const params = new URLSearchParams(query);
+  const queryString = params.toString();
+  return queryString ? `${boardLink.value}?${queryString}` : boardLink.value;
+});
 
 const hasComment = (nodes: CommentTreeResponse[], targetId: number): boolean => {
   for (const node of nodes) {
@@ -253,16 +276,22 @@ const loadProfile = async () => {
 
 const goBoard = () => {
   if (boardLink.value) {
-    router.push(boardLink.value);
+    router.push({
+      path: boardLink.value,
+      query: resolveBoardFilterQuery(),
+    });
   }
 };
 
-const goBoardArticle = (targetId: number) => {
+const goBoardArticle = ({ articleId: targetId, query }: ArticleSelectPayload) => {
   const slugValue = article.value?.board?.slug ?? String(route.params.slug ?? '');
   if (!slugValue) {
     return;
   }
-  router.push(`/b/${slugValue}/articles/${targetId}`);
+  router.push({
+    path: `/b/${slugValue}/articles/${targetId}`,
+    query,
+  });
 };
 
 const goEdit = () => {
@@ -294,7 +323,11 @@ const confirmDelete = async () => {
   try {
     await deleteArticle(article.value.id);
     isDeleteModalOpen.value = false;
-    router.push(boardLink.value || '/');
+    const boardPath = boardLink.value || '/';
+    router.push({
+      path: boardPath,
+      query: boardPath === '/' ? {} : resolveBoardFilterQuery(),
+    });
   } catch (error) {
     deleteError.value = error instanceof ApiError ? error.message : '게시글 삭제에 실패했습니다.';
   } finally {
@@ -330,29 +363,6 @@ const loadCommentsPage = async (page: number) => {
     commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
   } finally {
     isCommentLoading.value = false;
-  }
-};
-
-const loadBoardArticles = async (page: number) => {
-  if (!article.value?.board?.id) {
-    return;
-  }
-  boardListError.value = '';
-  isBoardArticlesLoading.value = true;
-  try {
-    const response = await getBoardArticles(article.value.board.id, page, boardPageSize.value, boardOrder.value);
-    boardArticles.value = response.page.items ?? [];
-    boardPage.value = response.page.page;
-    boardTotalPages.value = response.page.totalPages;
-    boardHasNext.value = response.page.hasNext;
-    boardHasPrevious.value = response.page.hasPrevious;
-  } catch (error) {
-    boardListError.value = error instanceof ApiError ? error.message : '게시글 목록을 불러오지 못했습니다.';
-    boardHasNext.value = false;
-    boardHasPrevious.value = false;
-    boardTotalPages.value = 0;
-  } finally {
-    isBoardArticlesLoading.value = false;
   }
 };
 
@@ -807,7 +817,6 @@ onMounted(async () => {
   } else {
     await refreshComments();
   }
-  await loadBoardArticles(0);
 });
 
 watch(
@@ -821,7 +830,6 @@ watch(
     } else {
       await refreshComments();
     }
-    await loadBoardArticles(0);
   },
 );
 
@@ -834,20 +842,6 @@ watch(
       return;
     }
     await focusComment(targetId);
-  },
-);
-
-watch(
-  () => boardPageSize.value,
-  () => {
-    loadBoardArticles(0);
-  },
-);
-
-watch(
-  () => boardOrder.value,
-  () => {
-    loadBoardArticles(0);
   },
 );
 
@@ -881,7 +875,7 @@ onUnmounted(() => {
             :title="article?.board?.boardName ?? '커뮤니티'"
             :description="article?.board?.description ?? '설명이 없습니다.'"
             :image-url="boardImageUrl"
-            :link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
+            :link-to="article?.board?.slug ? boardLinkWithFilter : undefined"
           >
             <template #actions>
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
@@ -1068,23 +1062,7 @@ onUnmounted(() => {
             </section>
 
             <section class="mt-10">
-              <div v-if="boardListError" class="ui-state ui-state-danger">
-                {{ boardListError }}
-              </div>
-              <ArticleList
-                :articles="boardArticles"
-                :is-loading="isBoardArticlesLoading"
-                :page-size="boardPageSize"
-                :page-size-options="boardPageSizeOptions"
-                :page="boardPage"
-                :total-pages="boardTotalPages"
-                :has-next="boardHasNext"
-                :has-previous="boardHasPrevious"
-                @select="goBoardArticle"
-                @update:page-size="handleBoardPageSizeChange"
-                @update:page="handleBoardPageChange"
-              />
-              <div v-if="isBoardArticlesLoading" class="mt-4 text-xs text-slate-500">게시글 목록을 불러오는 중입니다...</div>
+              <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
             </section>
           </div>
 

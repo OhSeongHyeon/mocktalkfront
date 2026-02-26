@@ -32,6 +32,8 @@ export interface ArticleDetailResponse {
   id: number;
   board: ArticleBoardResponse;
   userId: number;
+  categoryId?: number | null;
+  categoryName?: string | null;
   authorName: string;
   visibility: string;
   title: string;
