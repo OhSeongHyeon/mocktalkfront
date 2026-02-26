@@ -45,7 +45,7 @@ jobs:
           OCI_FRONT_DEPLOY_PATH: ${{ secrets.OCI_FRONT_DEPLOY_PATH }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/mocktalkfront:prod-latest
+          FRONTEND_IMAGE: ghcr.io/ohseonghyeon/mocktalkfront:prod-latest
           FRONTEND_BACKEND_BASE_URL: ${{ secrets.FRONTEND_BACKEND_BASE_URL }}
           FRONTEND_PORT: ${{ secrets.FRONTEND_PORT }}
         run: |
@@ -88,4 +88,4 @@ jobs:
 
       - name: 배포 완료 요약
         run: |
-          echo "OCI 프론트 배포 완료: ghcr.io/${{ github.repository_owner }}/mocktalkfront:prod-latest" >> "$GITHUB_STEP_SUMMARY"
+          echo "OCI 프론트 배포 완료: ghcr.io/ohseonghyeon/mocktalkfront:prod-latest" >> "$GITHUB_STEP_SUMMARY"
