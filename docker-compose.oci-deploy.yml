@@ -8,11 +8,17 @@ services:
       - ./.env.production
     environment:
       PORT: 80
-      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://host.docker.internal:8082}
+      BACKEND_BASE_URL: ${BACKEND_BASE_URL:-http://backend:8082}
     # 프론트 포트는 로컬 루프백으로만 바인딩한다.
     # 외부 공개는 Cloudflare Tunnel/Nginx 경유를 전제로 한다.
     ports:
       - "127.0.0.1:${FRONTEND_PORT:-8081}:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    # 백엔드와 같은 내부 네트워크로 연결해 backend 별칭을 사용한다.
+    networks:
+      - mocktalk-internal
     restart: unless-stopped
+
+networks:
+  # OCI 서버에 외부 네트워크를 미리 생성해 사용한다.
+  mocktalk-internal:
+    external: true

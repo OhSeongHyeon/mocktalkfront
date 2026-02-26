@@ -52,7 +52,7 @@ jobs:
           set -euo pipefail
           SSH_PORT="${OCI_SSH_PORT:-22}"
           DEPLOY_PATH="${OCI_FRONT_DEPLOY_PATH:-~/mocktalkfront}"
-          BACKEND_BASE_URL="${FRONTEND_BACKEND_BASE_URL:-http://host.docker.internal:8082}"
+          BACKEND_BASE_URL="${FRONTEND_BACKEND_BASE_URL:-http://backend:8082}"
           FRONT_PORT="${FRONTEND_PORT:-8081}"
 
           ssh -p "$SSH_PORT" "${OCI_USER}@${OCI_HOST}" bash -s <<EOF
@@ -63,6 +63,7 @@ jobs:
           export FRONTEND_PORT="$FRONT_PORT"
 
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+          docker network create mocktalk-internal >/dev/null 2>&1 || true
           docker compose -f docker-compose.oci-deploy.yml pull frontend
           docker compose -f docker-compose.oci-deploy.yml up -d --no-build frontend
 
