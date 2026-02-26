@@ -47,6 +47,7 @@ const visibleBoards = computed(() => {
   }
   return boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug));
 });
+const visibleBoardCount = computed(() => visibleBoards.value.length);
 
 const resolveBoardImage = (board: BoardResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
 
@@ -110,30 +111,44 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main ref="scrollAreaRef" class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div class="mx-auto w-full max-w-6xl">
-          <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">커뮤니티</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">관심 있는 게시판을 찾아보고 바로 참여해보세요.</p>
+          <section class="ui-panel animate-rise px-5 py-6 sm:px-6">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-red-500 dark:text-red-300">Community Hub</p>
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100 sm:text-3xl">커뮤니티 탐색</h1>
+                <p class="max-w-2xl text-sm text-slate-600 dark:text-slate-300">관심 주제의 게시판을 찾고 지금 바로 대화에 참여해보세요.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"
+                >
+                  게시판 {{ visibleBoardCount }}개
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <div class="mt-8 flex flex-col gap-2">
+            <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">목록</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">새로운 커뮤니티를 발견하고 구독을 시작해보세요.</p>
           </div>
 
-          <div
-            v-if="listError"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="listError" class="ui-state ui-state-danger mt-5">
             {{ listError }}
           </div>
 
-          <div v-if="visibleBoards.length > 0" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div v-if="visibleBoards.length > 0" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <RouterLink
               v-for="board in visibleBoards"
               :key="board.id"
               :to="`/b/${board.slug}`"
-              class="group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
+              class="ui-sub-panel group block overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:hover:border-slate-700"
             >
               <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
                 <img
@@ -148,9 +163,9 @@ onBeforeUnmount(() => {
                 </div>
               </div>
               <div class="flex flex-col gap-2 px-4 py-4">
-                <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">
+                <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">
                   {{ board.boardName }}
-                </h2>
+                </h3>
                 <p class="text-sm text-slate-500 dark:text-slate-400">
                   {{ resolveDescription(board.description) }}
                 </p>
@@ -158,14 +173,9 @@ onBeforeUnmount(() => {
             </RouterLink>
           </div>
 
-          <div
-            v-else-if="!isInitialLoading && !listError"
-            class="mt-10 rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-          >
-            아직 게시판이 없습니다.
-          </div>
+          <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty mt-10 px-6 py-12">아직 게시판이 없습니다.</div>
 
-          <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500">
+          <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
             <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
             게시판을 불러오는 중입니다.
           </div>

@@ -871,7 +871,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -885,17 +885,11 @@ onUnmounted(() => {
           >
             <template #actions>
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <button
-                  type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
-                  @click="goBoard"
-                >
-                  게시판으로
-                </button>
+                <button type="button" class="ui-chip-button ui-chip-button-muted" @click="goBoard">게시판으로</button>
                 <button
                   v-if="isAuthor"
                   type="button"
-                  class="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
                   @click="goEdit"
                 >
                   수정
@@ -903,7 +897,7 @@ onUnmounted(() => {
                 <button
                   v-if="isAuthor"
                   type="button"
-                  class="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
+                  class="ui-chip-button border-rose-200 bg-rose-50 text-rose-600 hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
                   @click="openDeleteModal"
                 >
                   삭제
@@ -912,15 +906,12 @@ onUnmounted(() => {
             </template>
           </BoardHeaderCard>
 
-          <div
-            v-if="errorMessage"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="errorMessage" class="ui-state ui-state-danger mt-6">
             {{ errorMessage }}
           </div>
 
           <div v-else class="mt-6">
-            <div class="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <article class="ui-panel px-5 py-6 sm:px-7">
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                 <span v-if="article?.notice" class="rounded-full bg-amber-500 px-2 py-0.5 font-semibold text-white"> 공지 </span>
                 <span>{{ article?.authorName ?? '작성자' }}</span>
@@ -935,7 +926,7 @@ onUnmounted(() => {
               <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
                 <button
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  class="ui-chip-button px-3 py-1"
                   :class="
                     article?.myReaction === 1
                       ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
@@ -948,7 +939,7 @@ onUnmounted(() => {
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  class="ui-chip-button px-3 py-1"
                   :class="
                     article?.myReaction === -1
                       ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200'
@@ -961,7 +952,7 @@ onUnmounted(() => {
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  class="ui-chip-button px-3 py-1"
                   :class="
                     article?.bookmarked
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
@@ -972,26 +963,26 @@ onUnmounted(() => {
                 >
                   {{ article?.bookmarked ? '북마크됨' : '북마크' }}
                 </button>
-                <span v-if="!isAuthenticated" class="text-xs text-slate-400">로그인 후 반응/북마크가 가능합니다.</span>
+                <span
+                  v-if="!isAuthenticated"
+                  class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+                >
+                  로그인 후 반응/북마크가 가능합니다.
+                </span>
               </div>
-              <div v-if="article?.content" class="mt-6 text-sm leading-relaxed text-slate-700 dark:text-slate-300" v-html="sanitizedContent"></div>
+              <div v-if="article?.content" class="ui-content mt-6 max-w-none" v-html="sanitizedContent"></div>
               <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
-            </div>
+            </article>
 
             <section class="mt-6">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">첨부파일</h2>
-              <div
-                v-if="attachments.length === 0"
-                class="mt-3 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-              >
-                첨부파일이 없습니다.
-              </div>
+              <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">첨부파일</h2>
+              <div v-if="attachments.length === 0" class="ui-state ui-state-empty mt-3 px-4 py-6">첨부파일이 없습니다.</div>
               <div v-else class="mt-3 space-y-2">
                 <a
                   v-for="file in attachments"
                   :key="file.id"
                   :href="resolveAttachmentUrl(file) ?? '#'"
-                  class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                  class="ui-sub-panel flex items-center justify-between px-4 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900"
                   target="_blank"
                   rel="noopener"
                 >
@@ -1008,25 +999,22 @@ onUnmounted(() => {
 
             <section class="mt-10">
               <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">댓글</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">댓글</h2>
                 <span class="text-xs text-slate-500 dark:text-slate-400">총 {{ article?.commentCount ?? 0 }}개</span>
               </div>
 
-              <div
-                v-if="isAuthenticated"
-                class="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
-              >
+              <div v-if="isAuthenticated" class="ui-sub-panel mt-4 p-4">
                 <textarea
                   v-model="newComment"
                   rows="3"
                   placeholder="댓글을 입력하세요"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-emerald-500/20"
+                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-red-400 dark:focus:ring-red-500/30"
                 ></textarea>
                 <div class="mt-3 flex items-center justify-end gap-2">
                   <button
                     type="button"
-                    class="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700"
-                    :disabled="isCommentSubmitting"
+                    class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+                    :disabled="isCommentSubmitting || !newComment.trim()"
                     @click="submitComment"
                   >
                     댓글 등록
@@ -1034,21 +1022,13 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div
-                v-else
-                class="mt-4 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-              >
-                댓글 작성은 로그인 후 이용할 수 있습니다.
-              </div>
+              <div v-else class="ui-state ui-state-empty mt-4 px-4 py-6">댓글 작성은 로그인 후 이용할 수 있습니다.</div>
 
-              <div
-                v-if="commentError"
-                class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-              >
+              <div v-if="commentError" class="ui-state ui-state-danger mt-4">
                 {{ commentError }}
               </div>
 
-              <div v-if="comments && comments.items.length === 0" class="mt-4 text-sm text-slate-500 dark:text-slate-400">아직 댓글이 없습니다.</div>
+              <div v-if="comments && comments.items.length === 0" class="ui-state ui-state-empty mt-4">아직 댓글이 없습니다.</div>
 
               <div v-else-if="comments" class="mt-4">
                 <CommentList
@@ -1067,7 +1047,7 @@ onUnmounted(() => {
               <div v-if="comments && comments.totalPages > 1" class="mt-4 flex items-center justify-between text-xs text-slate-500">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                  class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!comments.hasPrevious || isCommentLoading"
                   @click="handleCommentPage(commentPage - 1)"
                 >
@@ -1076,7 +1056,7 @@ onUnmounted(() => {
                 <span>페이지 {{ commentPage + 1 }} / {{ comments.totalPages }}</span>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                  class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!comments.hasNext || isCommentLoading"
                   @click="handleCommentPage(commentPage + 1)"
                 >
@@ -1088,10 +1068,7 @@ onUnmounted(() => {
             </section>
 
             <section class="mt-10">
-              <div
-                v-if="boardListError"
-                class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-              >
+              <div v-if="boardListError" class="ui-state ui-state-danger">
                 {{ boardListError }}
               </div>
               <ArticleList
@@ -1111,7 +1088,7 @@ onUnmounted(() => {
             </section>
           </div>
 
-          <div v-if="isLoading" class="mt-6 text-sm text-slate-500">게시글을 불러오는 중입니다...</div>
+          <div v-if="isLoading" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중입니다...</div>
         </div>
       </main>
     </div>
@@ -1127,11 +1104,7 @@ onUnmounted(() => {
       @close="closeDeleteModal"
       @confirm="confirmDelete"
     >
-      <p
-        v-if="deleteError"
-        class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
-        role="alert"
-      >
+      <p v-if="deleteError" class="ui-state ui-state-danger mt-4 px-4 py-2 text-sm font-semibold" role="alert">
         {{ deleteError }}
       </p>
     </ConfirmModal>

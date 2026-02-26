@@ -14,22 +14,25 @@ const props = defineProps<BoardHeaderCardProps>();
 </script>
 
 <template>
-  <div class="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-    <div class="relative h-48 w-full bg-slate-100 dark:bg-slate-900 sm:h-56">
+  <div class="ui-panel overflow-hidden">
+    <div class="relative h-44 w-full bg-slate-100 dark:bg-slate-900 sm:h-52">
       <img v-if="props.imageUrl" :src="props.imageUrl" :alt="props.title" class="h-full w-full object-cover" />
       <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
         <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-8 w-8" />
         <span class="text-xs">대표 이미지 없음</span>
       </div>
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900/25 to-transparent dark:from-slate-950/65"
+      ></div>
     </div>
-    <div class="px-6 py-6">
-      <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+    <div class="px-6 py-6 sm:px-7">
+      <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100 sm:text-[1.7rem]">
         <RouterLink v-if="props.linkTo" :to="props.linkTo" class="transition hover:text-slate-700 dark:hover:text-white">
           {{ props.title }}
         </RouterLink>
         <span v-else>{{ props.title }}</span>
       </h1>
-      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+      <p class="mt-2 max-w-4xl text-sm text-slate-500 dark:text-slate-400">
         {{ props.description ?? '설명이 없습니다.' }}
       </p>
       <div v-if="$slots.meta" class="mt-4">

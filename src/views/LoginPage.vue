@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { API_BASE_URL, ApiError } from '../lib/api';
@@ -17,13 +17,14 @@ const password = ref('');
 const rememberMe = ref(false);
 const isSubmitting = ref(false);
 const errorMessage = ref('');
+const canSubmit = computed(() => Boolean(loginId.value.trim() && password.value) && !isSubmitting.value);
 
 const apiBase = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
 const googleAuthUrl = `${apiBase}/oauth2/authorization/google`;
 const githubAuthUrl = `${apiBase}/oauth2/authorization/github`;
 
 const handleForgotPassword = () => {
-  alert('아직 구현안됨.');
+  errorMessage.value = '비밀번호 찾기 기능은 준비 중입니다.';
 };
 
 const handleSubmit = async () => {
@@ -78,14 +79,19 @@ const handleSubmit = async () => {
       </RouterLink>
     </header>
 
-    <main
-      class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-8"
-    >
+    <main class="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8">
+      <section class="w-full max-w-xl lg:pt-12">
+        <div class="space-y-4">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-red-500 dark:text-red-300">Welcome Back</p>
+          <h1 class="text-3xl font-semibold leading-tight text-slate-900 dark:text-slate-100">MockTalk에서 다시 커뮤니티를 이어가세요.</h1>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            개발 이야기와 프로젝트 후원을 한 곳에서 관리할 수 있도록, 로그인 경험을 더 빠르고 명확하게 구성했습니다.
+          </p>
+        </div>
+      </section>
+
       <section class="w-full max-w-md">
-        <form
-          class="flex flex-col gap-6 rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/90"
-          @submit.prevent="handleSubmit"
-        >
+        <form class="ui-panel flex flex-col gap-6 p-6 sm:p-7" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-2">
             <label for="login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
             <input
@@ -95,7 +101,7 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="username"
               placeholder="아이디를 입력하세요"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -109,7 +115,7 @@ const handleSubmit = async () => {
               type="password"
               autocomplete="current-password"
               placeholder="비밀번호를 입력하세요"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -131,9 +137,9 @@ const handleSubmit = async () => {
           <button
             type="submit"
             class="h-11 rounded-2xl bg-[color:var(--accent-strong)] text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-            :disabled="isSubmitting"
+            :disabled="!canSubmit"
           >
-            로그인
+            {{ isSubmitting ? '로그인 중...' : '로그인' }}
           </button>
 
           <div class="flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
@@ -145,7 +151,7 @@ const handleSubmit = async () => {
           <div class="flex flex-col gap-3">
             <a
               :href="googleAuthUrl"
-              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800"
             >
               <span
                 class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
@@ -158,7 +164,7 @@ const handleSubmit = async () => {
             </a>
             <a
               :href="githubAuthUrl"
-              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800"
             >
               <span
                 class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
@@ -170,11 +176,7 @@ const handleSubmit = async () => {
             </a>
           </div>
 
-          <p
-            v-if="errorMessage"
-            class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-            role="alert"
-          >
+          <p v-if="errorMessage" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
             {{ errorMessage }}
           </p>
 

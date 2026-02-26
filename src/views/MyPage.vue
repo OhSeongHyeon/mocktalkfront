@@ -678,11 +678,7 @@ onBeforeUnmount(() => {
                 </button>
               </div>
 
-              <p
-                v-if="profileError"
-                class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-                role="alert"
-              >
+              <p v-if="profileError" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
                 {{ profileError }}
               </p>
             </form>
@@ -763,11 +759,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="listLoading" class="text-sm text-slate-500">불러오는 중...</div>
-            <p
-              v-else-if="listError"
-              class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-              role="alert"
-            >
+            <p v-else-if="listError" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
               {{ listError }}
             </p>
             <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">아직 작성한 항목이 없습니다.</div>

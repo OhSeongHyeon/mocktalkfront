@@ -201,7 +201,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -209,10 +209,7 @@ onBeforeUnmount(() => {
         <div class="mx-auto w-full max-w-6xl space-y-6">
           <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="settings" />
 
-          <div
-            v-if="boardError"
-            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="boardError" class="ui-state ui-state-danger">
             {{ boardError }}
           </div>
 
@@ -222,7 +219,7 @@ onBeforeUnmount(() => {
               <p class="text-sm text-slate-500 dark:text-slate-400">게시판의 기본 정보와 대표 이미지를 관리합니다.</p>
             </div>
 
-            <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+            <section class="ui-panel p-6">
               <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">기본 정보</h2>
                 <span class="text-xs text-slate-400">게시판 ID {{ board.id }}</span>
@@ -262,10 +259,7 @@ onBeforeUnmount(() => {
                   ></textarea>
                 </label>
 
-                <div
-                  v-if="formError"
-                  class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200 md:col-span-2"
-                >
+                <div v-if="formError" class="ui-state ui-state-danger md:col-span-2">
                   {{ formError }}
                 </div>
                 <div
@@ -287,7 +281,7 @@ onBeforeUnmount(() => {
               </form>
             </section>
 
-            <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+            <section class="ui-panel p-6">
               <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대표 이미지</h2>
                 <span class="text-xs text-slate-400">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
@@ -347,10 +341,7 @@ onBeforeUnmount(() => {
                     </button>
                   </div>
 
-                  <div
-                    v-if="imageError"
-                    class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-                  >
+                  <div v-if="imageError" class="ui-state ui-state-danger">
                     {{ imageError }}
                   </div>
                   <div

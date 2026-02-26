@@ -186,11 +186,7 @@ const handleSubmit = async () => {
             회원가입
           </button>
 
-          <p
-            v-if="errorMessage"
-            class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-            role="alert"
-          >
+          <p v-if="errorMessage" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
             {{ errorMessage }}
           </p>
 

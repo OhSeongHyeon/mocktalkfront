@@ -121,6 +121,25 @@ const joinDisabled = computed(() => {
 const showJoinButton = computed(() => Boolean(board.value && board.value.visibility !== 'PUBLIC'));
 const subscribeLabel = computed(() => (board.value?.subscribed ? '구독중' : '구독'));
 const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing.value);
+const writeUnavailableReason = computed(() => {
+  if (!isAuthenticated.value) {
+    return '로그인 후 글쓰기가 가능합니다.';
+  }
+  if (!board.value) {
+    return '게시판 정보를 확인 중입니다.';
+  }
+  const role = board.value.memberStatus;
+  if (role === 'PENDING') {
+    return '가입 승인 후 글쓰기가 가능합니다.';
+  }
+  if (role === 'BANNED') {
+    return '제재 상태에서는 글을 작성할 수 없습니다.';
+  }
+  if ((board.value.visibility === 'PRIVATE' || board.value.visibility === 'UNLISTED') && role !== 'OWNER' && role !== 'MODERATOR') {
+    return '운영진만 글을 작성할 수 있습니다.';
+  }
+  return '';
+});
 
 const handlePageSizeChange = (size: number) => {
   setArticleListPageSize(size);
@@ -352,7 +371,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -375,14 +394,14 @@ watch(
                 <button
                   v-if="canBoardAdmin"
                   type="button"
-                  class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                  class="ui-chip-button border-slate-900 bg-slate-900 text-white hover:bg-slate-800 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                   @click="goBoardAdmin"
                 >
                   관리
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
+                  class="ui-chip-button ui-chip-button-muted disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="subscribeDisabled"
                   @click="handleSubscribe"
                 >
@@ -391,7 +410,7 @@ watch(
                 <button
                   v-if="showJoinButton"
                   type="button"
-                  class="rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-xs font-semibold text-indigo-700 transition hover:border-indigo-300 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200"
+                  class="ui-chip-button border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200"
                   :disabled="joinDisabled"
                   @click="handleJoin"
                 >
@@ -399,8 +418,9 @@ watch(
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
                   :disabled="!canWrite"
+                  :title="!canWrite ? writeUnavailableReason : undefined"
                   @click="goWrite"
                 >
                   글쓰기
@@ -412,30 +432,24 @@ watch(
             </template>
           </BoardHeaderCard>
 
-          <div
-            v-if="listError"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="listError" class="ui-state ui-state-danger mt-6">
             {{ listError }}
           </div>
 
-          <div v-if="isBoardLoading" class="mt-6 text-sm text-slate-500">게시판 정보를 불러오는 중입니다...</div>
+          <div v-if="isBoardLoading" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시판 정보를 불러오는 중입니다...</div>
 
-          <form
-            class="mt-6 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-950"
-            @submit.prevent="handleSearch"
-          >
-            <label for="board-search" class="text-xs font-semibold text-slate-500 dark:text-slate-400">게시글 검색</label>
+          <form class="ui-panel mt-6 flex flex-wrap items-center gap-2 px-4 py-3 text-sm sm:px-5" @submit.prevent="handleSearch">
+            <label for="board-search" class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">게시글 검색</label>
             <input
               id="board-search"
               v-model="searchKeyword"
               type="search"
               placeholder="게시글 제목/본문 검색"
-              class="h-9 flex-1 rounded-full border border-slate-200 px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+              class="ui-input h-10 min-w-[220px] flex-1 rounded-full"
             />
             <button
               type="submit"
-              class="inline-flex h-9 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+              class="ui-chip-button h-10 border-emerald-200 bg-emerald-50 px-4 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
               :disabled="!searchKeyword.trim() || isLoading"
             >
               검색
@@ -443,7 +457,7 @@ watch(
             <button
               v-if="isSearching"
               type="button"
-              class="inline-flex h-9 items-center justify-center rounded-full border border-slate-200 px-4 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+              class="ui-chip-button ui-chip-button-muted h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="isLoading"
               @click="clearSearch"
             >
@@ -452,10 +466,10 @@ watch(
           </form>
 
           <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <label for="article-order" class="font-semibold text-slate-600 dark:text-slate-300">정렬</label>
+            <label for="article-order" class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</label>
             <select
               id="article-order"
-              class="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:focus:ring-emerald-500/20"
+              class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold"
               :value="selectedOrder"
               @change="handleOrderChange"
             >
@@ -480,7 +494,7 @@ watch(
             @update:page="handlePageChange"
           />
 
-          <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-slate-500">게시글을 불러오는 중...</div>
+          <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중...</div>
         </div>
       </main>
     </div>
