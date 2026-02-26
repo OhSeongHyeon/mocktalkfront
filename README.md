@@ -1,6 +1,6 @@
 # Mocktalk Frontend
 
-Mocktalk 커뮤니티/갤러리 서비스의 프론트엔드 애플리케이션입니다.  
+Mocktalk 커뮤니티 서비스의 프론트엔드 애플리케이션입니다.  
 Vue + TypeScript + Tailwind CSS 기반으로 게시판, 댓글/대댓글, 알림, 이미지 업로드 UI를 제공합니다.
 
 ## 한눈에 보기
@@ -24,7 +24,7 @@ Vue + TypeScript + Tailwind CSS 기반으로 게시판, 댓글/대댓글, 알림
 `mocktalkfront/.env.example`을 참고해 `mocktalkfront/.env.development` 값을 채웁니다.
 
 ```env
-VITE_API_BASE_URL=/api
+VITE_API_BASE_URL=
 VITE_FILE_BASE_URL=
 ```
 
@@ -54,12 +54,12 @@ npm run format:check
 
 ## 환경 변수
 
-| 이름                 | 기본/예시               | 설명                          |
-| -------------------- | ----------------------- | ----------------------------- |
-| `VITE_API_BASE_URL`  | `/api`                  | 백엔드 API 기본 주소          |
-| `VITE_FILE_BASE_URL` | 비움 또는 파일 서버 URL | 업로드 파일 표시용 기본 주소  |
-| `PORT`               | `80`                    | 컨테이너 실행 시 내부 포트    |
-| `BACKEND_BASE_URL`   | `http://backend:8082`   | 컨테이너 템플릿용 백엔드 주소 |
+| 이름                 | 기본/예시             | 설명                          |
+| -------------------- | --------------------- | ----------------------------- |
+| `VITE_API_BASE_URL`  | 비움                  | 백엔드 API 기본 주소          |
+| `VITE_FILE_BASE_URL` | 비움                  | 업로드 파일 표시용 기본 주소  |
+| `PORT`               | `80`                  | 컨테이너 실행 시 내부 포트    |
+| `BACKEND_BASE_URL`   | `http://backend:8082` | 컨테이너 템플릿용 백엔드 주소 |
 
 ## 디렉터리 구조
 
