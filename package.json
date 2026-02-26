@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{js,ts,vue}\"",
     "lint:fix": "eslint \"src/**/*.{js,ts,vue}\" --fix",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format": "prettier src --write",
+    "format:check": "prettier src --check"
   },
   "dependencies": {
     "@tiptap/extension-image": "^2.12.0",
