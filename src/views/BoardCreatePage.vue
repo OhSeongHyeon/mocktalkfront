@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { createBoard, uploadBoardImage } from '../services/boards';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
@@ -12,8 +13,6 @@ import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 const router = useRouter();
 const isMobileMenuOpen = ref(false);
-
-type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
 
 const form = reactive({
   boardName: '',
@@ -27,6 +26,7 @@ const previewUrl = ref<string | null>(null);
 const errorMessage = ref('');
 const successMessage = ref('');
 const isSubmitting = ref(false);
+const visibilityOptions = computed(() => resolveBoardVisibilityOptions(isAdmin.value));
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -183,10 +183,9 @@ onBeforeUnmount(() => {
                     v-model="form.visibility"
                     class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
                   >
-                    <option value="PUBLIC">공개</option>
-                    <option value="GROUP">구독 멤버만</option>
-                    <option value="PRIVATE">소유자만</option>
-                    <option v-if="isAdmin" value="UNLISTED">운영자만</option>
+                    <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
                   </select>
                 </div>
               </div>

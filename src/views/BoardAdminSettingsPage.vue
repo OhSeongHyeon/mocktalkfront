@@ -6,14 +6,13 @@ import BoardAdminNav from '../components/BoardAdminNav.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { resolveImageUrl } from '../lib/files';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../services/boards';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../services/boardSettings';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
-
-type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
 
 const route = useRoute();
 const isMobileMenuOpen = ref(false);
@@ -35,13 +34,7 @@ const form = reactive({
   description: '',
   visibility: 'PUBLIC' as BoardVisibility,
 });
-
-const visibilityOptions = [
-  { value: 'PUBLIC', label: '전체 공개' },
-  { value: 'GROUP', label: '회원 공개' },
-  { value: 'PRIVATE', label: '비공개' },
-  { value: 'UNLISTED', label: '비공개(링크 공개)' },
-];
+const visibilityOptions = computed(() => resolveBoardVisibilityOptions(isAdmin.value, form.visibility));
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
