@@ -2,10 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import ArticleEditor from '../components/ArticleEditor.vue';
-import BoardHeaderCard from '../components/BoardHeaderCard.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
+import ArticleUpsertForm from '../components/ArticleUpsertForm.vue';
+import ArticleUpsertPageLayout from '../components/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../lib/api';
 import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
 import { resolveImageUrl } from '../lib/files';
@@ -18,7 +16,6 @@ import { getBoardBySlug } from '../services/boards';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import { isAdmin } from '../stores/auth';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const route = useRoute();
 const router = useRouter();
@@ -26,7 +23,6 @@ const router = useRouter();
 const articleId = computed(() => Number(route.params.articleId));
 const slug = computed(() => String(route.params.slug ?? ''));
 
-const isMobileMenuOpen = ref(false);
 const article = ref<ArticleDetailResponse | null>(null);
 const board = ref<BoardDetailResponse | null>(null);
 const profile = ref<UserProfileResponse | null>(null);
@@ -43,20 +39,6 @@ const isCategoryAccessDenied = ref(false);
 const errorMessage = ref('');
 const isLoading = ref(false);
 const isSubmitting = ref(false);
-
-const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-
-const toggleMenu = () => {
-  if (isMobileView()) {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
 
 const boardImageUrl = computed(() => resolveImageUrl(article.value?.board?.boardImage ?? null, 'medium'));
 
@@ -231,102 +213,32 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-4xl">
-          <BoardHeaderCard
-            :title="article?.board?.boardName ?? '커뮤니티'"
-            :description="article?.board?.description ?? '설명이 없습니다.'"
-            :image-url="boardImageUrl"
-            :link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
-          />
-
-          <div v-if="errorMessage" class="ui-state ui-state-danger mt-6">
-            {{ errorMessage }}
-          </div>
-
-          <div v-if="isLoading" class="mt-6 text-sm text-slate-500">게시글 정보를 불러오는 중입니다...</div>
-
-          <div v-else class="mt-6 space-y-6">
-            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-              <div class="flex flex-col gap-4">
-                <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  제목
-                  <input
-                    v-model="title"
-                    type="text"
-                    class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="제목을 입력하세요"
-                  />
-                </label>
-
-                <div class="flex flex-col gap-4">
-                  <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    카테고리
-                    <select
-                      v-model="selectedCategoryId"
-                      class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                      :disabled="isCategoryLoading || isCategoryAccessDenied || categories.length === 0"
-                    >
-                      <option :value="null">선택 안 함</option>
-                      <option v-for="category in categories" :key="category.id" :value="category.id">
-                        {{ category.categoryName }}
-                      </option>
-                    </select>
-                    <p v-if="isCategoryLoading" class="mt-1 text-xs text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</p>
-                    <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      카테고리 목록을 조회할 수 없습니다.
-                    </p>
-                    <p v-else-if="categoryErrorMessage" class="mt-1 text-xs text-rose-500">{{ categoryErrorMessage }}</p>
-                    <p v-else-if="categories.length === 0" class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      등록된 카테고리가 없습니다.
-                      <span v-if="canManageCategories">커뮤니티 관리에서 카테고리를 등록해 주세요.</span>
-                    </p>
-                  </label>
-
-                  <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                    공개 범위
-                    <select
-                      v-model="visibility"
-                      class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                    >
-                      <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
-                        {{ option.label }}
-                      </option>
-                    </select>
-                  </label>
-                </div>
-              </div>
-            </section>
-
-            <section>
-              <ArticleEditor v-model="content" placeholder="본문을 입력하세요." />
-            </section>
-
-            <div class="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                class="rounded-full bg-emerald-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="isSubmitting || isInvalid || !isAuthor"
-                @click="submit"
-              >
-                저장
-              </button>
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
-                @click="cancel"
-              >
-                취소
-              </button>
-              <span v-if="!isAuthor" class="text-xs text-rose-500"> 게시글 수정 권한이 없습니다. </span>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
+  <ArticleUpsertPageLayout
+    :board-title="article?.board?.boardName ?? '커뮤니티'"
+    :board-description="article?.board?.description ?? '설명이 없습니다.'"
+    :board-image-url="boardImageUrl"
+    :board-link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
+    :error-message="errorMessage"
+    :is-loading="isLoading"
+    loading-message="게시글 정보를 불러오는 중입니다..."
+  >
+    <ArticleUpsertForm
+      v-model:title="title"
+      v-model:content="content"
+      v-model:visibility="visibility"
+      v-model:selected-category-id="selectedCategoryId"
+      :categories="categories"
+      :visibility-options="visibilityOptions"
+      :is-category-loading="isCategoryLoading"
+      :is-category-access-denied="isCategoryAccessDenied"
+      :category-error-message="categoryErrorMessage"
+      :can-manage-categories="canManageCategories"
+      :is-submitting="isSubmitting"
+      :is-invalid="isInvalid"
+      :is-submit-blocked="!isAuthor"
+      :submit-permission-message="!isAuthor ? '게시글 수정 권한이 없습니다.' : ''"
+      @submit="submit"
+      @cancel="cancel"
+    />
+  </ArticleUpsertPageLayout>
 </template>
