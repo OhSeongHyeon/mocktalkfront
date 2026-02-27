@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
         <div class="mx-auto w-full max-w-3xl">
           <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">커뮤니티 개설</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">게시판을 개설하면 1,000 포인트가 차감됩니다.</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">게시판을 개설하면 20,000 포인트가 차감됩니다.</p>
           </div>
 
           <form class="mt-8 flex flex-col gap-6" @submit.prevent="handleSubmit">
