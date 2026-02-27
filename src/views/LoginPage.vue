@@ -69,8 +69,8 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen text-slate-900 dark:text-slate-100">
-    <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
+  <div class="flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
+    <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
       <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
         <span class="inline">MockTalk</span>
       </RouterLink>
@@ -79,17 +79,7 @@ const handleSubmit = async () => {
       </RouterLink>
     </header>
 
-    <main class="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:gap-16 lg:px-8">
-      <section class="w-full max-w-xl lg:pt-12">
-        <div class="space-y-4">
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-red-500 dark:text-red-300">Welcome Back</p>
-          <h1 class="text-3xl font-semibold leading-tight text-slate-900 dark:text-slate-100">MockTalk에서 다시 커뮤니티를 이어가세요.</h1>
-          <p class="text-sm text-slate-600 dark:text-slate-300">
-            개발 이야기와 프로젝트 후원을 한 곳에서 관리할 수 있도록, 로그인 경험을 더 빠르고 명확하게 구성했습니다.
-          </p>
-        </div>
-      </section>
-
+    <main class="mx-auto flex w-full max-w-6xl flex-1 items-start justify-center px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       <section class="w-full max-w-md">
         <form class="ui-panel flex flex-col gap-6 p-6 sm:p-7" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-2">
