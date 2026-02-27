@@ -274,25 +274,26 @@ a {
     padding: 0.9rem;
   }
 
-  .ui-side-scrollbar {
+  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll) {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--ink-2) 36%, transparent) transparent;
   }
 
-  .ui-side-scrollbar::-webkit-scrollbar {
+  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll)::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
-  .ui-side-scrollbar::-webkit-scrollbar-track {
+  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll)::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  .ui-side-scrollbar::-webkit-scrollbar-thumb {
+  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll)::-webkit-scrollbar-thumb {
     border-radius: 999px;
     background: color-mix(in oklab, var(--ink-2) 42%, transparent);
   }
 
-  .ui-side-scrollbar:hover::-webkit-scrollbar-thumb {
+  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll):hover::-webkit-scrollbar-thumb {
     background: color-mix(in oklab, var(--ink-2) 56%, transparent);
   }
 }
