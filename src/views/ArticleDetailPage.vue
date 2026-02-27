@@ -57,6 +57,7 @@ const realtimeRefreshTimer = ref<number | null>(null);
 const isRealtimeSyncing = ref(false);
 const hasPendingRealtimeSync = ref(false);
 const lastCommentSyncVersion = ref<number | null>(null);
+const articleDetailScrollContainer = ref<HTMLElement | null>(null);
 
 type CommentDeltaAction = 'CREATED' | 'UPDATED' | 'DELETED';
 
@@ -283,15 +284,27 @@ const goBoard = () => {
   }
 };
 
-const goBoardArticle = ({ articleId: targetId, query }: ArticleSelectPayload) => {
+const scrollArticleDetailToTop = () => {
+  if (articleDetailScrollContainer.value) {
+    articleDetailScrollContainer.value.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    return;
+  }
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }
+};
+
+const goBoardArticle = async ({ articleId: targetId, query }: ArticleSelectPayload) => {
   const slugValue = article.value?.board?.slug ?? String(route.params.slug ?? '');
   if (!slugValue) {
     return;
   }
-  router.push({
+  await router.push({
     path: `/b/${slugValue}/articles/${targetId}`,
     query,
   });
+  await nextTick();
+  scrollArticleDetailToTop();
 };
 
 const goEdit = () => {
@@ -869,7 +882,7 @@ onUnmounted(() => {
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+      <main ref="articleDetailScrollContainer" class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div class="mx-auto w-full max-w-7xl">
           <BoardHeaderCard
             :title="article?.board?.boardName ?? '커뮤니티'"
