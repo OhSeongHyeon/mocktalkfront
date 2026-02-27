@@ -6,6 +6,7 @@ import BoardAdminNav from '../components/BoardAdminNav.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { resolveImageUrl } from '../lib/files';
 import type { BoardCategoryResponse } from '../services/boardCategories';
@@ -38,6 +39,7 @@ const form = reactive({
   boardName: '',
   description: '',
   visibility: 'PUBLIC' as BoardVisibility,
+  articleWritePolicy: 'ALL_AUTHENTICATED' as BoardArticleWritePolicy,
 });
 const visibilityOptions = computed(() => resolveBoardVisibilityOptions(isAdmin.value, form.visibility));
 
@@ -98,6 +100,7 @@ const applyBoardUpdate = (updated: BoardResponse) => {
   form.boardName = updated.boardName;
   form.description = updated.description ?? '';
   form.visibility = updated.visibility as BoardVisibility;
+  form.articleWritePolicy = updated.articleWritePolicy;
 };
 
 const loadBoard = async () => {
@@ -111,6 +114,7 @@ const loadBoard = async () => {
     form.boardName = board.value.boardName;
     form.description = board.value.description ?? '';
     form.visibility = board.value.visibility as BoardVisibility;
+    form.articleWritePolicy = board.value.articleWritePolicy;
   } catch (error) {
     boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
   }
@@ -155,6 +159,7 @@ const submitSettings = async () => {
       boardName: boardNameValue,
       description: form.description.trim() ? form.description.trim() : null,
       visibility: form.visibility,
+      articleWritePolicy: form.articleWritePolicy,
     });
     applyBoardUpdate(updated);
     formSuccess.value = '게시판 설정이 저장되었습니다.';
@@ -261,6 +266,18 @@ onBeforeUnmount(() => {
                     class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   >
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </label>
+
+                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  게시글 작성 권한
+                  <select
+                    v-model="form.articleWritePolicy"
+                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  >
+                    <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
                       {{ option.label }}
                     </option>
                   </select>

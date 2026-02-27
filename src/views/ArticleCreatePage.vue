@@ -6,6 +6,7 @@ import ArticleUpsertForm from '../components/ArticleUpsertForm.vue';
 import { validateAttachmentFile } from '../lib/attachments/attachmentPolicy';
 import ArticleUpsertPageLayout from '../components/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../lib/api';
+import { canWriteArticle, resolveWriteUnavailableReason } from '../lib/boardWritePolicy';
 import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
 import { resolveImageUrl } from '../lib/files';
 import type { ArticleCreateRequest } from '../services/articles';
@@ -18,7 +19,7 @@ import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import type { FileResponse } from '../services/files';
 import { uploadArticleAttachmentFile } from '../services/files';
-import { isAdmin } from '../stores/auth';
+import { isAdmin, isAuthenticated } from '../stores/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -66,17 +67,7 @@ const visibilityOptions = computed(() => {
 });
 
 const canWrite = computed(() => {
-  const role = board.value?.memberStatus;
-  if (role === 'BANNED' || role === 'PENDING') {
-    return false;
-  }
-  if (!board.value) {
-    return false;
-  }
-  if (board.value.visibility === 'PRIVATE' || board.value.visibility === 'UNLISTED') {
-    return role === 'OWNER' || role === 'MODERATOR';
-  }
-  return true;
+  return canWriteArticle(board.value, isAuthenticated.value, isAdmin.value);
 });
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
@@ -265,7 +256,11 @@ onMounted(async () => {
       :is-invalid="isInvalid"
       :is-submit-blocked="isAttachmentUploading || !canWrite"
       :submit-permission-message="
-        !canWrite ? '게시글 작성 권한이 없습니다.' : isAttachmentUploading ? '첨부파일 업로드가 완료될 때까지 기다려주세요.' : ''
+        !canWrite
+          ? resolveWriteUnavailableReason(board, isAuthenticated, isAdmin)
+          : isAttachmentUploading
+            ? '첨부파일 업로드가 완료될 때까지 기다려주세요.'
+            : ''
       "
       @add-attachments="addAttachments"
       @remove-attachment="removeAttachment"

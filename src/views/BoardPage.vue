@@ -7,6 +7,7 @@ import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { canWriteArticle, resolveWriteUnavailableReason } from '../lib/boardWritePolicy';
 import { resolveImageUrl } from '../lib/files';
 import type { BoardDetailResponse } from '../services/boards';
 import { getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
@@ -69,17 +70,7 @@ const canBoardAdmin = computed(() => {
   return isAdmin.value || board.value.memberStatus === 'OWNER' || board.value.memberStatus === 'MODERATOR';
 });
 const canWrite = computed(() => {
-  if (!isAuthenticated.value || !board.value) {
-    return false;
-  }
-  const role = board.value.memberStatus;
-  if (role === 'BANNED' || role === 'PENDING') {
-    return false;
-  }
-  if (board.value.visibility === 'PRIVATE' || board.value.visibility === 'UNLISTED') {
-    return role === 'OWNER' || role === 'MODERATOR';
-  }
-  return true;
+  return canWriteArticle(board.value, isAuthenticated.value, isAdmin.value);
 });
 const joinButtonLabel = computed(() => {
   const status = board.value?.memberStatus;
@@ -105,23 +96,7 @@ const showJoinButton = computed(() => Boolean(board.value && board.value.visibil
 const subscribeLabel = computed(() => (board.value?.subscribed ? '구독중' : '구독'));
 const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing.value);
 const writeUnavailableReason = computed(() => {
-  if (!isAuthenticated.value) {
-    return '로그인 후 글쓰기가 가능합니다.';
-  }
-  if (!board.value) {
-    return '게시판 정보를 확인 중입니다.';
-  }
-  const role = board.value.memberStatus;
-  if (role === 'PENDING') {
-    return '가입 승인 후 글쓰기가 가능합니다.';
-  }
-  if (role === 'BANNED') {
-    return '제재 상태에서는 글을 작성할 수 없습니다.';
-  }
-  if ((board.value.visibility === 'PRIVATE' || board.value.visibility === 'UNLISTED') && role !== 'OWNER' && role !== 'MODERATOR') {
-    return '운영진만 글을 작성할 수 있습니다.';
-  }
-  return '';
+  return resolveWriteUnavailableReason(board.value, isAuthenticated.value, isAdmin.value);
 });
 
 const loadBoard = async () => {

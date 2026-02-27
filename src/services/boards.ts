@@ -1,5 +1,7 @@
 import { request } from '../lib/api';
 
+export type BoardArticleWritePolicy = 'ALL_AUTHENTICATED' | 'MEMBER' | 'MODERATOR' | 'OWNER';
+
 export interface ApiEnvelope<T> {
   success: boolean;
   data: T;
@@ -42,6 +44,7 @@ export interface BoardResponse {
   slug: string;
   description: string | null;
   visibility: string;
+  articleWritePolicy: BoardArticleWritePolicy;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
