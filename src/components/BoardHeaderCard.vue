@@ -21,9 +21,6 @@ const props = defineProps<BoardHeaderCardProps>();
         <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-8 w-8" />
         <span class="text-xs">대표 이미지 없음</span>
       </div>
-      <div
-        class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900/25 to-transparent dark:from-slate-950/65"
-      ></div>
     </div>
     <div class="px-6 py-6 sm:px-7">
       <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100 sm:text-[1.7rem]">
