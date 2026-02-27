@@ -484,8 +484,8 @@ const handleDeleteAllNotifications = async () => {
   <header
     class="sticky top-0 z-40 h-16 border-b border-slate-200/80 bg-[color:var(--surface-glass)] text-slate-900 shadow-sm backdrop-blur dark:border-slate-800/80 dark:text-slate-100"
   >
-    <div class="mx-auto flex h-full w-full max-w-[1600px] items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-3">
+    <div class="mx-auto flex h-full w-full items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
+      <div class="flex shrink-0 items-center gap-3">
         <button
           type="button"
           class="ui-icon-button inline-flex items-center justify-center"
@@ -497,22 +497,17 @@ const handleDeleteAllNotifications = async () => {
 
         <RouterLink to="/" class="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-lg">
           <span>MockTalk</span>
-          <span
-            class="hidden rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-500 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200 sm:inline-flex"
-          >
-            community
-          </span>
         </RouterLink>
       </div>
 
-      <div class="flex flex-1 items-center justify-center">
+      <div class="flex min-w-0 flex-1 items-center justify-center">
         <div class="hidden w-full max-w-2xl items-center sm:flex">
           <label class="sr-only" for="global-search">검색</label>
           <input
             id="global-search"
             v-model="searchKeyword"
             type="search"
-            placeholder="게시판, 글, 작성자를 검색해보세요"
+            placeholder="통합검색"
             class="ui-input w-full rounded-l-full rounded-r-none border-r-0 pl-5 pr-4 text-sm"
             @keydown.enter.prevent="handleSearch"
           />
@@ -527,7 +522,7 @@ const handleDeleteAllNotifications = async () => {
         </div>
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex shrink-0 items-center gap-2 sm:gap-3">
         <button type="button" class="ui-icon-button inline-flex items-center justify-center sm:hidden" aria-label="검색" @click="openSearch">
           <img :src="iconSearch" alt="" aria-hidden="true" class="h-5 w-5" />
         </button>
@@ -623,7 +618,7 @@ const handleDeleteAllNotifications = async () => {
         <button
           v-if="!isAuthenticated"
           type="button"
-          class="ui-chip-button ui-chip-button-primary inline-flex h-11 items-center justify-center px-4 text-sm"
+          class="ui-chip-button ui-chip-button-muted inline-flex h-11 items-center justify-center px-4 text-sm text-slate-700 dark:text-white"
           aria-label="로그인"
           @click="openLogin"
         >
