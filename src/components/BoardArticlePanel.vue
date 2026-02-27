@@ -228,12 +228,7 @@ const applyUncategorizedFilter = async () => {
   await loadPage(0);
 };
 
-const handleOrderChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement | null;
-  if (!target) {
-    return;
-  }
-  const value = target.value;
+const handleOrderChange = (value: string) => {
   if (value !== 'LATEST' && value !== 'OLDEST') {
     return;
   }
@@ -252,7 +247,7 @@ const clearSearch = async () => {
   await loadPage(0);
 };
 
-const handlePageSizeChange = async (size: number) => {
+const handlePageSizeChange = (size: number) => {
   setArticleListPageSize(size);
 };
 
@@ -362,34 +357,7 @@ watch(
 </script>
 
 <template>
-  <form class="ui-panel mt-6 flex flex-wrap items-center gap-2 px-4 py-3 text-sm sm:px-5" @submit.prevent="handleSearch">
-    <label for="board-search" class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">게시글 검색</label>
-    <input
-      id="board-search"
-      v-model="searchKeyword"
-      type="search"
-      placeholder="게시글 제목/본문 검색"
-      class="ui-input h-10 min-w-[220px] flex-1 rounded-full"
-    />
-    <button
-      type="submit"
-      class="ui-chip-button h-10 border-emerald-200 bg-emerald-50 px-4 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
-      :disabled="!searchKeyword.trim() || isLoading"
-    >
-      검색
-    </button>
-    <button
-      v-if="isSearching"
-      type="button"
-      class="ui-chip-button ui-chip-button-muted h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
-      :disabled="isLoading"
-      @click="clearSearch"
-    >
-      초기화
-    </button>
-  </form>
-
-  <section class="mt-4">
+  <section class="ui-panel mt-6 px-4 py-3 sm:px-5">
     <div class="flex items-center justify-between gap-2">
       <label class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">카테고리</label>
       <span v-if="selectedCategoryId !== null || selectedUncategorized" class="text-xs text-slate-500 dark:text-slate-400"
@@ -397,11 +365,11 @@ watch(
       >
     </div>
 
-    <div v-if="isCategoryLoading" class="mt-2 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
-    <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-2">
+    <div v-if="isCategoryLoading" class="mt-3 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+    <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-3">
       {{ categoryErrorMessage }}
     </div>
-    <div v-else class="mt-2 flex gap-2 overflow-x-auto pb-1">
+    <div v-else class="mt-3 flex gap-2 overflow-x-auto pb-1">
       <button
         type="button"
         class="ui-chip-button shrink-0 px-4 py-2"
@@ -443,14 +411,32 @@ watch(
     </div>
   </section>
 
-  <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-    <label for="article-order" class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</label>
-    <select id="article-order" class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold" :value="selectedOrder" @change="handleOrderChange">
-      <option v-for="option in orderOptions" :key="option" :value="option">
-        {{ option === 'LATEST' ? '최신순' : '과거순' }}
-      </option>
-    </select>
-  </div>
+  <form class="ui-panel mt-4 flex flex-wrap items-center gap-2 px-4 py-3 text-sm sm:px-5" @submit.prevent="handleSearch">
+    <label for="board-search" class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">게시글 검색</label>
+    <input
+      id="board-search"
+      v-model="searchKeyword"
+      type="search"
+      placeholder="게시글 제목/본문/작성자 검색"
+      class="ui-input h-10 min-w-[220px] flex-1 rounded-full"
+    />
+    <button
+      type="submit"
+      class="ui-chip-button h-10 border-emerald-200 bg-emerald-50 px-4 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+      :disabled="!searchKeyword.trim() || isLoading"
+    >
+      검색
+    </button>
+    <button
+      v-if="isSearching"
+      type="button"
+      class="ui-chip-button ui-chip-button-muted h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
+      :disabled="isLoading"
+      @click="clearSearch"
+    >
+      초기화
+    </button>
+  </form>
 
   <div v-if="listError" class="ui-state ui-state-danger mt-4">
     {{ listError }}
@@ -460,6 +446,8 @@ watch(
     :pinned="pinned"
     :articles="articles"
     :is-loading="isLoading"
+    :order="selectedOrder"
+    :order-options="orderOptions"
     :page-size="pageSize"
     :page-size-options="pageSizeOptions"
     :page="page"
@@ -467,6 +455,7 @@ watch(
     :has-next="hasNext"
     :has-previous="hasPrevious"
     @select="handleSelect"
+    @update:order="handleOrderChange"
     @update:page-size="handlePageSizeChange"
     @update:page="handlePageChange"
   />
