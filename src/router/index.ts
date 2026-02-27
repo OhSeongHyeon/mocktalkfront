@@ -7,6 +7,7 @@ const MainPage = () => import('../views/MainPage.vue');
 const MyPage = () => import('../views/MyPage.vue');
 const OAuthCallbackPage = () => import('../views/OAuthCallbackPage.vue');
 const RegisterPage = () => import('../views/RegisterPage.vue');
+const CommunityPage = () => import('../views/CommunityPage.vue');
 const BoardCreatePage = () => import('../views/BoardCreatePage.vue');
 const BoardPage = () => import('../views/BoardPage.vue');
 const BoardSubscribePage = () => import('../views/BoardSubscribePage.vue');
@@ -32,7 +33,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: MainPage },
-    { path: '/boards', name: 'boards', component: MainPage },
+    { path: '/boards', name: 'boards', component: CommunityPage },
     { path: '/search', name: 'search', component: SearchPage },
     { path: '/boards/subscribes', name: 'board-subscribes', component: BoardSubscribePage, meta: { requiresAuth: true } },
     { path: '/bookmarks', name: 'bookmarks', component: ArticleBookmarkPage, meta: { requiresAuth: true } },
