@@ -69,6 +69,7 @@ const hasPermissionMessage = computed(() => {
 });
 
 const attachmentInputRef = ref<HTMLInputElement | null>(null);
+const isAttachmentExpanded = ref(true);
 
 const formatFileSize = (size: number) => {
   if (!Number.isFinite(size)) {
@@ -163,47 +164,60 @@ const removeAttachment = (fileId: number) => {
 
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-100">첨부파일</h3>
         <button
           type="button"
-          class="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
-          :disabled="isSubmitting || isAttachmentUploading"
-          @click="openAttachmentPicker"
+          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+          :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
+          aria-controls="article-upsert-attachment-panel"
+          @click="isAttachmentExpanded = !isAttachmentExpanded"
         >
-          파일 추가
+          <span>첨부파일 {{ attachments.length }}개</span>
+          <span>{{ isAttachmentExpanded ? '접기' : '펼치기' }}</span>
         </button>
-      </div>
-      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">최대 50MB</p>
-      <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">허용 확장자: {{ ATTACHMENT_ALLOWED_EXTENSION_LABEL }}</p>
-      <p class="mt-1 text-xs font-medium text-amber-600 dark:text-amber-300">
-        첨부파일 업로드 시 원본 파일을 저장하기 때문에 메타데이터가 보존됩니다. 민감정보에 유의하세요.
-      </p>
-      <p v-if="isAttachmentUploading" class="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-300">첨부파일 업로드 중...</p>
-      <p v-if="attachmentErrorMessage" class="mt-2 text-xs font-semibold text-rose-500">{{ attachmentErrorMessage }}</p>
-      <div
-        v-if="attachments.length === 0"
-        class="mt-3 rounded-xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-      >
-        첨부파일이 없습니다.
-      </div>
-      <div v-else class="mt-3 space-y-2">
-        <div
-          v-for="file in attachments"
-          :key="file.id"
-          class="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm dark:border-slate-800"
-        >
-          <div class="min-w-0">
-            <p class="truncate font-medium text-slate-800 dark:text-slate-100">{{ file.fileName }}</p>
-            <p class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }} · {{ formatFileSize(file.fileSize) }}</p>
-          </div>
+        <div class="flex items-center gap-2">
           <button
             type="button"
-            class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 dark:border-rose-900/60 dark:text-rose-300 dark:hover:bg-rose-950/40"
+            class="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
             :disabled="isSubmitting || isAttachmentUploading"
-            @click="removeAttachment(file.id)"
+            @click="openAttachmentPicker"
           >
-            제거
+            파일 추가
           </button>
+        </div>
+      </div>
+      <div v-show="isAttachmentExpanded" id="article-upsert-attachment-panel" class="mt-2">
+        <p class="text-xs text-slate-500 dark:text-slate-400">최대 50MB</p>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">허용 확장자: {{ ATTACHMENT_ALLOWED_EXTENSION_LABEL }}</p>
+        <p class="mt-1 text-xs font-medium text-amber-600 dark:text-amber-300">
+          첨부파일 업로드 시 원본 파일을 저장하기 때문에 메타데이터가 보존됩니다. 민감정보에 유의하세요.
+        </p>
+        <p v-if="isAttachmentUploading" class="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-300">첨부파일 업로드 중...</p>
+        <p v-if="attachmentErrorMessage" class="mt-2 text-xs font-semibold text-rose-500">{{ attachmentErrorMessage }}</p>
+        <div
+          v-if="attachments.length === 0"
+          class="mt-3 rounded-xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
+        >
+          첨부파일이 없습니다.
+        </div>
+        <div v-else class="mt-3 space-y-2">
+          <div
+            v-for="file in attachments"
+            :key="file.id"
+            class="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm dark:border-slate-800"
+          >
+            <div class="min-w-0">
+              <p class="truncate font-medium text-slate-800 dark:text-slate-100">{{ file.fileName }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }} · {{ formatFileSize(file.fileSize) }}</p>
+            </div>
+            <button
+              type="button"
+              class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 dark:border-rose-900/60 dark:text-rose-300 dark:hover:bg-rose-950/40"
+              :disabled="isSubmitting || isAttachmentUploading"
+              @click="removeAttachment(file.id)"
+            >
+              제거
+            </button>
+          </div>
         </div>
       </div>
       <input ref="attachmentInputRef" type="file" class="hidden" :accept="ATTACHMENT_FILE_ACCEPT" multiple @change="onAttachmentPicked" />

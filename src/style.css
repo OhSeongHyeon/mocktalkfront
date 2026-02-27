@@ -263,7 +263,18 @@ a {
 
   .ui-content img,
   .ui-content video {
-    width: min(100%, 100%);
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-xl);
+  }
+
+  .ui-content iframe {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
     border-radius: var(--radius-xl);
   }
 
