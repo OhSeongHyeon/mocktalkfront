@@ -33,4 +33,17 @@ const uploadEditorFile = async (file: File, options?: { preserveMetadata?: boole
   return unwrap(response);
 };
 
-export { uploadEditorFile };
+const uploadArticleAttachmentFile = async (file: File, options?: { preserveMetadata?: boolean }) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (options?.preserveMetadata) {
+    formData.append('preserveMetadata', 'true');
+  }
+  const response = await request<ApiEnvelope<FileResponse>>('/files/article-attachments', {
+    method: 'POST',
+    body: formData,
+  });
+  return unwrap(response);
+};
+
+export { uploadArticleAttachmentFile, uploadEditorFile };

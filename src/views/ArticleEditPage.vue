@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleUpsertForm from '../components/ArticleUpsertForm.vue';
+import { validateAttachmentFile } from '../lib/attachments/attachmentPolicy';
 import ArticleUpsertPageLayout from '../components/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../lib/api';
 import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
@@ -15,6 +16,8 @@ import type { BoardDetailResponse } from '../services/boards';
 import { getBoardBySlug } from '../services/boards';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
+import type { FileResponse } from '../services/files';
+import { uploadArticleAttachmentFile } from '../services/files';
 import { isAdmin } from '../stores/auth';
 
 const route = useRoute();
@@ -35,6 +38,9 @@ const categories = ref<BoardCategoryResponse[]>([]);
 const isCategoryLoading = ref(false);
 const categoryErrorMessage = ref('');
 const isCategoryAccessDenied = ref(false);
+const attachmentFiles = ref<FileResponse[]>([]);
+const isAttachmentUploading = ref(false);
+const attachmentErrorMessage = ref('');
 
 const errorMessage = ref('');
 const isLoading = ref(false);
@@ -109,6 +115,9 @@ const loadArticle = async () => {
   selectedCategoryId.value = null;
   categoryErrorMessage.value = '';
   isCategoryAccessDenied.value = false;
+  attachmentFiles.value = [];
+  isAttachmentUploading.value = false;
+  attachmentErrorMessage.value = '';
   if (!Number.isFinite(articleId.value)) {
     errorMessage.value = '게시글 정보가 올바르지 않습니다.';
     return;
@@ -121,6 +130,7 @@ const loadArticle = async () => {
     content.value = article.value.content;
     visibility.value = article.value.visibility;
     selectedCategoryId.value = article.value.categoryId ?? null;
+    attachmentFiles.value = [...article.value.attachments];
     await loadBoard(article.value.board?.slug ?? '');
     await loadCategories(article.value.board?.id ?? 0);
   } catch (error) {
@@ -172,13 +182,15 @@ const submit = async () => {
   }
   isSubmitting.value = true;
   errorMessage.value = '';
+  attachmentErrorMessage.value = '';
+  const fileIds = Array.from(new Set([...extractFileIdsFromContent(content.value), ...attachmentFiles.value.map((file) => file.id)]));
   const payload: ArticleUpdateRequest = {
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
     title: title.value.trim(),
     content: content.value,
     notice: article.value.notice,
-    fileIds: extractFileIdsFromContent(content.value),
+    fileIds,
   };
   try {
     await updateArticle(article.value.id, payload);
@@ -197,6 +209,43 @@ const cancel = () => {
     return;
   }
   router.push('/');
+};
+
+const addAttachments = async (files: File[]) => {
+  if (files.length === 0) {
+    return;
+  }
+  isAttachmentUploading.value = true;
+  attachmentErrorMessage.value = '';
+  const failedMessages: string[] = [];
+  try {
+    for (const file of files) {
+      const validationMessage = validateAttachmentFile(file);
+      if (validationMessage) {
+        failedMessages.push(`${file.name}: ${validationMessage}`);
+        continue;
+      }
+      try {
+        const uploaded = await uploadArticleAttachmentFile(file);
+        if (attachmentFiles.value.some((existing) => existing.id === uploaded.id)) {
+          continue;
+        }
+        attachmentFiles.value = [...attachmentFiles.value, uploaded];
+      } catch (error) {
+        const message = error instanceof ApiError ? error.message : '업로드 실패';
+        failedMessages.push(`${file.name}: ${message}`);
+      }
+    }
+  } finally {
+    isAttachmentUploading.value = false;
+  }
+  if (failedMessages.length > 0) {
+    attachmentErrorMessage.value = failedMessages[0] ?? '';
+  }
+};
+
+const removeAttachment = (fileId: number) => {
+  attachmentFiles.value = attachmentFiles.value.filter((file) => file.id !== fileId);
 };
 
 onMounted(async () => {
@@ -233,10 +282,17 @@ watch(
       :is-category-access-denied="isCategoryAccessDenied"
       :category-error-message="categoryErrorMessage"
       :can-manage-categories="canManageCategories"
+      :attachments="attachmentFiles"
+      :is-attachment-uploading="isAttachmentUploading"
+      :attachment-error-message="attachmentErrorMessage"
       :is-submitting="isSubmitting"
       :is-invalid="isInvalid"
-      :is-submit-blocked="!isAuthor"
-      :submit-permission-message="!isAuthor ? '게시글 수정 권한이 없습니다.' : ''"
+      :is-submit-blocked="isAttachmentUploading || !isAuthor"
+      :submit-permission-message="
+        !isAuthor ? '게시글 수정 권한이 없습니다.' : isAttachmentUploading ? '첨부파일 업로드가 완료될 때까지 기다려주세요.' : ''
+      "
+      @add-attachments="addAttachments"
+      @remove-attachment="removeAttachment"
       @submit="submit"
       @cancel="cancel"
     />

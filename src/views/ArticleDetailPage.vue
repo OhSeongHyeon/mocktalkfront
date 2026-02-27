@@ -9,7 +9,7 @@ import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl, resolveImageUrl } from '../lib/files';
+import { resolveArticleAttachmentDownloadUrl, resolveImageUrl } from '../lib/files';
 import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
@@ -58,6 +58,8 @@ const isRealtimeSyncing = ref(false);
 const hasPendingRealtimeSync = ref(false);
 const lastCommentSyncVersion = ref<number | null>(null);
 const articleDetailScrollContainer = ref<HTMLElement | null>(null);
+const isAttachmentExpanded = ref(false);
+const isDownloadingAllAttachments = ref(false);
 
 type CommentDeltaAction = 'CREATED' | 'UPDATED' | 'DELETED';
 
@@ -348,11 +350,43 @@ const confirmDelete = async () => {
   }
 };
 
-const resolveAttachmentUrl = (file: FileResponse) => {
-  if (file.mimeType?.startsWith('image/')) {
-    return resolveImageUrl(file, 'original');
+const resolveAttachmentUrl = (file: FileResponse) => resolveArticleAttachmentDownloadUrl(article.value?.id ?? null, file.id ?? null);
+
+const attachmentSectionId = 'article-attachment-section';
+
+const downloadAttachment = (file: FileResponse) => {
+  const url = resolveAttachmentUrl(file);
+  if (!url) {
+    return;
   }
-  return resolveFileUrl(file.storageKey);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = file.fileName;
+  anchor.target = '_blank';
+  anchor.rel = 'noopener';
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+};
+
+const sleep = (milliseconds: number) =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(() => resolve(), milliseconds);
+  });
+
+const downloadAllAttachments = async () => {
+  if (attachments.value.length === 0 || isDownloadingAllAttachments.value) {
+    return;
+  }
+  isDownloadingAllAttachments.value = true;
+  try {
+    for (const file of attachments.value) {
+      downloadAttachment(file);
+      await sleep(120);
+    }
+  } finally {
+    isDownloadingAllAttachments.value = false;
+  }
 };
 
 const commentPageSize = 10;
@@ -982,25 +1016,54 @@ onUnmounted(() => {
             </article>
 
             <section class="mt-6">
-              <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">첨부파일</h2>
-              <div v-if="attachments.length === 0" class="ui-state ui-state-empty mt-3 px-4 py-6">첨부파일이 없습니다.</div>
-              <div v-else class="mt-3 space-y-2">
-                <a
-                  v-for="file in attachments"
-                  :key="file.id"
-                  :href="resolveAttachmentUrl(file) ?? '#'"
-                  class="ui-sub-panel flex items-center justify-between px-4 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <div class="flex flex-col">
-                    <span class="font-medium">{{ file.fileName }}</span>
-                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</span>
+              <div class="ui-sub-panel p-3 sm:p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                    :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
+                    :aria-controls="attachmentSectionId"
+                    @click="isAttachmentExpanded = !isAttachmentExpanded"
+                  >
+                    <span>첨부파일 {{ attachments.length }}개</span>
+                    <span>{{ isAttachmentExpanded ? '접기' : '펼치기' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                    :disabled="attachments.length === 0 || isDownloadingAllAttachments"
+                    @click="downloadAllAttachments"
+                  >
+                    {{ isDownloadingAllAttachments ? '다운로드 중...' : '전체 다운로드' }}
+                  </button>
+                </div>
+                <div v-show="isAttachmentExpanded" :id="attachmentSectionId" class="mt-3">
+                  <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">첨부파일이 없습니다.</div>
+                  <div v-else class="space-y-2">
+                    <div
+                      v-for="file in attachments"
+                      :key="file.id"
+                      class="ui-sub-panel flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200"
+                    >
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate font-medium">{{ file.fileName }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">
+                          {{ formatFileSize(file.fileSize) }}
+                        </span>
+                        <button
+                          type="button"
+                          class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                          @click="downloadAttachment(file)"
+                        >
+                          다운로드
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <span class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ formatFileSize(file.fileSize) }}
-                  </span>
-                </a>
+                </div>
               </div>
             </section>
 

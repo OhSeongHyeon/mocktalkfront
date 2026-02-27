@@ -190,7 +190,7 @@ const detectUploadKind = (file: File): UploadKind | null => {
   return null;
 };
 
-const insertUploadedFile = (kind: UploadKind, url: string, file: File) => {
+const insertUploadedFile = (kind: UploadKind, url: string) => {
   if (!editor.value) {
     return;
   }
@@ -199,7 +199,7 @@ const insertUploadedFile = (kind: UploadKind, url: string, file: File) => {
   if (!nodeType) {
     return;
   }
-  const attrs = kind === 'image' ? { src: url, alt: file.name } : { src: url, controls: true };
+  const attrs = kind === 'image' ? { src: url, alt: '' } : { src: url, controls: true };
   const node = nodeType.create(attrs);
   const insertPos = state.selection.from;
   const tr = state.tr.replaceSelectionWith(node, false);
@@ -228,12 +228,14 @@ const handleFiles = async (files: File[]) => {
       try {
         const uploaded = await uploadEditorFile(file);
         const url =
-          kind === 'image' ? resolveImageUrl(uploaded, 'large') : (resolveFileViewUrl(uploaded.id ?? null) ?? resolveFileUrl(uploaded.storageKey));
+          kind === 'image'
+            ? resolveImageUrl(uploaded, 'original_size')
+            : (resolveFileViewUrl(uploaded.id ?? null) ?? resolveFileUrl(uploaded.storageKey));
         if (!url) {
           showError('파일 URL 생성에 실패했습니다.');
           continue;
         }
-        insertUploadedFile(kind, url, file);
+        insertUploadedFile(kind, url);
       } catch {
         showError('파일 업로드에 실패했습니다.');
       }
