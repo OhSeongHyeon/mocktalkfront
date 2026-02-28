@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { createBoard, uploadBoardImage } from '../services/boards';
 import { isAdmin } from '../stores/auth';
@@ -19,6 +20,7 @@ const form = reactive({
   slug: '',
   description: '',
   visibility: 'PUBLIC' as BoardVisibility,
+  articleWritePolicy: 'ALL_AUTHENTICATED' as BoardArticleWritePolicy,
   boardImage: null as File | null,
 });
 
@@ -92,6 +94,7 @@ const handleSubmit = async () => {
       slug,
       description: description ? description : null,
       visibility: form.visibility,
+      articleWritePolicy: form.articleWritePolicy,
     });
 
     if (form.boardImage) {
@@ -133,117 +136,119 @@ onBeforeUnmount(() => {
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-3xl">
-          <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">커뮤니티 개설</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">게시판을 개설하면 20,000 포인트가 차감됩니다.</p>
-          </div>
+        <div class="mx-auto w-full max-w-4xl space-y-6">
+          <section class="ui-panel p-6 sm:p-7">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="space-y-2">
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">커뮤니티 개설</h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">게시판명, 슬러그, 공개 범위를 설정하고 필요하면 대표 이미지를 등록하세요.</p>
+              </div>
+              <span
+                class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
+              >
+                개설 시 20,000P 차감
+              </span>
+            </div>
+          </section>
 
-          <form class="mt-8 flex flex-col gap-6" @submit.prevent="handleSubmit">
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-              <div class="flex flex-col gap-5">
-                <div>
-                  <label for="board-name" class="text-sm font-medium text-slate-800 dark:text-slate-100"> 게시판명 </label>
-                  <input
-                    id="board-name"
-                    v-model="form.boardName"
-                    type="text"
-                    placeholder="예: 자유게시판"
-                    class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-                  />
-                </div>
+          <form class="space-y-6" @submit.prevent="handleSubmit">
+            <section class="ui-panel p-6 sm:p-7">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">기본 정보</h2>
+                <span class="text-xs text-slate-400">필수 항목</span>
+              </div>
 
-                <div>
-                  <label for="board-slug" class="text-sm font-medium text-slate-800 dark:text-slate-100"> 슬러그 </label>
-                  <input
-                    id="board-slug"
-                    v-model="form.slug"
-                    type="text"
-                    placeholder="예: free-talk"
-                    class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-                  />
-                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">영문 소문자, 숫자, 하이픈 사용을 권장합니다.</p>
-                </div>
+              <div class="mt-5 grid gap-5 md:grid-cols-2">
+                <label for="board-name" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  게시판명
+                  <input id="board-name" v-model="form.boardName" type="text" placeholder="예: 자유게시판" class="ui-input" />
+                </label>
 
-                <div>
-                  <label for="board-description" class="text-sm font-medium text-slate-800 dark:text-slate-100"> 설명 </label>
+                <label for="board-slug" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  슬러그
+                  <input id="board-slug" v-model="form.slug" type="text" placeholder="예: free-talk" class="ui-input" />
+                  <span class="text-xs font-normal text-slate-500 dark:text-slate-400">영문 소문자, 숫자, 하이픈 사용을 권장합니다.</span>
+                </label>
+
+                <label for="board-visibility" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  공개 범위
+                  <select id="board-visibility" v-model="form.visibility" class="ui-input">
+                    <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </label>
+
+                <label for="board-article-write-policy" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  게시글 작성 권한
+                  <select id="board-article-write-policy" v-model="form.articleWritePolicy" class="ui-input">
+                    <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </label>
+
+                <label for="board-description" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
+                  설명
                   <textarea
                     id="board-description"
                     v-model="form.description"
                     rows="4"
                     placeholder="게시판 소개를 입력하세요."
-                    class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
+                    class="ui-textarea"
                   ></textarea>
-                </div>
-
-                <div>
-                  <label for="board-visibility" class="text-sm font-medium text-slate-800 dark:text-slate-100"> 공개 범위 </label>
-                  <select
-                    id="board-visibility"
-                    v-model="form.visibility"
-                    class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-                  >
-                    <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
-                    </option>
-                  </select>
-                </div>
+                </label>
               </div>
-            </div>
+            </section>
 
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-              <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-sm font-medium text-slate-800 dark:text-slate-100">대표 이미지</p>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">JPG/PNG 등 이미지 파일만 업로드 가능합니다.</p>
-                  </div>
-                  <button
-                    v-if="form.boardImage"
-                    type="button"
-                    class="text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                    @click="clearImage"
-                  >
-                    선택 해제
-                  </button>
+            <section class="ui-panel p-6 sm:p-7">
+              <div class="flex items-center justify-between gap-2">
+                <div>
+                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대표 이미지</h2>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">JPG/PNG 등 이미지 파일만 업로드 가능합니다.</p>
                 </div>
-                <div class="flex flex-col gap-4 sm:flex-row">
-                  <div class="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900 sm:w-60">
+                <button v-if="form.boardImage" type="button" class="ui-chip-button ui-chip-button-muted" @click="clearImage">선택 해제</button>
+              </div>
+
+              <div class="mt-5 grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
+                <div class="ui-sub-panel aspect-[4/3] overflow-hidden p-2">
+                  <div class="h-full w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
                     <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-full w-full object-cover" />
                     <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
                       <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-6 w-6" />
                       <span class="text-xs">이미지 미리보기</span>
                     </div>
                   </div>
-                  <div class="flex flex-1 flex-col justify-center gap-2">
-                    <input
-                      id="board-image"
-                      type="file"
-                      accept="image/*"
-                      class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-full file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-300 dark:file:bg-slate-800 dark:file:text-slate-100 dark:hover:file:bg-slate-700"
-                      aria-label="대표 이미지 업로드"
-                      @change="handleImageChange"
-                    />
-                    <p class="text-xs text-slate-500 dark:text-slate-400">파일 크기는 50MB 이하여야 합니다.</p>
-                  </div>
+                </div>
+
+                <div class="ui-sub-panel flex flex-col justify-center gap-3 p-4">
+                  <input
+                    id="board-image"
+                    type="file"
+                    accept="image/*"
+                    class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border file:border-slate-200 file:bg-slate-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:border-slate-300 hover:file:bg-slate-100 dark:text-slate-300 dark:file:border-slate-700 dark:file:bg-slate-800 dark:file:text-slate-100 dark:hover:file:border-slate-600 dark:hover:file:bg-slate-700"
+                    aria-label="대표 이미지 업로드"
+                    @change="handleImageChange"
+                  />
+                  <p class="text-xs text-slate-500 dark:text-slate-400">파일 크기는 50MB 이하여야 합니다.</p>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div v-if="errorMessage" class="ui-state ui-state-danger">
+            <p v-if="errorMessage" class="ui-state ui-state-danger" role="alert">
               {{ errorMessage }}
-            </div>
-            <div
+            </p>
+            <p
               v-if="successMessage"
               class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
             >
               {{ successMessage }}
-            </div>
+            </p>
 
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <div class="flex items-center justify-end">
               <button
                 type="submit"
-                class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
+                class="ui-chip-button border-slate-900 bg-slate-900 px-6 py-3 text-sm text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                 :disabled="isSubmitting"
               >
                 {{ isSubmitting ? '개설 중...' : '커뮤니티 개설' }}

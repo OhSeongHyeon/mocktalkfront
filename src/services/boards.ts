@@ -94,6 +94,7 @@ export interface BoardCreateRequest {
   slug: string;
   description?: string | null;
   visibility: 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
+  articleWritePolicy?: BoardArticleWritePolicy;
 }
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
