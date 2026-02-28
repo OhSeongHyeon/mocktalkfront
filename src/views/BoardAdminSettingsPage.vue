@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
 
 import BoardAdminNav from '../components/BoardAdminNav.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../lib/boardWritePolicy';
+import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { resolveImageUrl } from '../lib/files';
+import type { BoardCategoryResponse } from '../services/boardCategories';
+import { getBoardCategories } from '../services/boardCategories';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../services/boards';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../services/boardSettings';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
-
-type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
 
 const route = useRoute();
 const isMobileMenuOpen = ref(false);
@@ -26,6 +28,9 @@ const imageSuccess = ref('');
 const isSaving = ref(false);
 const isUploading = ref(false);
 const isRemoving = ref(false);
+const categories = ref<BoardCategoryResponse[]>([]);
+const isCategoryLoading = ref(false);
+const categoryError = ref('');
 const previewUrl = ref<string | null>(null);
 const imageFile = ref<File | null>(null);
 const fileInputKey = ref(0);
@@ -34,14 +39,9 @@ const form = reactive({
   boardName: '',
   description: '',
   visibility: 'PUBLIC' as BoardVisibility,
+  articleWritePolicy: 'ALL_AUTHENTICATED' as BoardArticleWritePolicy,
 });
-
-const visibilityOptions = [
-  { value: 'PUBLIC', label: '전체 공개' },
-  { value: 'GROUP', label: '회원 공개' },
-  { value: 'PRIVATE', label: '비공개' },
-  { value: 'UNLISTED', label: '비공개(링크 공개)' },
-];
+const visibilityOptions = computed(() => resolveBoardVisibilityOptions(isAdmin.value, form.visibility));
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -100,6 +100,7 @@ const applyBoardUpdate = (updated: BoardResponse) => {
   form.boardName = updated.boardName;
   form.description = updated.description ?? '';
   form.visibility = updated.visibility as BoardVisibility;
+  form.articleWritePolicy = updated.articleWritePolicy;
 };
 
 const loadBoard = async () => {
@@ -113,8 +114,27 @@ const loadBoard = async () => {
     form.boardName = board.value.boardName;
     form.description = board.value.description ?? '';
     form.visibility = board.value.visibility as BoardVisibility;
+    form.articleWritePolicy = board.value.articleWritePolicy;
   } catch (error) {
     boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
+  }
+};
+
+const loadCategories = async () => {
+  if (!board.value || !hasPermission.value) {
+    categories.value = [];
+    categoryError.value = '';
+    return;
+  }
+  isCategoryLoading.value = true;
+  categoryError.value = '';
+  try {
+    categories.value = await getBoardCategories(board.value.id);
+  } catch (error) {
+    categories.value = [];
+    categoryError.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+  } finally {
+    isCategoryLoading.value = false;
   }
 };
 
@@ -139,6 +159,7 @@ const submitSettings = async () => {
       boardName: boardNameValue,
       description: form.description.trim() ? form.description.trim() : null,
       visibility: form.visibility,
+      articleWritePolicy: form.articleWritePolicy,
     });
     applyBoardUpdate(updated);
     formSuccess.value = '게시판 설정이 저장되었습니다.';
@@ -193,6 +214,7 @@ const removeImage = async () => {
 onMounted(async () => {
   await nextTick();
   await loadBoard();
+  await loadCategories();
 });
 
 onBeforeUnmount(() => {
@@ -201,7 +223,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -209,10 +231,7 @@ onBeforeUnmount(() => {
         <div class="mx-auto w-full max-w-6xl space-y-6">
           <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="settings" />
 
-          <div
-            v-if="boardError"
-            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="boardError" class="ui-state ui-state-danger">
             {{ boardError }}
           </div>
 
@@ -222,7 +241,7 @@ onBeforeUnmount(() => {
               <p class="text-sm text-slate-500 dark:text-slate-400">게시판의 기본 정보와 대표 이미지를 관리합니다.</p>
             </div>
 
-            <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+            <section class="ui-panel p-6">
               <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">기본 정보</h2>
                 <span class="text-xs text-slate-400">게시판 ID {{ board.id }}</span>
@@ -252,6 +271,18 @@ onBeforeUnmount(() => {
                   </select>
                 </label>
 
+                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  게시글 작성 권한
+                  <select
+                    v-model="form.articleWritePolicy"
+                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  >
+                    <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </label>
+
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
                   게시판 설명
                   <textarea
@@ -262,10 +293,7 @@ onBeforeUnmount(() => {
                   ></textarea>
                 </label>
 
-                <div
-                  v-if="formError"
-                  class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200 md:col-span-2"
-                >
+                <div v-if="formError" class="ui-state ui-state-danger md:col-span-2">
                   {{ formError }}
                 </div>
                 <div
@@ -287,7 +315,7 @@ onBeforeUnmount(() => {
               </form>
             </section>
 
-            <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+            <section class="ui-panel p-6">
               <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대표 이미지</h2>
                 <span class="text-xs text-slate-400">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
@@ -347,10 +375,7 @@ onBeforeUnmount(() => {
                     </button>
                   </div>
 
-                  <div
-                    v-if="imageError"
-                    class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-                  >
+                  <div v-if="imageError" class="ui-state ui-state-danger">
                     {{ imageError }}
                   </div>
                   <div
@@ -360,6 +385,41 @@ onBeforeUnmount(() => {
                     {{ imageSuccess }}
                   </div>
                 </div>
+              </div>
+            </section>
+
+            <section class="ui-panel p-6">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">카테고리 관리</h2>
+                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
+                </div>
+                <RouterLink
+                  :to="`/b/${board.slug}/admin/categories`"
+                  class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900"
+                >
+                  카테고리 관리로 이동
+                </RouterLink>
+              </div>
+
+              <div v-if="isCategoryLoading" class="mt-4 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+              <div v-else-if="categoryError" class="ui-state ui-state-danger mt-4">
+                {{ categoryError }}
+              </div>
+              <div v-else-if="categories.length === 0" class="ui-state ui-state-empty mt-4">등록된 카테고리가 없습니다.</div>
+              <div v-else class="mt-4">
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="category in categories.slice(0, 10)"
+                    :key="category.id"
+                    class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                  >
+                    {{ category.categoryName }}
+                  </span>
+                </div>
+                <p v-if="categories.length > 10" class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  외 {{ categories.length - 10 }}개 카테고리
+                </p>
               </div>
             </section>
           </div>

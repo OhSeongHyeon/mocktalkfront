@@ -262,7 +262,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -344,10 +344,7 @@ watch(
             </form>
           </div>
 
-          <div
-            v-if="errorMessage"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="errorMessage" class="ui-state ui-state-danger mt-6">
             {{ errorMessage }}
           </div>
 
@@ -481,12 +478,7 @@ watch(
           </div>
 
           <div v-else class="mt-6">
-            <div
-              v-if="currentPageInfo.items.length === 0"
-              class="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-            >
-              ‘{{ keyword }}’ 검색 결과가 없습니다.
-            </div>
+            <div v-if="currentPageInfo.items.length === 0" class="ui-state ui-state-empty px-4 py-6">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="space-y-3">
               <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>페이지 {{ currentPageInfo.page + 1 }}</span>

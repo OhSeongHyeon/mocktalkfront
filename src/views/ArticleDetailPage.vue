@@ -2,29 +2,31 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import ArticleList from '../components/ArticleList.vue';
+import BoardArticlePanel from '../components/BoardArticlePanel.vue';
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
 import CommentList from '../components/CommentList.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { resolveFileUrl, resolveImageUrl } from '../lib/files';
+import { resolveArticleAttachmentDownloadUrl, resolveImageUrl } from '../lib/files';
 import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
 import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction, unbookmarkArticle } from '../services/articles';
-import type { ArticleSummaryResponse } from '../services/boards';
-import { getBoardArticles } from '../services/boards';
 import type { CommentPageResponse, CommentReactionSummaryResponse, CommentSnapshotResponse, CommentTreeResponse } from '../services/comments';
 import { createComment, createReply, deleteComment, getArticleCommentSnapshot, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import type { BoardRealtimeSubscription, RealtimeEventEnvelope } from '../services/realtime';
 import { subscribeBoardRealtime } from '../services/realtime';
-import { ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListPageSize } from '../stores/articleList';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { isAuthenticated } from '../stores/auth';
+
+interface ArticleSelectPayload {
+  articleId: number;
+  query: Record<string, string>;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -43,21 +45,11 @@ const isCommentLoading = ref(false);
 const isCommentSubmitting = ref(false);
 const commentReactionLoading = ref(new Set<number>());
 const newComment = ref('');
+const commentTextareaRef = ref<HTMLTextAreaElement | null>(null);
 const isReactionLoading = ref(false);
 const isBookmarkLoading = ref(false);
-const boardArticles = ref<ArticleSummaryResponse[]>([]);
-const boardListError = ref('');
-const isBoardArticlesLoading = ref(false);
-const boardPage = ref(0);
-const boardTotalPages = ref(0);
-const boardHasNext = ref(false);
-const boardHasPrevious = ref(false);
 const focusCommentId = ref<number | null>(null);
 const focusTimer = ref<number | null>(null);
-
-const boardPageSize = computed(() => articleListPageSize.value);
-const boardPageSizeOptions = ARTICLE_LIST_PAGE_SIZES;
-const boardOrder = computed(() => articleListOrder.value);
 const isDeleteModalOpen = ref(false);
 const deleteError = ref('');
 const isDeleting = ref(false);
@@ -66,6 +58,10 @@ const realtimeRefreshTimer = ref<number | null>(null);
 const isRealtimeSyncing = ref(false);
 const hasPendingRealtimeSync = ref(false);
 const lastCommentSyncVersion = ref<number | null>(null);
+const articleDetailScrollContainer = ref<HTMLElement | null>(null);
+const isAttachmentExpanded = ref(false);
+const isDownloadingAllAttachments = ref(false);
+const COMMENT_TEXTAREA_MAX_HEIGHT = 240;
 
 type CommentDeltaAction = 'CREATED' | 'UPDATED' | 'DELETED';
 
@@ -142,13 +138,45 @@ const parseCommentId = () => {
   return Number.isFinite(id) ? id : null;
 };
 
-const handleBoardPageSizeChange = (size: number) => {
-  setArticleListPageSize(size);
+const resolveCategoryFromRoute = () => {
+  const raw = route.query.categoryId;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const categoryId = Number(value);
+  if (!Number.isFinite(categoryId) || categoryId <= 0) {
+    return null;
+  }
+  return categoryId;
 };
 
-const handleBoardPageChange = (nextPage: number) => {
-  loadBoardArticles(nextPage);
+const resolveUncategorizedFromRoute = () => {
+  const raw = route.query.uncategorized;
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  return value === 'true';
 };
+
+const resolveBoardFilterQuery = () => {
+  const query: Record<string, string> = {};
+  const uncategorized = resolveUncategorizedFromRoute();
+  if (uncategorized) {
+    query.uncategorized = 'true';
+    return query;
+  }
+  const categoryId = resolveCategoryFromRoute();
+  if (categoryId !== null) {
+    query.categoryId = String(categoryId);
+  }
+  return query;
+};
+
+const boardLinkWithFilter = computed(() => {
+  if (!boardLink.value || boardLink.value === '/') {
+    return boardLink.value;
+  }
+  const query = resolveBoardFilterQuery();
+  const params = new URLSearchParams(query);
+  const queryString = params.toString();
+  return queryString ? `${boardLink.value}?${queryString}` : boardLink.value;
+});
 
 const hasComment = (nodes: CommentTreeResponse[], targetId: number): boolean => {
   for (const node of nodes) {
@@ -253,16 +281,34 @@ const loadProfile = async () => {
 
 const goBoard = () => {
   if (boardLink.value) {
-    router.push(boardLink.value);
+    router.push({
+      path: boardLink.value,
+      query: resolveBoardFilterQuery(),
+    });
   }
 };
 
-const goBoardArticle = (targetId: number) => {
+const scrollArticleDetailToTop = () => {
+  if (articleDetailScrollContainer.value) {
+    articleDetailScrollContainer.value.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    return;
+  }
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }
+};
+
+const goBoardArticle = async ({ articleId: targetId, query }: ArticleSelectPayload) => {
   const slugValue = article.value?.board?.slug ?? String(route.params.slug ?? '');
   if (!slugValue) {
     return;
   }
-  router.push(`/b/${slugValue}/articles/${targetId}`);
+  await router.push({
+    path: `/b/${slugValue}/articles/${targetId}`,
+    query,
+  });
+  await nextTick();
+  scrollArticleDetailToTop();
 };
 
 const goEdit = () => {
@@ -294,7 +340,11 @@ const confirmDelete = async () => {
   try {
     await deleteArticle(article.value.id);
     isDeleteModalOpen.value = false;
-    router.push(boardLink.value || '/');
+    const boardPath = boardLink.value || '/';
+    router.push({
+      path: boardPath,
+      query: boardPath === '/' ? {} : resolveBoardFilterQuery(),
+    });
   } catch (error) {
     deleteError.value = error instanceof ApiError ? error.message : '게시글 삭제에 실패했습니다.';
   } finally {
@@ -302,11 +352,43 @@ const confirmDelete = async () => {
   }
 };
 
-const resolveAttachmentUrl = (file: FileResponse) => {
-  if (file.mimeType?.startsWith('image/')) {
-    return resolveImageUrl(file, 'original');
+const resolveAttachmentUrl = (file: FileResponse) => resolveArticleAttachmentDownloadUrl(article.value?.id ?? null, file.id ?? null);
+
+const attachmentSectionId = 'article-attachment-section';
+
+const downloadAttachment = (file: FileResponse) => {
+  const url = resolveAttachmentUrl(file);
+  if (!url) {
+    return;
   }
-  return resolveFileUrl(file.storageKey);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = file.fileName;
+  anchor.target = '_blank';
+  anchor.rel = 'noopener';
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+};
+
+const sleep = (milliseconds: number) =>
+  new Promise<void>((resolve) => {
+    window.setTimeout(() => resolve(), milliseconds);
+  });
+
+const downloadAllAttachments = async () => {
+  if (attachments.value.length === 0 || isDownloadingAllAttachments.value) {
+    return;
+  }
+  isDownloadingAllAttachments.value = true;
+  try {
+    for (const file of attachments.value) {
+      downloadAttachment(file);
+      await sleep(120);
+    }
+  } finally {
+    isDownloadingAllAttachments.value = false;
+  }
 };
 
 const commentPageSize = 10;
@@ -330,29 +412,6 @@ const loadCommentsPage = async (page: number) => {
     commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
   } finally {
     isCommentLoading.value = false;
-  }
-};
-
-const loadBoardArticles = async (page: number) => {
-  if (!article.value?.board?.id) {
-    return;
-  }
-  boardListError.value = '';
-  isBoardArticlesLoading.value = true;
-  try {
-    const response = await getBoardArticles(article.value.board.id, page, boardPageSize.value, boardOrder.value);
-    boardArticles.value = response.page.items ?? [];
-    boardPage.value = response.page.page;
-    boardTotalPages.value = response.page.totalPages;
-    boardHasNext.value = response.page.hasNext;
-    boardHasPrevious.value = response.page.hasPrevious;
-  } catch (error) {
-    boardListError.value = error instanceof ApiError ? error.message : '게시글 목록을 불러오지 못했습니다.';
-    boardHasNext.value = false;
-    boardHasPrevious.value = false;
-    boardTotalPages.value = 0;
-  } finally {
-    isBoardArticlesLoading.value = false;
   }
 };
 
@@ -668,12 +727,47 @@ const submitComment = async () => {
   try {
     await createComment(article.value.id, newComment.value.trim());
     newComment.value = '';
+    await nextTick();
+    resizeCommentTextarea();
     await refreshComments();
   } catch (error) {
     commentError.value = error instanceof ApiError ? error.message : '댓글 작성에 실패했습니다.';
   } finally {
     isCommentSubmitting.value = false;
   }
+};
+
+const resizeTextareaElement = (textarea: HTMLTextAreaElement | null) => {
+  if (!textarea) {
+    return;
+  }
+  textarea.style.height = 'auto';
+  const nextHeight = Math.min(textarea.scrollHeight, COMMENT_TEXTAREA_MAX_HEIGHT);
+  textarea.style.height = `${nextHeight}px`;
+  textarea.style.overflowY = textarea.scrollHeight > COMMENT_TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
+};
+
+const resizeCommentTextarea = () => {
+  resizeTextareaElement(commentTextareaRef.value);
+};
+
+const handleCommentInput = (event: Event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  resizeTextareaElement(target);
+};
+
+const handleCommentInputKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.keyCode === 229) {
+    return;
+  }
+  event.preventDefault();
+  if (isCommentSubmitting.value || !newComment.value.trim()) {
+    return;
+  }
+  void submitComment();
 };
 
 const handleReply = async (payload: { parentId: number; content: string }) => {
@@ -807,7 +901,6 @@ onMounted(async () => {
   } else {
     await refreshComments();
   }
-  await loadBoardArticles(0);
 });
 
 watch(
@@ -821,7 +914,6 @@ watch(
     } else {
       await refreshComments();
     }
-    await loadBoardArticles(0);
   },
 );
 
@@ -834,20 +926,6 @@ watch(
       return;
     }
     await focusComment(targetId);
-  },
-);
-
-watch(
-  () => boardPageSize.value,
-  () => {
-    loadBoardArticles(0);
-  },
-);
-
-watch(
-  () => boardOrder.value,
-  () => {
-    loadBoardArticles(0);
   },
 );
 
@@ -871,31 +949,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+      <main ref="articleDetailScrollContainer" class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div class="mx-auto w-full max-w-7xl">
           <BoardHeaderCard
             :title="article?.board?.boardName ?? '커뮤니티'"
             :description="article?.board?.description ?? '설명이 없습니다.'"
             :image-url="boardImageUrl"
-            :link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
+            :link-to="article?.board?.slug ? boardLinkWithFilter : undefined"
           >
             <template #actions>
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <button
-                  type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
-                  @click="goBoard"
-                >
-                  게시판으로
-                </button>
+                <button type="button" class="ui-chip-button ui-chip-button-muted" @click="goBoard">게시판으로</button>
                 <button
                   v-if="isAuthor"
                   type="button"
-                  class="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
                   @click="goEdit"
                 >
                   수정
@@ -903,7 +975,7 @@ onUnmounted(() => {
                 <button
                   v-if="isAuthor"
                   type="button"
-                  class="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
+                  class="ui-chip-button border-rose-200 bg-rose-50 text-rose-600 hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
                   @click="openDeleteModal"
                 >
                   삭제
@@ -912,15 +984,12 @@ onUnmounted(() => {
             </template>
           </BoardHeaderCard>
 
-          <div
-            v-if="errorMessage"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="errorMessage" class="ui-state ui-state-danger mt-6">
             {{ errorMessage }}
           </div>
 
           <div v-else class="mt-6">
-            <div class="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <article class="ui-panel px-5 py-6 sm:px-7">
               <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                 <span v-if="article?.notice" class="rounded-full bg-amber-500 px-2 py-0.5 font-semibold text-white"> 공지 </span>
                 <span>{{ article?.authorName ?? '작성자' }}</span>
@@ -935,7 +1004,7 @@ onUnmounted(() => {
               <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
                 <button
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  class="ui-chip-button px-3 py-1"
                   :class="
                     article?.myReaction === 1
                       ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
@@ -948,7 +1017,7 @@ onUnmounted(() => {
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  class="ui-chip-button px-3 py-1"
                   :class="
                     article?.myReaction === -1
                       ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200'
@@ -961,7 +1030,7 @@ onUnmounted(() => {
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+                  class="ui-chip-button px-3 py-1"
                   :class="
                     article?.bookmarked
                       ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
@@ -972,61 +1041,91 @@ onUnmounted(() => {
                 >
                   {{ article?.bookmarked ? '북마크됨' : '북마크' }}
                 </button>
-                <span v-if="!isAuthenticated" class="text-xs text-slate-400">로그인 후 반응/북마크가 가능합니다.</span>
+                <span
+                  v-if="!isAuthenticated"
+                  class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+                >
+                  로그인 후 반응/북마크가 가능합니다.
+                </span>
               </div>
-              <div v-if="article?.content" class="mt-6 text-sm leading-relaxed text-slate-700 dark:text-slate-300" v-html="sanitizedContent"></div>
+              <div v-if="article?.content" class="ui-content mt-6 max-w-none" v-html="sanitizedContent"></div>
               <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
-            </div>
+            </article>
 
             <section class="mt-6">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">첨부파일</h2>
-              <div
-                v-if="attachments.length === 0"
-                class="mt-3 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-              >
-                첨부파일이 없습니다.
-              </div>
-              <div v-else class="mt-3 space-y-2">
-                <a
-                  v-for="file in attachments"
-                  :key="file.id"
-                  :href="resolveAttachmentUrl(file) ?? '#'"
-                  class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <div class="flex flex-col">
-                    <span class="font-medium">{{ file.fileName }}</span>
-                    <span class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</span>
+              <div class="ui-sub-panel p-3 sm:p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+                    :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
+                    :aria-controls="attachmentSectionId"
+                    @click="isAttachmentExpanded = !isAttachmentExpanded"
+                  >
+                    <span>첨부파일 {{ attachments.length }}개</span>
+                    <span>{{ isAttachmentExpanded ? '접기' : '펼치기' }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                    :disabled="attachments.length === 0 || isDownloadingAllAttachments"
+                    @click="downloadAllAttachments"
+                  >
+                    {{ isDownloadingAllAttachments ? '다운로드 중...' : '전체 다운로드' }}
+                  </button>
+                </div>
+                <div v-show="isAttachmentExpanded" :id="attachmentSectionId" class="mt-3">
+                  <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">첨부파일이 없습니다.</div>
+                  <div v-else class="space-y-2">
+                    <div
+                      v-for="file in attachments"
+                      :key="file.id"
+                      class="ui-sub-panel flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200"
+                    >
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate font-medium">{{ file.fileName }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">
+                          {{ formatFileSize(file.fileSize) }}
+                        </span>
+                        <button
+                          type="button"
+                          class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                          @click="downloadAttachment(file)"
+                        >
+                          다운로드
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <span class="text-xs text-slate-500 dark:text-slate-400">
-                    {{ formatFileSize(file.fileSize) }}
-                  </span>
-                </a>
+                </div>
               </div>
             </section>
 
             <section class="mt-10">
               <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">댓글</h2>
+                <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">댓글</h2>
                 <span class="text-xs text-slate-500 dark:text-slate-400">총 {{ article?.commentCount ?? 0 }}개</span>
               </div>
 
-              <div
-                v-if="isAuthenticated"
-                class="mt-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
-              >
+              <div v-if="isAuthenticated" class="ui-sub-panel mt-4 p-4">
                 <textarea
+                  ref="commentTextareaRef"
                   v-model="newComment"
                   rows="3"
                   placeholder="댓글을 입력하세요"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-emerald-500/20"
+                  class="ui-textarea"
+                  @focus="resizeCommentTextarea"
+                  @input="handleCommentInput"
+                  @keydown="handleCommentInputKeydown"
                 ></textarea>
                 <div class="mt-3 flex items-center justify-end gap-2">
                   <button
                     type="button"
-                    class="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700"
-                    :disabled="isCommentSubmitting"
+                    class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+                    :disabled="isCommentSubmitting || !newComment.trim()"
                     @click="submitComment"
                   >
                     댓글 등록
@@ -1034,21 +1133,13 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div
-                v-else
-                class="mt-4 rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-              >
-                댓글 작성은 로그인 후 이용할 수 있습니다.
-              </div>
+              <div v-else class="ui-state ui-state-empty mt-4 px-4 py-6">댓글 작성은 로그인 후 이용할 수 있습니다.</div>
 
-              <div
-                v-if="commentError"
-                class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-              >
+              <div v-if="commentError" class="ui-state ui-state-danger mt-4">
                 {{ commentError }}
               </div>
 
-              <div v-if="comments && comments.items.length === 0" class="mt-4 text-sm text-slate-500 dark:text-slate-400">아직 댓글이 없습니다.</div>
+              <div v-if="comments && comments.items.length === 0" class="ui-state ui-state-empty mt-4">아직 댓글이 없습니다.</div>
 
               <div v-else-if="comments" class="mt-4">
                 <CommentList
@@ -1067,7 +1158,7 @@ onUnmounted(() => {
               <div v-if="comments && comments.totalPages > 1" class="mt-4 flex items-center justify-between text-xs text-slate-500">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                  class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!comments.hasPrevious || isCommentLoading"
                   @click="handleCommentPage(commentPage - 1)"
                 >
@@ -1076,7 +1167,7 @@ onUnmounted(() => {
                 <span>페이지 {{ commentPage + 1 }} / {{ comments.totalPages }}</span>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                  class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!comments.hasNext || isCommentLoading"
                   @click="handleCommentPage(commentPage + 1)"
                 >
@@ -1088,30 +1179,11 @@ onUnmounted(() => {
             </section>
 
             <section class="mt-10">
-              <div
-                v-if="boardListError"
-                class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-              >
-                {{ boardListError }}
-              </div>
-              <ArticleList
-                :articles="boardArticles"
-                :is-loading="isBoardArticlesLoading"
-                :page-size="boardPageSize"
-                :page-size-options="boardPageSizeOptions"
-                :page="boardPage"
-                :total-pages="boardTotalPages"
-                :has-next="boardHasNext"
-                :has-previous="boardHasPrevious"
-                @select="goBoardArticle"
-                @update:page-size="handleBoardPageSizeChange"
-                @update:page="handleBoardPageChange"
-              />
-              <div v-if="isBoardArticlesLoading" class="mt-4 text-xs text-slate-500">게시글 목록을 불러오는 중입니다...</div>
+              <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
             </section>
           </div>
 
-          <div v-if="isLoading" class="mt-6 text-sm text-slate-500">게시글을 불러오는 중입니다...</div>
+          <div v-if="isLoading" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중입니다...</div>
         </div>
       </main>
     </div>
@@ -1127,11 +1199,7 @@ onUnmounted(() => {
       @close="closeDeleteModal"
       @confirm="confirmDelete"
     >
-      <p
-        v-if="deleteError"
-        class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
-        role="alert"
-      >
+      <p v-if="deleteError" class="ui-state ui-state-danger mt-4 px-4 py-2 text-sm font-semibold" role="alert">
         {{ deleteError }}
       </p>
     </ConfirmModal>

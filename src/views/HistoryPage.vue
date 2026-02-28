@@ -87,7 +87,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -107,7 +107,7 @@ onMounted(async () => {
             </button>
           </div>
 
-          <div class="mt-6 rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+          <div class="ui-panel mt-6 p-4">
             <div class="flex flex-wrap items-center gap-3">
               <input
                 v-model="searchKeyword"
@@ -145,12 +145,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div
-            v-else
-            class="mt-10 rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-          >
-            기록이 없습니다.
-          </div>
+          <div v-else class="ui-state ui-state-empty mt-10 px-6 py-12">기록이 없습니다.</div>
         </div>
       </main>
     </div>

@@ -32,6 +32,7 @@ type SideMenuItem = {
   name: string;
   icon: string;
   path?: string;
+  implemented: boolean;
   active?: boolean;
 };
 
@@ -106,7 +107,7 @@ const closeMobileMenu = () => {
 
 const handleMenuClick = (item: SideMenuItem) => {
   if (!item.path) {
-    alert('아직 구현안됨.');
+    return;
   }
   if (props.mobileOpen) {
     emit('close');
@@ -134,6 +135,7 @@ const sections = computed(() =>
     ...section,
     items: section.items.map((item) => ({
       ...item,
+      implemented: Boolean(item.path),
       active: isActive(item.path),
     })),
   })),
@@ -143,7 +145,7 @@ const sections = computed(() =>
 <template>
   <div v-if="props.mobileOpen" class="fixed inset-0 z-40 bg-slate-900/40 md:hidden" aria-hidden="true" @click="closeMobileMenu"></div>
   <aside
-    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-white/90 p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 dark:bg-slate-950/90 md:sticky md:top-0 md:h-full md:translate-x-0"
+    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-[color:var(--surface-glass)] p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 md:sticky md:top-0 md:h-full md:translate-x-0"
     :class="[props.mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0', isCompact ? 'md:w-20 md:items-center' : 'md:w-64']"
   >
     <div v-if="!isCompact" class="px-3 pt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">메뉴</div>
@@ -158,25 +160,42 @@ const sections = computed(() =>
           v-for="item in section.items"
           :key="item.name"
           :to="item.path ?? undefined"
-          class="flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-semibold transition"
+          class="flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/80 dark:focus-visible:ring-red-500/40"
           :class="[
             isCompact ? 'justify-center' : 'justify-start',
             item.active
-              ? 'bg-[color:var(--accent-soft)] text-slate-900 dark:bg-red-500/10 dark:text-slate-100'
-              : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/60',
+              ? 'bg-[color:var(--accent-soft)] text-slate-900 shadow-sm dark:bg-red-500/10 dark:text-slate-100'
+              : item.implemented
+                ? 'cursor-pointer text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/60'
+                : 'cursor-not-allowed text-slate-400 dark:text-slate-500',
           ]"
           :aria-current="item.active ? 'page' : undefined"
           :title="isCompact ? item.name : undefined"
           :type="item.path ? undefined : 'button'"
+          :disabled="item.implemented ? undefined : true"
           @click="handleMenuClick(item)"
         >
           <span
             class="grid h-9 w-9 place-items-center rounded-xl"
-            :class="item.active ? 'text-[color:var(--accent-strong)] dark:text-red-400' : 'text-slate-600 dark:text-slate-300'"
+            :class="
+              item.active
+                ? 'text-[color:var(--accent-strong)] dark:text-red-400'
+                : item.implemented
+                  ? 'text-slate-600 dark:text-slate-300'
+                  : 'text-slate-400 dark:text-slate-500'
+            "
           >
             <img :src="iconAssets[item.icon]" alt="" aria-hidden="true" class="h-5 w-5" />
           </span>
-          <span v-if="!isCompact" class="truncate">{{ item.name }}</span>
+          <div v-if="!isCompact" class="flex min-w-0 flex-1 items-center justify-between gap-2">
+            <span class="truncate">{{ item.name }}</span>
+            <span
+              v-if="!item.implemented"
+              class="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500"
+            >
+              준비중
+            </span>
+          </div>
         </component>
       </div>
     </nav>

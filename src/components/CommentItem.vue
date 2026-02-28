@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 import type { CommentTreeResponse } from '../services/comments';
 import thumbDownIcon from '../assets/icons/icon-thumb-down.svg';
@@ -25,6 +25,9 @@ const isReplying = ref(false);
 const isEditing = ref(false);
 const replyContent = ref('');
 const editContent = ref(props.comment.content);
+const editTextareaRef = ref<HTMLTextAreaElement | null>(null);
+const replyTextareaRef = ref<HTMLTextAreaElement | null>(null);
+const COMMENT_TEXTAREA_MAX_HEIGHT = 240;
 
 const isDeleted = computed(() => props.comment.deletedAt !== null || props.comment.content === '삭제된 댓글입니다.');
 const isOwner = computed(() => props.currentUserId !== null && props.comment.userId === props.currentUserId);
@@ -55,6 +58,40 @@ const toggleEdit = () => {
   editContent.value = props.comment.content;
 };
 
+const resizeTextareaElement = (textarea: HTMLTextAreaElement | null) => {
+  if (!textarea) {
+    return;
+  }
+  textarea.style.height = 'auto';
+  const nextHeight = Math.min(textarea.scrollHeight, COMMENT_TEXTAREA_MAX_HEIGHT);
+  textarea.style.height = `${nextHeight}px`;
+  textarea.style.overflowY = textarea.scrollHeight > COMMENT_TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
+};
+
+const resizeEditTextarea = () => {
+  resizeTextareaElement(editTextareaRef.value);
+};
+
+const resizeReplyTextarea = () => {
+  resizeTextareaElement(replyTextareaRef.value);
+};
+
+const handleEditInput = (event: Event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  resizeTextareaElement(target);
+};
+
+const handleReplyInput = (event: Event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  resizeTextareaElement(target);
+};
+
 const submitReply = () => {
   if (!replyContent.value.trim()) {
     return;
@@ -62,6 +99,17 @@ const submitReply = () => {
   emit('reply', { parentId: props.comment.id, content: replyContent.value.trim() });
   replyContent.value = '';
   isReplying.value = false;
+};
+
+const handleReplyInputKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.keyCode === 229) {
+    return;
+  }
+  event.preventDefault();
+  if (!replyContent.value.trim()) {
+    return;
+  }
+  submitReply();
 };
 
 const submitEdit = () => {
@@ -143,6 +191,28 @@ const isEdited = computed(() => {
   }
   return props.comment.updatedAt !== props.comment.createdAt;
 });
+
+watch(
+  () => isEditing.value,
+  async (value) => {
+    if (!value) {
+      return;
+    }
+    await nextTick();
+    resizeEditTextarea();
+  },
+);
+
+watch(
+  () => isReplying.value,
+  async (value) => {
+    if (!value) {
+      return;
+    }
+    await nextTick();
+    resizeReplyTextarea();
+  },
+);
 </script>
 
 <template>
@@ -189,9 +259,12 @@ const isEdited = computed(() => {
     <div class="mt-2 text-sm">
       <template v-if="isEditing">
         <textarea
+          ref="editTextareaRef"
           v-model="editContent"
           rows="3"
-          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-emerald-500/20"
+          class="ui-textarea"
+          @focus="resizeEditTextarea"
+          @input="handleEditInput"
         ></textarea>
         <div class="mt-2 flex items-center gap-2">
           <button
@@ -211,10 +284,14 @@ const isEdited = computed(() => {
 
     <div v-if="isReplying" class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
       <textarea
+        ref="replyTextareaRef"
         v-model="replyContent"
         rows="2"
         placeholder="답글을 입력하세요"
-        class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:ring-emerald-500/20"
+        class="ui-textarea min-h-[4.5rem]"
+        @focus="resizeReplyTextarea"
+        @input="handleReplyInput"
+        @keydown="handleReplyInputKeydown"
       ></textarea>
       <div class="mt-2 flex items-center gap-2">
         <button

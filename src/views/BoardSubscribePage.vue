@@ -90,7 +90,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -101,10 +101,7 @@ onMounted(() => {
             <p class="text-sm text-slate-500 dark:text-slate-400">구독 중인 커뮤니티를 한눈에 확인할 수 있습니다.</p>
           </div>
 
-          <div
-            v-if="listError"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="listError" class="ui-state ui-state-danger mt-6">
             {{ listError }}
           </div>
 
@@ -139,12 +136,7 @@ onMounted(() => {
             </RouterLink>
           </div>
 
-          <div
-            v-else-if="!isInitialLoading && !listError"
-            class="mt-10 rounded-2xl border border-dashed border-slate-200 px-6 py-12 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-          >
-            아직 구독 중인 커뮤니티가 없습니다.
-          </div>
+          <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty mt-10 px-6 py-12">아직 구독 중인 커뮤니티가 없습니다.</div>
 
           <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500">
             <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>

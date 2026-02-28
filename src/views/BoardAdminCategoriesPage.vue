@@ -165,7 +165,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -173,10 +173,7 @@ onMounted(async () => {
         <div class="mx-auto w-full max-w-6xl space-y-6">
           <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="categories" />
 
-          <div
-            v-if="boardError"
-            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="boardError" class="ui-state ui-state-danger">
             {{ boardError }}
           </div>
 
@@ -186,15 +183,12 @@ onMounted(async () => {
               <p class="text-sm text-slate-500 dark:text-slate-400">게시판 카테고리를 관리합니다.</p>
             </div>
 
-            <div
-              v-if="listError"
-              class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-            >
+            <div v-if="listError" class="ui-state ui-state-danger">
               {{ listError }}
             </div>
 
             <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-              <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+              <section class="ui-panel p-4">
                 <div class="flex items-center justify-between">
                   <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">카테고리 목록</h2>
                   <span class="text-xs text-slate-400">총 {{ categories.length }}건</span>
@@ -265,16 +259,11 @@ onMounted(async () => {
                     </div>
                   </div>
 
-                  <div
-                    v-if="categories.length === 0"
-                    class="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-                  >
-                    등록된 카테고리가 없습니다.
-                  </div>
+                  <div v-if="categories.length === 0" class="ui-state ui-state-empty px-4 py-10">등록된 카테고리가 없습니다.</div>
                 </div>
               </section>
 
-              <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+              <section class="ui-panel p-5">
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Create</p>

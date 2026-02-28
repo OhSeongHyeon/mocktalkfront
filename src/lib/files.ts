@@ -22,7 +22,7 @@ type FileLike = {
   mimeType?: string | null;
 };
 
-type FileVariant = 'thumb' | 'medium' | 'large' | 'original';
+type FileVariant = 'thumb' | 'medium' | 'large' | 'original' | 'original_size';
 
 const resolveFileUrl = (storageKey?: string | null) => {
   if (!storageKey) {
@@ -51,6 +51,14 @@ const resolveFileViewUrl = (fileId?: number | null, variant?: FileVariant | null
   return `${path}?variant=${variant}`;
 };
 
+const resolveArticleAttachmentDownloadUrl = (articleId?: number | null, fileId?: number | null) => {
+  if (!articleId || !Number.isFinite(articleId) || !fileId || !Number.isFinite(fileId)) {
+    return null;
+  }
+  const base = API_BASE ? API_BASE : '/api';
+  return `${base}/articles/${articleId}/attachments/${fileId}/download`;
+};
+
 const resolveImageUrl = (file?: FileLike | null, variant?: FileVariant | null) => {
   if (!file) {
     return null;
@@ -65,4 +73,4 @@ const resolveImageUrl = (file?: FileLike | null, variant?: FileVariant | null) =
   return resolveFileUrl(file.storageKey ?? null);
 };
 
-export { FILE_BASE_URL, resolveFileUrl, resolveFileViewUrl, resolveImageUrl };
+export { FILE_BASE_URL, resolveArticleAttachmentDownloadUrl, resolveFileUrl, resolveFileViewUrl, resolveImageUrl };
