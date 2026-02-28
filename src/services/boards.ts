@@ -175,7 +175,15 @@ const requestBoardJoin = async (boardId: number) => {
   return unwrap(response);
 };
 
+const cancelBoardJoin = async (boardId: number) => {
+  const response = await request<ApiEnvelope<void>>(`/boards/${boardId}/members/me`, {
+    method: 'DELETE',
+  });
+  return unwrap(response);
+};
+
 export {
+  cancelBoardJoin,
   createBoard,
   getBoardArticles,
   getBoardBySlug,
