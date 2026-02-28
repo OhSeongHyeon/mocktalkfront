@@ -1,5 +1,6 @@
 import { createApp, watch } from 'vue';
 import './style.css';
+import 'highlight.js/styles/github.css';
 import App from './App.vue';
 import router from './router';
 import { applyProfileSummary } from './lib/profile';

@@ -276,10 +276,21 @@ a {
     line-height: 1.8;
     color: color-mix(in oklab, var(--ink-1) 90%, var(--ink-2));
     word-break: break-word;
+    white-space: pre-wrap;
+    white-space: break-spaces;
   }
 
-  .ui-content > * + * {
-    margin-top: 1rem;
+  .ui-content.ProseMirror {
+    outline: none;
+  }
+
+  .ui-content p:empty::before {
+    content: '\00a0';
+    white-space: pre;
+  }
+
+  .ui-content p:empty {
+    min-height: 1em;
   }
 
   .ui-content a {
@@ -298,10 +309,7 @@ a {
 
   .ui-content iframe {
     display: block;
-    width: 100%;
     max-width: 100%;
-    aspect-ratio: 16 / 9;
-    height: auto;
     border-radius: var(--radius-xl);
   }
 
@@ -310,28 +318,207 @@ a {
     border-radius: var(--radius-xl);
     background: color-mix(in oklab, var(--surface-2) 88%, var(--surface-0));
     padding: 0.9rem;
+    border: 1px solid color-mix(in oklab, var(--line-subtle) 78%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
   }
 
-  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll) {
+  .dark .ui-content pre {
+    background: rgba(2, 6, 23, 0.92);
+    border-color: rgba(71, 85, 105, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(148, 163, 184, 0.08),
+      0 2px 10px rgba(2, 6, 23, 0.45);
+  }
+
+  .ui-content pre code.hljs {
+    background: transparent;
+  }
+
+  .dark .ui-content pre code.hljs {
+    background: transparent;
+  }
+
+  .ui-content mark {
+    border-radius: 0.2rem;
+    padding: 0.05rem 0.15rem;
+  }
+
+  .ui-content em {
+    font-style: italic;
+  }
+
+  .ui-content h1 {
+    margin: 1.1rem 0 0.6rem;
+    font-size: 1.65rem;
+    line-height: 1.3;
+    font-weight: 800;
+  }
+
+  .ui-content h2 {
+    margin: 1rem 0 0.55rem;
+    font-size: 1.35rem;
+    line-height: 1.35;
+    font-weight: 750;
+  }
+
+  .ui-content h3 {
+    margin: 0.9rem 0 0.5rem;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    font-weight: 700;
+  }
+
+  .ui-content ul:not([data-type='taskList']) {
+    list-style: disc;
+    padding-left: 1.35rem;
+  }
+
+  .ui-content ol {
+    list-style: decimal;
+    padding-left: 1.35rem;
+  }
+
+  .ui-content blockquote {
+    margin: 0.95rem 0;
+    border-left: 3px solid color-mix(in oklab, var(--accent-strong) 70%, transparent);
+    background: color-mix(in oklab, var(--accent-soft) 55%, transparent);
+    padding: 0.35rem 0 0.35rem 0.9rem;
+    color: color-mix(in oklab, var(--ink-1) 85%, var(--ink-2));
+  }
+
+  .ui-content ul[data-type='taskList'] {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .ui-content li[data-type='taskItem'] {
+    display: flex;
+    gap: 0.45rem;
+  }
+
+  .ui-content li[data-type='taskItem'] > label {
+    margin-top: 0.25rem;
+  }
+
+  .ui-content li[data-type='taskItem'] > div {
+    flex: 1;
+  }
+
+  .ui-content figure[data-type='editor-image'] {
+    margin: 1rem 0;
+  }
+
+  .ui-content figure[data-type='editor-image'][data-align='center'] {
+    text-align: center;
+  }
+
+  .ui-content figure[data-type='editor-image'][data-align='right'] {
+    text-align: right;
+  }
+
+  .ui-content figure[data-type='editor-image'] img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-xl);
+    margin-right: auto;
+  }
+
+  .ui-content figure[data-type='editor-image'][data-align='center'] img {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .ui-content figure[data-type='editor-image'][data-align='right'] img {
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .ui-content figure[data-type='editor-image'] figcaption {
+    margin-top: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+  }
+
+  .ui-content .mention {
+    color: #0f766e;
+    font-weight: 600;
+  }
+
+  .dark .ui-content .mention {
+    color: #5eead4;
+  }
+
+  :where(
+    html,
+    body,
+    .ui-side-scrollbar,
+    .overflow-auto,
+    .overflow-y-auto,
+    .overflow-x-auto,
+    .overflow-scroll,
+    .overflow-y-scroll,
+    .overflow-x-scroll
+  ) {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--ink-2) 36%, transparent) transparent;
   }
 
-  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll)::-webkit-scrollbar {
+  :where(
+    html,
+    body,
+    .ui-side-scrollbar,
+    .overflow-auto,
+    .overflow-y-auto,
+    .overflow-x-auto,
+    .overflow-scroll,
+    .overflow-y-scroll,
+    .overflow-x-scroll
+  )::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
-  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll)::-webkit-scrollbar-track {
+  :where(
+    html,
+    body,
+    .ui-side-scrollbar,
+    .overflow-auto,
+    .overflow-y-auto,
+    .overflow-x-auto,
+    .overflow-scroll,
+    .overflow-y-scroll,
+    .overflow-x-scroll
+  )::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll)::-webkit-scrollbar-thumb {
+  :where(
+    html,
+    body,
+    .ui-side-scrollbar,
+    .overflow-auto,
+    .overflow-y-auto,
+    .overflow-x-auto,
+    .overflow-scroll,
+    .overflow-y-scroll,
+    .overflow-x-scroll
+  )::-webkit-scrollbar-thumb {
     border-radius: 999px;
     background: color-mix(in oklab, var(--ink-2) 42%, transparent);
   }
 
-  :where(html, body, .ui-side-scrollbar, .overflow-auto, .overflow-y-auto, .overflow-x-auto, .overflow-scroll, .overflow-y-scroll, .overflow-x-scroll):hover::-webkit-scrollbar-thumb {
+  :where(
+      html,
+      body,
+      .ui-side-scrollbar,
+      .overflow-auto,
+      .overflow-y-auto,
+      .overflow-x-auto,
+      .overflow-scroll,
+      .overflow-y-scroll,
+      .overflow-x-scroll
+    ):hover::-webkit-scrollbar-thumb {
     background: color-mix(in oklab, var(--ink-2) 56%, transparent);
   }
 }
