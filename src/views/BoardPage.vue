@@ -10,7 +10,7 @@ import { ApiError } from '../lib/api';
 import { canWriteArticle, resolveWriteUnavailableReason } from '../lib/boardWritePolicy';
 import { resolveImageUrl } from '../lib/files';
 import type { BoardDetailResponse } from '../services/boards';
-import { getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
+import { cancelBoardJoin, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
 import { isAdmin, isAuthenticated } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
@@ -92,7 +92,12 @@ const joinDisabled = computed(() => {
   const status = board.value?.memberStatus;
   return !isAuthenticated.value || status === 'MEMBER' || status === 'MODERATOR' || status === 'OWNER' || status === 'BANNED' || isJoining.value;
 });
-const showJoinButton = computed(() => Boolean(board.value && board.value.visibility !== 'PUBLIC'));
+const showJoinButton = computed(() => {
+  if (!board.value) {
+    return false;
+  }
+  return board.value.visibility === 'PUBLIC' || board.value.visibility === 'GROUP';
+});
 const subscribeLabel = computed(() => (board.value?.subscribed ? '구독중' : '구독'));
 const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing.value);
 const writeUnavailableReason = computed(() => {
@@ -154,9 +159,15 @@ const handleJoin = async () => {
   if (!board.value || joinDisabled.value) {
     return;
   }
+  const shouldCancel = board.value.memberStatus === 'PENDING';
   actionError.value = '';
   isJoining.value = true;
   try {
+    if (shouldCancel) {
+      await cancelBoardJoin(board.value.id);
+      board.value.memberStatus = null;
+      return;
+    }
     const response = await requestBoardJoin(board.value.id);
     board.value.memberStatus = response.memberStatus;
   } catch (error) {
@@ -164,7 +175,7 @@ const handleJoin = async () => {
       actionError.value = '이미 가입 상태입니다.';
       return;
     }
-    actionError.value = error instanceof ApiError ? error.message : '가입 요청에 실패했습니다.';
+    actionError.value = error instanceof ApiError ? error.message : shouldCancel ? '가입 요청 취소에 실패했습니다.' : '가입 요청에 실패했습니다.';
   } finally {
     isJoining.value = false;
   }
