@@ -157,6 +157,37 @@ a {
     box-shadow: 0 0 0 3px var(--accent-ring);
   }
 
+  :where(textarea),
+  .ui-textarea {
+    width: 100%;
+    min-height: 5.5rem;
+    resize: none;
+    overflow-y: hidden;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--line-subtle);
+    background: color-mix(in oklab, var(--surface-0) 94%, transparent);
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink-1);
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  :where(textarea)::placeholder,
+  .ui-textarea::placeholder {
+    color: color-mix(in oklab, var(--ink-2) 70%, transparent);
+  }
+
+  :where(textarea):focus-visible,
+  .ui-textarea:focus-visible {
+    outline: none;
+    border-color: color-mix(in oklab, var(--accent-strong) 64%, white);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+
   .ui-icon-button {
     height: 2.75rem;
     width: 2.75rem;

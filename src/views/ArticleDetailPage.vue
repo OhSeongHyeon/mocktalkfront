@@ -45,6 +45,7 @@ const isCommentLoading = ref(false);
 const isCommentSubmitting = ref(false);
 const commentReactionLoading = ref(new Set<number>());
 const newComment = ref('');
+const commentTextareaRef = ref<HTMLTextAreaElement | null>(null);
 const isReactionLoading = ref(false);
 const isBookmarkLoading = ref(false);
 const focusCommentId = ref<number | null>(null);
@@ -60,6 +61,7 @@ const lastCommentSyncVersion = ref<number | null>(null);
 const articleDetailScrollContainer = ref<HTMLElement | null>(null);
 const isAttachmentExpanded = ref(false);
 const isDownloadingAllAttachments = ref(false);
+const COMMENT_TEXTAREA_MAX_HEIGHT = 240;
 
 type CommentDeltaAction = 'CREATED' | 'UPDATED' | 'DELETED';
 
@@ -725,12 +727,47 @@ const submitComment = async () => {
   try {
     await createComment(article.value.id, newComment.value.trim());
     newComment.value = '';
+    await nextTick();
+    resizeCommentTextarea();
     await refreshComments();
   } catch (error) {
     commentError.value = error instanceof ApiError ? error.message : '댓글 작성에 실패했습니다.';
   } finally {
     isCommentSubmitting.value = false;
   }
+};
+
+const resizeTextareaElement = (textarea: HTMLTextAreaElement | null) => {
+  if (!textarea) {
+    return;
+  }
+  textarea.style.height = 'auto';
+  const nextHeight = Math.min(textarea.scrollHeight, COMMENT_TEXTAREA_MAX_HEIGHT);
+  textarea.style.height = `${nextHeight}px`;
+  textarea.style.overflowY = textarea.scrollHeight > COMMENT_TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden';
+};
+
+const resizeCommentTextarea = () => {
+  resizeTextareaElement(commentTextareaRef.value);
+};
+
+const handleCommentInput = (event: Event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLTextAreaElement)) {
+    return;
+  }
+  resizeTextareaElement(target);
+};
+
+const handleCommentInputKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter' || event.shiftKey || event.isComposing || event.keyCode === 229) {
+    return;
+  }
+  event.preventDefault();
+  if (isCommentSubmitting.value || !newComment.value.trim()) {
+    return;
+  }
+  void submitComment();
 };
 
 const handleReply = async (payload: { parentId: number; content: string }) => {
@@ -1075,10 +1112,14 @@ onUnmounted(() => {
 
               <div v-if="isAuthenticated" class="ui-sub-panel mt-4 p-4">
                 <textarea
+                  ref="commentTextareaRef"
                   v-model="newComment"
                   rows="3"
                   placeholder="댓글을 입력하세요"
-                  class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-red-400 dark:focus:ring-red-500/30"
+                  class="ui-textarea"
+                  @focus="resizeCommentTextarea"
+                  @input="handleCommentInput"
+                  @keydown="handleCommentInputKeydown"
                 ></textarea>
                 <div class="mt-3 flex items-center justify-end gap-2">
                   <button
