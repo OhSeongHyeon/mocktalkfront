@@ -42,12 +42,17 @@ export interface PageResponse<T> {
 export interface ArticleResponse {
   id: number;
   boardId: number;
+  boardSlug: string;
+  boardName: string;
   userId: number;
+  authorName: string;
   categoryId: number | null;
   visibility: string;
   title: string;
-  content: string;
   hit: number;
+  commentCount: number;
+  likeCount: number;
+  dislikeCount: number;
   notice: boolean;
   createdAt: string;
   updatedAt: string;
@@ -58,6 +63,11 @@ export interface CommentResponse {
   id: number;
   userId: number;
   articleId: number;
+  articleTitle: string;
+  boardId: number;
+  boardSlug: string;
+  boardName: string;
+  authorName: string;
   parentCommentId: number | null;
   rootCommentId: number | null;
   depth: number;

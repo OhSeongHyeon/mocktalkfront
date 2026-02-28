@@ -61,24 +61,19 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen text-slate-900 dark:text-slate-100">
-    <header class="mx-auto flex max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
+  <div class="flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
+    <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
       <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
         <span class="inline">MockTalk</span>
       </RouterLink>
-      <RouterLink to="/login" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-        로그인으로
+      <RouterLink to="/" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+        홈으로
       </RouterLink>
     </header>
 
-    <main
-      class="mx-auto flex max-w-6xl flex-col items-center gap-10 px-4 pb-16 pt-4 sm:px-6 lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:px-8"
-    >
+    <main class="mx-auto flex w-full max-w-6xl flex-1 items-start justify-center px-4 pb-16 pt-8 sm:px-6 lg:px-8">
       <section class="w-full max-w-md">
-        <form
-          class="flex flex-col gap-5 rounded-3xl border border-slate-200/80 bg-white/95 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/90"
-          @submit.prevent="handleSubmit"
-        >
+        <form class="ui-panel flex flex-col gap-5 p-6 sm:p-7" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-2">
             <label for="register-login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
             <input
@@ -88,7 +83,7 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="username"
               placeholder="아이디를 입력하세요"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -102,7 +97,7 @@ const handleSubmit = async () => {
               type="email"
               autocomplete="email"
               placeholder="example@mocktalk.local"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -116,7 +111,7 @@ const handleSubmit = async () => {
               type="password"
               autocomplete="new-password"
               placeholder="비밀번호를 입력하세요"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
             <span class="text-xs font-semibold text-slate-400 dark:text-slate-500"> 비밀번호는 8자 이상 입력하세요. </span>
@@ -131,7 +126,7 @@ const handleSubmit = async () => {
               type="password"
               autocomplete="new-password"
               placeholder="비밀번호를 다시 입력하세요"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -144,8 +139,8 @@ const handleSubmit = async () => {
               name="userName"
               type="text"
               autocomplete="name"
-              placeholder="입력하지 않으면 아이디로 대체됩니다"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              placeholder="이름을 입력하세요"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -159,7 +154,7 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="nickname"
               placeholder="입력하지 않으면 사용자명으로 대체됩니다"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -173,7 +168,7 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="off"
               placeholder="입력하지 않으면 자동 생성됩니다"
-              class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+              class="ui-input"
               :disabled="isSubmitting"
             />
           </div>
@@ -186,11 +181,7 @@ const handleSubmit = async () => {
             회원가입
           </button>
 
-          <p
-            v-if="errorMessage"
-            class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-            role="alert"
-          >
+          <p v-if="errorMessage" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
             {{ errorMessage }}
           </p>
 

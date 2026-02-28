@@ -203,7 +203,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -211,10 +211,7 @@ onMounted(async () => {
         <div class="mx-auto w-full max-w-6xl space-y-6">
           <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="reports" />
 
-          <div
-            v-if="boardError"
-            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="boardError" class="ui-state ui-state-danger">
             {{ boardError }}
           </div>
 
@@ -237,15 +234,12 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div
-              v-if="listError"
-              class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-            >
+            <div v-if="listError" class="ui-state ui-state-danger">
               {{ listError }}
             </div>
 
             <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-              <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+              <section class="ui-panel p-4">
                 <div class="flex items-center justify-between">
                   <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 목록</h2>
                   <span class="text-xs text-slate-400">총 {{ reports.length }}건</span>
@@ -282,18 +276,13 @@ onMounted(async () => {
                     <div class="mt-2 text-xs text-slate-400">접수 {{ formatDate(item.createdAt) }}</div>
                   </button>
 
-                  <div
-                    v-if="reports.length === 0"
-                    class="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-                  >
-                    현재 조건에 해당하는 신고가 없습니다.
-                  </div>
+                  <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 신고가 없습니다.</div>
                 </div>
 
                 <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-800 dark:text-slate-300"
+                    class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
                     :disabled="page === 0"
                     @click="movePage(-1)"
                   >
@@ -302,7 +291,7 @@ onMounted(async () => {
                   <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-800 dark:text-slate-300"
+                    class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
                     :disabled="page + 1 >= totalPages"
                     @click="movePage(1)"
                   >
@@ -311,7 +300,7 @@ onMounted(async () => {
                 </div>
               </section>
 
-              <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+              <section class="ui-panel p-5">
                 <div class="flex items-center justify-between">
                   <div>
                     <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Detail</p>
@@ -322,10 +311,7 @@ onMounted(async () => {
                   </div>
                 </div>
 
-                <div
-                  v-if="detailError"
-                  class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-                >
+                <div v-if="detailError" class="ui-state ui-state-danger mt-4">
                   {{ detailError }}
                 </div>
 
@@ -406,12 +392,7 @@ onMounted(async () => {
                   </div>
                 </div>
 
-                <div
-                  v-else
-                  class="mt-10 rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-                >
-                  좌측에서 신고를 선택하세요.
-                </div>
+                <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">좌측에서 신고를 선택하세요.</div>
               </section>
             </div>
           </div>

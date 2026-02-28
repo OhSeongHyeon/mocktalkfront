@@ -10,7 +10,6 @@ import { resolveImageUrl } from '../lib/files';
 import { formatNotificationMessage } from '../lib/notifications';
 import { applyProfileSummary } from '../lib/profile';
 import { logout } from '../services/auth';
-import { getArticleDetail } from '../services/articles';
 import { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile } from '../services/mypage';
 import type { ArticleResponse, CommentResponse, PageResponse, UserProfileResponse } from '../services/mypage';
 import { deleteAllNotifications, deleteNotification, getNotifications, markNotificationRead } from '../services/notifications';
@@ -20,6 +19,7 @@ import { clearAccessToken } from '../stores/auth';
 
 const router = useRouter();
 const isMobileMenuOpen = ref(false);
+type ActivityTab = 'articles' | 'comments' | 'notifications';
 
 const profile = ref<UserProfileResponse | null>(null);
 const isProfileLoading = ref(false);
@@ -40,7 +40,7 @@ const form = reactive({
 const previewUrl = ref<string | null>(null);
 
 const mainTab = ref<'activity' | 'profile'>('activity');
-const activeTab = ref<'articles' | 'comments' | 'notifications'>('articles');
+const activeTab = ref<ActivityTab>('articles');
 const listLoading = ref(false);
 const listError = ref('');
 const articles = ref<PageResponse<ArticleResponse> | null>(null);
@@ -50,6 +50,8 @@ const articlePage = ref(0);
 const commentPage = ref(0);
 const notificationPage = ref(0);
 const pageSize = 10;
+const ACTIVITY_PAGE_WINDOW_SIZE = 10;
+const listRequestSequence = ref(0);
 
 const isDeleteModalOpen = ref(false);
 const deleteConfirmText = ref('');
@@ -79,6 +81,20 @@ const resolvedProfileImage = computed(() => {
   return resolveImageUrl(profile.value?.profileImage ?? null, 'medium');
 });
 
+const beginListRequest = () => {
+  listError.value = '';
+  listLoading.value = true;
+  return ++listRequestSequence.value;
+};
+
+const isStaleListRequest = (requestId: number) => requestId !== listRequestSequence.value;
+
+const finishListRequest = (requestId: number) => {
+  if (requestId === listRequestSequence.value) {
+    listLoading.value = false;
+  }
+};
+
 const loadProfile = async () => {
   profileError.value = '';
   saveMessage.value = '';
@@ -107,56 +123,71 @@ const loadProfile = async () => {
 };
 
 const loadArticles = async (page = 0) => {
-  listError.value = '';
-  listLoading.value = true;
+  const requestId = beginListRequest();
   try {
     const data = await getMyArticles(page, pageSize);
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
     articles.value = data;
     articlePage.value = data.page;
   } catch (error) {
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
     if (error instanceof ApiError && error.status === 401) {
       await router.push('/login');
       return;
     }
     listError.value = error instanceof ApiError ? error.message : '게시글 조회에 실패했습니다.';
   } finally {
-    listLoading.value = false;
+    finishListRequest(requestId);
   }
 };
 
 const loadComments = async (page = 0) => {
-  listError.value = '';
-  listLoading.value = true;
+  const requestId = beginListRequest();
   try {
     const data = await getMyComments(page, pageSize);
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
     comments.value = data;
     commentPage.value = data.page;
   } catch (error) {
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
     if (error instanceof ApiError && error.status === 401) {
       await router.push('/login');
       return;
     }
     listError.value = error instanceof ApiError ? error.message : '댓글 조회에 실패했습니다.';
   } finally {
-    listLoading.value = false;
+    finishListRequest(requestId);
   }
 };
 
 const loadNotifications = async (page = 0) => {
-  listError.value = '';
-  listLoading.value = true;
+  const requestId = beginListRequest();
   try {
     const data = await getNotifications(page, pageSize);
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
     notifications.value = data;
     notificationPage.value = data.page;
   } catch (error) {
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
     if (error instanceof ApiError && error.status === 401) {
       await router.push('/login');
       return;
     }
     listError.value = error instanceof ApiError ? error.message : '알림 조회에 실패했습니다.';
   } finally {
-    listLoading.value = false;
+    finishListRequest(requestId);
   }
 };
 
@@ -172,12 +203,22 @@ const loadActiveTab = async () => {
   await loadNotifications(notificationPage.value);
 };
 
-const setTab = async (tab: 'articles' | 'comments' | 'notifications') => {
+const setTab = async (tab: ActivityTab) => {
+  if (activeTab.value === tab) {
+    return;
+  }
   activeTab.value = tab;
   await loadActiveTab();
 };
 
 const setPage = async (page: number) => {
+  if (page < 0) {
+    return;
+  }
+  const data = currentList.value;
+  if (data && data.totalPages > 0 && page >= data.totalPages) {
+    return;
+  }
   if (activeTab.value === 'articles') {
     await loadArticles(page);
     return;
@@ -306,43 +347,21 @@ const formatDate = (value?: string | null) => {
   });
 };
 
-const resolveArticlePath = async (articleId: number) => {
-  listError.value = '';
-  try {
-    const detail = await getArticleDetail(articleId);
-    const slug = detail.board?.slug;
-    if (!slug) {
-      listError.value = '게시글 정보를 확인할 수 없습니다.';
-      return null;
-    }
-    return `/b/${slug}/articles/${articleId}`;
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      await router.push('/login');
-      return null;
-    }
-    listError.value = error instanceof ApiError ? error.message : '게시글 이동에 실패했습니다.';
-    return null;
-  }
-};
-
 const handleActivityClick = async (item: ArticleResponse | CommentResponse) => {
   if (listLoading.value) {
     return;
   }
   if (activeTab.value === 'articles') {
-    const path = await resolveArticlePath((item as ArticleResponse).id);
-    if (path) {
-      await router.push(path);
-    }
+    const articleItem = item as ArticleResponse;
+    await router.push(`/b/${articleItem.boardSlug}/articles/${articleItem.id}`);
     return;
   }
   if (activeTab.value === 'comments') {
     const commentItem = item as CommentResponse;
-    const path = await resolveArticlePath(commentItem.articleId);
-    if (path) {
-      await router.push({ path, query: { commentId: String(commentItem.id) } });
-    }
+    await router.push({
+      path: `/b/${commentItem.boardSlug}/articles/${commentItem.articleId}`,
+      query: { commentId: String(commentItem.id) },
+    });
   }
 };
 
@@ -361,6 +380,8 @@ const isListEmpty = computed(() => {
   return !data || data.items.length === 0;
 });
 
+const currentTotalPages = computed(() => currentList.value?.totalPages ?? 0);
+
 const currentPage = computed(() => {
   if (activeTab.value === 'articles') {
     return articlePage.value;
@@ -370,6 +391,58 @@ const currentPage = computed(() => {
   }
   return notificationPage.value;
 });
+
+const showActivityPagination = computed(() => {
+  const data = currentList.value;
+  if (!data) {
+    return false;
+  }
+  if (data.totalPages > 1) {
+    return true;
+  }
+  return data.hasNext || data.hasPrevious;
+});
+
+const showActivityPageNumbers = computed(() => currentTotalPages.value > 1);
+
+const activityPageWindowStart = computed(() => Math.floor(currentPage.value / ACTIVITY_PAGE_WINDOW_SIZE) * ACTIVITY_PAGE_WINDOW_SIZE);
+const activityPageWindowEnd = computed(() => Math.min(activityPageWindowStart.value + ACTIVITY_PAGE_WINDOW_SIZE, currentTotalPages.value));
+const activityPageNumbers = computed(() =>
+  Array.from(
+    { length: Math.max(activityPageWindowEnd.value - activityPageWindowStart.value, 0) },
+    (_, index) => activityPageWindowStart.value + index,
+  ),
+);
+const hasPreviousActivityPageWindow = computed(() => activityPageWindowStart.value > 0);
+const hasNextActivityPageWindow = computed(() => activityPageWindowEnd.value < currentTotalPages.value);
+
+const activityEmptyMessage = computed(() => {
+  if (activeTab.value === 'articles') {
+    return '작성한 게시글이 없습니다.';
+  }
+  if (activeTab.value === 'comments') {
+    return '작성한 댓글이 없습니다.';
+  }
+  return '알림이 없습니다.';
+});
+
+const articleTotalCount = computed(() => articles.value?.totalElements ?? null);
+const commentTotalCount = computed(() => comments.value?.totalElements ?? null);
+const notificationTotalCount = computed(() => notifications.value?.totalElements ?? null);
+
+const handlePreviousActivityPageWindow = async () => {
+  if (!hasPreviousActivityPageWindow.value) {
+    return;
+  }
+  await setPage(Math.max(activityPageWindowStart.value - 1, 0));
+};
+
+const handleNextActivityPageWindow = async () => {
+  if (!hasNextActivityPageWindow.value) {
+    return;
+  }
+  await setPage(activityPageWindowEnd.value);
+};
 
 const handleNotificationClick = async (notification: NotificationResponse) => {
   if (!notification.read) {
@@ -389,14 +462,9 @@ const handleDeleteNotification = async (notification: NotificationResponse) => {
   listError.value = '';
   try {
     await deleteNotification(notification.id);
-    if (!notifications.value) {
-      return;
-    }
-    notifications.value = {
-      ...notifications.value,
-      items: notifications.value.items.filter((item) => item.id !== notification.id),
-      totalElements: Math.max(0, notifications.value.totalElements - 1),
-    };
+    const currentItems = notifications.value?.items.length ?? 0;
+    const nextPage = currentItems <= 1 && notificationPage.value > 0 ? notificationPage.value - 1 : notificationPage.value;
+    await loadNotifications(nextPage);
   } catch (error) {
     listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
   }
@@ -406,16 +474,7 @@ const handleDeleteAllNotifications = async () => {
   listError.value = '';
   try {
     await deleteAllNotifications();
-    notifications.value = {
-      items: [],
-      page: 0,
-      size: pageSize,
-      totalElements: 0,
-      totalPages: 0,
-      hasNext: false,
-      hasPrevious: false,
-    };
-    notificationPage.value = 0;
+    await loadNotifications(0);
   } catch (error) {
     listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
   }
@@ -424,7 +483,7 @@ const handleDeleteAllNotifications = async () => {
 onMounted(async () => {
   const ok = await loadProfile();
   if (ok) {
-    await loadArticles(articlePage.value);
+    await loadActiveTab();
   }
 });
 
@@ -454,11 +513,11 @@ onBeforeUnmount(() => {
               <div class="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                  class="rounded-full border px-4 py-2 text-sm font-semibold transition"
                   :class="
                     mainTab === 'activity'
-                      ? 'bg-[color:var(--accent-soft)] text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
                   "
                   @click="setMainTab('activity')"
                 >
@@ -466,11 +525,11 @@ onBeforeUnmount(() => {
                 </button>
                 <button
                   type="button"
-                  class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                  class="rounded-full border px-4 py-2 text-sm font-semibold transition"
                   :class="
                     mainTab === 'profile'
-                      ? 'bg-[color:var(--accent-soft)] text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
                   "
                   @click="setMainTab('profile')"
                 >
@@ -678,11 +737,7 @@ onBeforeUnmount(() => {
                 </button>
               </div>
 
-              <p
-                v-if="profileError"
-                class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-                role="alert"
-              >
+              <p v-if="profileError" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
                 {{ profileError }}
               </p>
             </form>
@@ -696,39 +751,48 @@ onBeforeUnmount(() => {
               <div class="flex gap-2">
                 <button
                   type="button"
-                  class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                  class="rounded-full border px-4 py-2 text-sm font-semibold transition"
                   :class="
                     activeTab === 'articles'
-                      ? 'bg-[color:var(--accent-soft)] text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
                   "
                   @click="setTab('articles')"
                 >
                   내 게시글
+                  <span v-if="articleTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
+                    {{ articleTotalCount }}
+                  </span>
                 </button>
                 <button
                   type="button"
-                  class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                  class="rounded-full border px-4 py-2 text-sm font-semibold transition"
                   :class="
                     activeTab === 'comments'
-                      ? 'bg-[color:var(--accent-soft)] text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
                   "
                   @click="setTab('comments')"
                 >
                   내 댓글
+                  <span v-if="commentTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
+                    {{ commentTotalCount }}
+                  </span>
                 </button>
                 <button
                   type="button"
-                  class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                  class="rounded-full border px-4 py-2 text-sm font-semibold transition"
                   :class="
                     activeTab === 'notifications'
-                      ? 'bg-[color:var(--accent-soft)] text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
+                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
                   "
                   @click="setTab('notifications')"
                 >
                   알림목록
+                  <span v-if="notificationTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
+                    {{ notificationTotalCount }}
+                  </span>
                 </button>
               </div>
 
@@ -742,35 +806,74 @@ onBeforeUnmount(() => {
                 >
                   전체 삭제
                 </button>
+              </div>
+            </div>
+
+            <div v-if="showActivityPagination" class="grid items-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-[1fr_auto_1fr]">
+              <div></div>
+              <div class="flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                  class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!currentList?.hasPrevious || listLoading"
                   @click="setPage(currentPage - 1)"
                 >
                   이전
                 </button>
-                <span>페이지 {{ (currentPage ?? 0) + 1 }}</span>
+                <div v-if="showActivityPageNumbers" class="flex flex-wrap items-center gap-1">
+                  <button
+                    type="button"
+                    class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="!hasPreviousActivityPageWindow || listLoading"
+                    aria-label="이전 페이지 묶음"
+                    @click="handlePreviousActivityPageWindow"
+                  >
+                    &laquo;
+                  </button>
+                  <button
+                    v-for="pageNumber in activityPageNumbers"
+                    :key="`mypage-page-${pageNumber}`"
+                    type="button"
+                    class="ui-chip-button px-3 py-1"
+                    :class="
+                      pageNumber === currentPage
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                    "
+                    :disabled="listLoading"
+                    @click="setPage(pageNumber)"
+                  >
+                    {{ pageNumber + 1 }}
+                  </button>
+                  <button
+                    type="button"
+                    class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="!hasNextActivityPageWindow || listLoading"
+                    aria-label="다음 페이지 묶음"
+                    @click="handleNextActivityPageWindow"
+                  >
+                    &raquo;
+                  </button>
+                </div>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                  class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!currentList?.hasNext || listLoading"
                   @click="setPage(currentPage + 1)"
                 >
                   다음
                 </button>
               </div>
+              <span class="justify-self-center sm:justify-self-end">
+                페이지 {{ currentPage + 1 }}<span v-if="currentTotalPages > 0"> / {{ currentTotalPages }}</span>
+              </span>
             </div>
 
             <div v-if="listLoading" class="text-sm text-slate-500">불러오는 중...</div>
-            <p
-              v-else-if="listError"
-              class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
-              role="alert"
-            >
+            <p v-else-if="listError" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
               {{ listError }}
             </p>
-            <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">아직 작성한 항목이 없습니다.</div>
+            <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">{{ activityEmptyMessage }}</div>
             <div v-else class="grid gap-3">
               <div
                 v-for="item in currentList?.items"
@@ -813,20 +916,37 @@ onBeforeUnmount(() => {
                   </div>
                 </button>
                 <button
-                  v-else
+                  v-else-if="activeTab === 'articles'"
                   type="button"
                   class="flex w-full flex-col gap-2 text-left"
-                  @click="handleActivityClick(item as ArticleResponse | CommentResponse)"
+                  @click="handleActivityClick(item as ArticleResponse)"
                 >
-                  <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div class="font-semibold text-slate-900 dark:text-white">
-                      {{ activeTab === 'articles' ? (item as ArticleResponse).title : '댓글' }}
-                    </div>
-                    <div class="text-xs text-slate-400">
-                      {{ formatDate(item.createdAt) }}
-                    </div>
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span>{{ (item as ArticleResponse).boardName }}</span>
+                    <span>{{ (item as ArticleResponse).authorName }}</span>
+                    <span>{{ formatDate((item as ArticleResponse).createdAt) }}</span>
+                    <span v-if="(item as ArticleResponse).notice" class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+                      공지
+                    </span>
                   </div>
-                  <p v-if="activeTab === 'comments'" class="text-sm text-slate-600 dark:text-slate-300">
+                  <div class="font-semibold text-slate-900 dark:text-slate-100">
+                    {{ (item as ArticleResponse).title }}
+                  </div>
+                  <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <span>조회 {{ (item as ArticleResponse).hit }}</span>
+                    <span>댓글 {{ (item as ArticleResponse).commentCount }}</span>
+                    <span>좋아요 {{ (item as ArticleResponse).likeCount }}</span>
+                    <span>싫어요 {{ (item as ArticleResponse).dislikeCount }}</span>
+                  </div>
+                </button>
+                <button v-else type="button" class="flex w-full flex-col gap-2 text-left" @click="handleActivityClick(item as CommentResponse)">
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span>{{ (item as CommentResponse).boardName }}</span>
+                    <span>{{ (item as CommentResponse).articleTitle }}</span>
+                    <span>{{ (item as CommentResponse).authorName }}</span>
+                    <span>{{ formatDate((item as CommentResponse).createdAt) }}</span>
+                  </div>
+                  <p class="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">
                     {{ (item as CommentResponse).content }}
                   </p>
                 </button>

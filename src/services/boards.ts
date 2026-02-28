@@ -1,5 +1,7 @@
 import { request } from '../lib/api';
 
+export type BoardArticleWritePolicy = 'ALL_AUTHENTICATED' | 'MEMBER' | 'MODERATOR' | 'OWNER';
+
 export interface ApiEnvelope<T> {
   success: boolean;
   data: T;
@@ -42,6 +44,7 @@ export interface BoardResponse {
   slug: string;
   description: string | null;
   visibility: string;
+  articleWritePolicy: BoardArticleWritePolicy;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -91,6 +94,7 @@ export interface BoardCreateRequest {
   slug: string;
   description?: string | null;
   visibility: 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
+  articleWritePolicy?: BoardArticleWritePolicy;
 }
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
@@ -105,10 +109,22 @@ const getBoardBySlug = async (slug: string) => {
   return unwrap(response);
 };
 
-const getBoardArticles = async (boardId: number, page: number, size: number, order?: 'LATEST' | 'OLDEST') => {
+const getBoardArticles = async (
+  boardId: number,
+  page: number,
+  size: number,
+  order?: 'LATEST' | 'OLDEST',
+  categoryId?: number,
+  uncategorized?: boolean,
+) => {
   const query = new URLSearchParams({ page: String(page), size: String(size) });
   if (order) {
     query.set('order', order);
+  }
+  if (uncategorized) {
+    query.set('uncategorized', 'true');
+  } else if (categoryId !== undefined && categoryId !== null) {
+    query.set('categoryId', String(categoryId));
   }
   const response = await request<ApiEnvelope<BoardArticleListResponse>>(`/boards/${boardId}/articles?${query.toString()}`);
   return unwrap(response);
@@ -159,7 +175,15 @@ const requestBoardJoin = async (boardId: number) => {
   return unwrap(response);
 };
 
+const cancelBoardJoin = async (boardId: number) => {
+  const response = await request<ApiEnvelope<void>>(`/boards/${boardId}/members/me`, {
+    method: 'DELETE',
+  });
+  return unwrap(response);
+};
+
 export {
+  cancelBoardJoin,
   createBoard,
   getBoardArticles,
   getBoardBySlug,

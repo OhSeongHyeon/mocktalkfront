@@ -47,6 +47,7 @@ const visibleBoards = computed(() => {
   }
   return boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug));
 });
+const visibleBoardCount = computed(() => visibleBoards.value.length);
 
 const resolveBoardImage = (board: BoardResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
 
@@ -116,6 +117,27 @@ onBeforeUnmount(() => {
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main ref="scrollAreaRef" class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
         <div class="mx-auto w-full max-w-6xl">
+          <section class="ui-panel animate-rise px-5 py-6 sm:px-6">
+            <div class="flex flex-wrap items-end justify-between gap-4">
+              <div class="space-y-2">
+                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100 sm:text-3xl">커뮤니티 탐색</h1>
+                <p class="max-w-2xl text-sm text-slate-600 dark:text-slate-300">관심 주제의 게시판을 찾고 지금 바로 대화에 참여해보세요.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"
+                >
+                  게시판 {{ visibleBoardCount }}개
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <div class="mt-8 flex flex-col gap-2">
+            <h2 class="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">목록</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">새로운 커뮤니티를 발견하고 구독을 시작해보세요.</p>
+          </div>
+
           <div v-if="listError" class="ui-state ui-state-danger mt-5">
             {{ listError }}
           </div>

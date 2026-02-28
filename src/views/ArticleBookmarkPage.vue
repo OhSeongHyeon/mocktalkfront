@@ -142,7 +142,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -175,10 +175,7 @@ onMounted(() => {
             </button>
           </div>
 
-          <div
-            v-if="listError"
-            class="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="listError" class="ui-state ui-state-danger mt-6">
             {{ listError }}
           </div>
 

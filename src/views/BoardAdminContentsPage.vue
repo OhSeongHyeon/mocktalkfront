@@ -223,7 +223,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900">
+  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
@@ -231,10 +231,7 @@ onMounted(async () => {
         <div class="mx-auto w-full max-w-6xl space-y-6">
           <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="contents" />
 
-          <div
-            v-if="boardError"
-            class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-          >
+          <div v-if="boardError" class="ui-state ui-state-danger">
             {{ boardError }}
           </div>
 
@@ -266,7 +263,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+            <div class="ui-panel p-4">
               <div class="flex flex-wrap items-center gap-3">
                 <select
                   v-model="reportedFilter"
@@ -301,14 +298,11 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div
-              v-if="listError"
-              class="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
-            >
+            <div v-if="listError" class="ui-state ui-state-danger">
               {{ listError }}
             </div>
 
-            <section class="rounded-3xl border border-slate-200/80 bg-white/90 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/90">
+            <section class="ui-panel p-4">
               <div class="flex items-center justify-between">
                 <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">목록</h2>
                 <span class="text-xs text-slate-400"> {{ contentType === 'ARTICLE' ? articles.length : comments.length }}건 </span>
@@ -421,16 +415,10 @@ onMounted(async () => {
                   </div>
                 </template>
 
-                <div
-                  v-if="contentType === 'ARTICLE' && articles.length === 0"
-                  class="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-                >
+                <div v-if="contentType === 'ARTICLE' && articles.length === 0" class="ui-state ui-state-empty px-4 py-10">
                   조건에 해당하는 게시글이 없습니다.
                 </div>
-                <div
-                  v-if="contentType === 'COMMENT' && comments.length === 0"
-                  class="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-                >
+                <div v-if="contentType === 'COMMENT' && comments.length === 0" class="ui-state ui-state-empty px-4 py-10">
                   조건에 해당하는 댓글이 없습니다.
                 </div>
               </div>
@@ -438,7 +426,7 @@ onMounted(async () => {
               <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-800 dark:text-slate-300"
+                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
                   :disabled="page === 0"
                   @click="movePage(-1)"
                 >
@@ -447,7 +435,7 @@ onMounted(async () => {
                 <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-800 dark:text-slate-300"
+                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
                   :disabled="page + 1 >= totalPages"
                   @click="movePage(1)"
                 >

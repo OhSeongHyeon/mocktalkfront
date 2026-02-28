@@ -20,7 +20,7 @@ export interface BoardCategoryUpdateRequest {
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
 
 const getBoardCategories = async (boardId: number) => {
-  const response = await request<ApiEnvelope<BoardCategoryResponse[]>>(`/boards/${boardId}/admin/categories`);
+  const response = await request<ApiEnvelope<BoardCategoryResponse[]>>(`/boards/${boardId}/categories`);
   return unwrap(response);
 };
 

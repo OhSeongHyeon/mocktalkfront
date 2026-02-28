@@ -1,10 +1,12 @@
 import { request } from '../lib/api';
 import type { ApiEnvelope, BoardResponse } from './boards';
+import type { BoardArticleWritePolicy } from './boards';
 
 export interface BoardAdminSettingsUpdateRequest {
   boardName: string;
   description?: string | null;
   visibility: 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
+  articleWritePolicy: BoardArticleWritePolicy;
 }
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
