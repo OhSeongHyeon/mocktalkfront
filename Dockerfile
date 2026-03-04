@@ -34,4 +34,4 @@ COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
 
 # 컨테이너 시작 시 실행될 명령어
-CMD ["/bin/sh", "-c", "envsubst '$PORT $BACKEND_BASE_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "-c", "envsubst '$PORT $BACKEND_BASE_URL $OBJECT_STORAGE_BASE_URL' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

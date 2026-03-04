@@ -1,4 +1,5 @@
 import { request } from '../lib/api';
+import { cancelUploadSession, completeUpload, initUpload, uploadBinary } from './uploadSession';
 import type { ApiEnvelope, BoardResponse, PageResponse } from './boards';
 
 export interface AdminBoardCreateRequest {
@@ -72,13 +73,33 @@ const updateAdminBoard = async (boardId: number, payload: AdminBoardUpdateReques
 };
 
 const uploadAdminBoardImage = async (boardId: number, boardImage: File) => {
-  const formData = new FormData();
-  formData.append('boardImage', boardImage);
-  const response = await request<ApiEnvelope<BoardResponse>>(`/admin/boards/${boardId}/image`, {
-    method: 'POST',
-    body: formData,
+  const init = await initUpload({
+    purpose: 'BOARD_IMAGE',
+    originalFileName: boardImage.name,
+    contentType: boardImage.type || 'application/octet-stream',
+    fileSize: boardImage.size,
+    context: {
+      boardId,
+      channel: 'ADMIN_BOARD',
+      preserveMetadata: false,
+    },
   });
-  return unwrap(response);
+
+  try {
+    await uploadBinary(init.uploadUrl, boardImage, init.headers);
+    const completed = await completeUpload<unknown, BoardResponse>(init.uploadToken);
+    if (!completed.board) {
+      throw new Error('게시판 이미지 업로드 완료 응답이 올바르지 않습니다.');
+    }
+    return completed.board;
+  } catch (error) {
+    try {
+      await cancelUploadSession(init.uploadToken);
+    } catch {
+      // 취소 요청 실패는 주 오류를 덮지 않도록 무시한다.
+    }
+    throw error;
+  }
 };
 
 const deleteAdminBoardImage = async (boardId: number) => {
