@@ -47,19 +47,27 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           FRONTEND_IMAGE: ghcr.io/ohseonghyeon/mocktalkfront:prod-latest
           FRONTEND_BACKEND_BASE_URL: ${{ secrets.FRONTEND_BACKEND_BASE_URL }}
+          FRONTEND_OBJECT_STORAGE_BASE_URL: ${{ secrets.FRONTEND_OBJECT_STORAGE_BASE_URL }}
           FRONTEND_PORT: ${{ secrets.FRONTEND_PORT }}
         run: |
           set -euo pipefail
           SSH_PORT="${OCI_SSH_PORT:-22}"
           DEPLOY_PATH="${OCI_FRONT_DEPLOY_PATH:-~/mocktalkfront}"
           BACKEND_BASE_URL="${FRONTEND_BACKEND_BASE_URL:-http://backend:8082}"
+          OBJECT_STORAGE_BASE_URL="${FRONTEND_OBJECT_STORAGE_BASE_URL:-}"
           FRONT_PORT="${FRONTEND_PORT:-8081}"
+
+          if [ -z "$OBJECT_STORAGE_BASE_URL" ]; then
+            echo "FRONTEND_OBJECT_STORAGE_BASE_URL secret is required."
+            exit 1
+          fi
 
           ssh -p "$SSH_PORT" "${OCI_USER}@${OCI_HOST}" bash -s <<EOF
           set -euo pipefail
           cd "$DEPLOY_PATH"
           export FRONTEND_IMAGE="$FRONTEND_IMAGE"
           export BACKEND_BASE_URL="$BACKEND_BASE_URL"
+          export OBJECT_STORAGE_BASE_URL="$OBJECT_STORAGE_BASE_URL"
           export FRONTEND_PORT="$FRONT_PORT"
 
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
