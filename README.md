@@ -60,6 +60,7 @@ npm run format:check
 | `VITE_FILE_BASE_URL` | 비움                  | 업로드 파일 표시용 기본 주소  |
 | `PORT`               | `80`                  | 컨테이너 실행 시 내부 포트    |
 | `BACKEND_BASE_URL`   | `http://backend:8082` | 컨테이너 템플릿용 백엔드 주소 |
+| `OBJECT_STORAGE_BASE_URL` | `http://minio:9000` | Presigned 업로드 프록시 대상 스토리지 주소 |
 
 ## 디렉터리 구조
 
