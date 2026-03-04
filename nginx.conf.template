@@ -55,6 +55,30 @@ server {
         add_header          X-Accel-Buffering no always;
     }
 
+    # Presigned 업로드: /storage/<bucket>/<key>?signature...
+    location /storage/ {
+        # /storage 접두어를 제거해 실제 오브젝트 스토리지 경로로 전달
+        rewrite ^/storage/(.*)$ /$1 break;
+
+        proxy_pass $OBJECT_STORAGE_BASE_URL;
+
+        proxy_http_version 1.1;
+        proxy_set_header    Connection          "";
+        # Presigned URL 서명 검증을 위해 Host는 업스트림 스토리지 호스트를 사용한다.
+        proxy_set_header    Host                $proxy_host;
+        proxy_set_header    X-Real-IP           $remote_addr;
+        proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+        proxy_set_header    X-Forwarded-Proto   $http_x_forwarded_proto;
+
+        # 최소 보안: 허용 메서드 제한
+        limit_except PUT GET HEAD OPTIONS {
+            deny all;
+        }
+
+        # 업로드 본문 크기 제한(백엔드 50MB 정책 + 여유)
+        client_max_body_size 55m;
+    }
+
     # 일반 API, Spring Boot로 프록시 (경로 /api 유지)
     location /api/ {
         # proxy_pass의 값은 환경변수 $BACKEND_BASE_URL로 대체됩니다.
