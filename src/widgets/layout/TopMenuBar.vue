@@ -16,7 +16,7 @@ import type { NotificationResponse } from '../../features/notification';
 import { subscribeNotificationRealtime } from '../../features/realtime';
 import type { NotificationRealtimeSubscription } from '../../features/realtime';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
-import { applyTheme } from '../../lib/theme';
+import { applyTheme } from '../../shared/lib/theme';
 import { clearAccessToken, displayName, isAuthenticated, profileImageUrl, userPoint } from '../../stores/auth';
 import defaultAvatar from '../../assets/default-avatar.svg';
 import iconBell from '../../assets/icons/icon-bell.svg';
