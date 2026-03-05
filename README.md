@@ -46,11 +46,20 @@ npm run preview
 
 ```bash
 npm run dev
+npm run test
+npm run test:watch
+npm run test:coverage
 npm run lint
 npm run lint:fix
 npm run format
 npm run format:check
 ```
+
+## 테스트
+
+- 테스트 실행: `npm run test`
+- 커버리지: `npm run test:coverage`
+- 테스트 작성 규칙: `src/test/TESTING_GUIDE.md`
 
 ## 환경 변수
 
@@ -66,11 +75,13 @@ npm run format:check
 
 ```text
 src/
-├── assets/      # 정적 리소스
-├── components/  # 재사용 UI 컴포넌트
-├── lib/         # 공통 유틸/설정/HTTP 래퍼
-├── router/      # 라우팅 및 가드
-├── services/    # 비즈니스 단위 API 호출
-├── stores/      # 전역 상태
-└── views/       # 라우트 단위 페이지
+├── app/       # 앱 엔트리/라우터/전역 설정
+├── pages/     # 라우트 단위 페이지
+├── widgets/   # 페이지 조합 UI 블록
+├── features/  # 사용자 액션 중심 기능 모듈
+├── entities/  # 도메인 모델/API/타입
+├── shared/    # 전역 공용 모듈(ui/lib)
+├── stores/    # 전역 상태
+├── test/      # 테스트 setup/유틸/가이드
+└── assets/    # 정적 리소스
 ```
