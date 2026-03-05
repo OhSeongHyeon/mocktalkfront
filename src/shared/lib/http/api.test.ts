@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { clearAccessToken, getAccessToken, setAccessToken } from '../../../stores/auth';
+import { createJsonResponse, mockFetchSequence } from '../../../test/utils/httpMock';
 import { ApiError, request } from './api';
 
 const OLD_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.old';
@@ -14,33 +15,15 @@ describe('shared/lib/http/api characterization', () => {
   it('401 발생 시 refresh 성공 후 원래 요청을 재시도한다', async () => {
     // given
     setAccessToken(OLD_TOKEN, 60);
-    const fetchSpy = vi.spyOn(globalThis, 'fetch');
-    fetchSpy
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ message: 'unauthorized' }), {
-          status: 401,
-          headers: { 'content-type': 'application/json' },
-        }),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            accessToken: NEW_TOKEN,
-            tokenType: 'Bearer',
-            expiresInSec: 3600,
-          }),
-          {
-            status: 200,
-            headers: { 'content-type': 'application/json' },
-          },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ ok: true }), {
-          status: 200,
-          headers: { 'content-type': 'application/json' },
-        }),
-      );
+    const fetchSpy = mockFetchSequence(
+      createJsonResponse({ message: 'unauthorized' }, { status: 401 }),
+      createJsonResponse({
+        accessToken: NEW_TOKEN,
+        tokenType: 'Bearer',
+        expiresInSec: 3600,
+      }),
+      createJsonResponse({ ok: true }),
+    );
 
     // when
     const response = await request<{ ok: boolean }>('/articles');
@@ -60,20 +43,10 @@ describe('shared/lib/http/api characterization', () => {
     const onLogout = vi.fn();
     globalThis.addEventListener('auth:logout', onLogout);
 
-    const fetchSpy = vi.spyOn(globalThis, 'fetch');
-    fetchSpy
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ message: 'unauthorized' }), {
-          status: 401,
-          headers: { 'content-type': 'application/json' },
-        }),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ message: 'refresh failed' }), {
-          status: 401,
-          headers: { 'content-type': 'application/json' },
-        }),
-      );
+    mockFetchSequence(
+      createJsonResponse({ message: 'unauthorized' }, { status: 401 }),
+      createJsonResponse({ message: 'refresh failed' }, { status: 401 }),
+    );
 
     // when
     const requestPromise = request('/articles');

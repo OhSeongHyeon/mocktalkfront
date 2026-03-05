@@ -10,4 +10,7 @@ Object.defineProperty(window, 'scrollTo', {
 afterEach(() => {
   vi.restoreAllMocks();
   clearAccessToken();
+  window.localStorage.clear();
+  window.sessionStorage.clear();
+  document.body.innerHTML = '';
 });
