@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ScrollButtons from './components/ScrollButtons.vue';
+import ScrollButtons from './shared/ui/ScrollButtons.vue';
 </script>
 
 <template>

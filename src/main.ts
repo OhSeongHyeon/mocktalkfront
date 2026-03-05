@@ -2,11 +2,11 @@ import { createApp, watch } from 'vue';
 import './style.css';
 import 'highlight.js/styles/github.css';
 import App from './App.vue';
-import router from './router';
-import { applyProfileSummary } from './lib/profile';
-import { initTheme } from './lib/theme';
-import { refreshAccessToken } from './services/auth';
-import { getMyProfile } from './services/mypage';
+import router from './app/router';
+import { getMyProfile } from './entities/user';
+import { refreshAccessToken } from './features/auth';
+import { applyProfileSummary } from './shared/lib/profile';
+import { initTheme } from './shared/lib/theme';
 import { accessTokenExpiresAt, clearAccessToken, setAccessToken } from './stores/auth';
 
 initTheme();
