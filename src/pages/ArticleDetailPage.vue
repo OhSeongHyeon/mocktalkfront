@@ -2,9 +2,9 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import BoardArticlePanel from '../components/BoardArticlePanel.vue';
-import BoardHeaderCard from '../components/BoardHeaderCard.vue';
-import CommentList from '../components/CommentList.vue';
+import BoardArticlePanel from '../widgets/board/BoardArticlePanel.vue';
+import BoardHeaderCard from '../widgets/board/BoardHeaderCard.vue';
+import CommentList from '../widgets/comment/CommentList.vue';
 import ConfirmModal from '../shared/ui/ConfirmModal.vue';
 import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
 import TopMenuBar from '../widgets/layout/TopMenuBar.vue';

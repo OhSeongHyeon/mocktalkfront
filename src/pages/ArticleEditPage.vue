@@ -2,9 +2,9 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import ArticleUpsertForm from '../components/ArticleUpsertForm.vue';
+import ArticleUpsertForm from '../widgets/article/ArticleUpsertForm.vue';
 import { validateAttachmentFile } from '../lib/attachments/attachmentPolicy';
-import ArticleUpsertPageLayout from '../components/ArticleUpsertPageLayout.vue';
+import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
 import { resolveImageUrl } from '../shared/lib/files';

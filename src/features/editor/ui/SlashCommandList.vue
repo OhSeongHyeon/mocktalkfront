@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 
-import type { SlashCommandItem } from '../lib/editor/slashTypes';
+import type { SlashCommandItem } from '../../../lib/editor/slashTypes';
 
 interface SlashCommandListProps {
   items: SlashCommandItem[];

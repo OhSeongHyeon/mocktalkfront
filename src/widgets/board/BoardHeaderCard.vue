@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
 
-import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
+import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
 
 interface BoardHeaderCardProps {
   title: string;

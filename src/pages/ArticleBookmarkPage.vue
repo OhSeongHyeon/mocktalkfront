@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import BookmarkList from '../components/BookmarkList.vue';
+import BookmarkList from '../widgets/article/BookmarkList.vue';
 import ConfirmModal from '../shared/ui/ConfirmModal.vue';
 import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
 import TopMenuBar from '../widgets/layout/TopMenuBar.vue';

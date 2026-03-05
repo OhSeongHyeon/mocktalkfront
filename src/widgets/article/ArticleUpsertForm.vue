@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import ArticleEditor from './ArticleEditor.vue';
-import { ATTACHMENT_ALLOWED_EXTENSION_LABEL, ATTACHMENT_FILE_ACCEPT } from '../lib/attachments/attachmentPolicy';
-import type { BoardCategoryResponse } from '../entities/board';
-import type { FileResponse } from '../entities/file';
+import ArticleEditor from '../../features/editor/ui/ArticleEditor.vue';
+import { ATTACHMENT_ALLOWED_EXTENSION_LABEL, ATTACHMENT_FILE_ACCEPT } from '../../lib/attachments/attachmentPolicy';
+import type { BoardCategoryResponse } from '../../entities/board';
+import type { FileResponse } from '../../entities/file';
 
 interface VisibilityOption {
   value: string;

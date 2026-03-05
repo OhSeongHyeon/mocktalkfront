@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 
-import type { CommentTreeResponse } from '../features/comment';
-import thumbDownIcon from '../assets/icons/icon-thumb-down.svg';
-import thumbUpIcon from '../assets/icons/icon-thumb-up.svg';
+import type { CommentTreeResponse } from '../../features/comment';
+import thumbDownIcon from '../../assets/icons/icon-thumb-down.svg';
+import thumbUpIcon from '../../assets/icons/icon-thumb-up.svg';
 
 interface CommentItemProps {
   comment: CommentTreeResponse;

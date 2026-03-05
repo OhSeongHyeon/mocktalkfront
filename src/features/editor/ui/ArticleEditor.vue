@@ -27,9 +27,9 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { common, createLowlight } from 'lowlight';
 
-import { Video } from '../lib/editor/video';
-import { FontSize } from '../lib/editor/fontSize';
-import type { ImageNaturalSize } from '../lib/editor/imageEditing';
+import { Video } from '../../../lib/editor/video';
+import { FontSize } from '../../../lib/editor/fontSize';
+import type { ImageNaturalSize } from '../../../lib/editor/imageEditing';
 import {
   clampImageScale,
   findImagePositionNear,
@@ -40,17 +40,17 @@ import {
   readImageNaturalSizeFromUrl,
   resolveImageNodePositionFromSelection,
   resolveImageOriginalDimension,
-} from '../lib/editor/imageEditing';
-import { RichImage } from '../lib/editor/richImage';
-import { mentionSuggestion } from '../lib/editor/mentionSuggestion';
-import { createSlashCommandExtension, createSlashCommandItems } from '../lib/editor/slashSuggestion';
-import { CODE_LANGUAGE_OPTIONS, FONT_FAMILY_OPTIONS, FONT_SIZE_OPTIONS, YOUTUBE_SIZE_OPTIONS } from '../lib/editor/toolbarOptions';
-import type { YoutubeSizeValue } from '../lib/editor/toolbarOptions';
-import { useUploadQueue } from '../lib/editor/useUploadQueue';
-import type { UploadKind } from '../lib/editor/useUploadQueue';
-import { uploadEditorFileTask } from '../entities/file';
-import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../shared/lib/files';
-import BaseModal from '../shared/ui/BaseModal.vue';
+} from '../../../lib/editor/imageEditing';
+import { RichImage } from '../../../lib/editor/richImage';
+import { mentionSuggestion } from '../../../lib/editor/mentionSuggestion';
+import { createSlashCommandExtension, createSlashCommandItems } from '../../../lib/editor/slashSuggestion';
+import { CODE_LANGUAGE_OPTIONS, FONT_FAMILY_OPTIONS, FONT_SIZE_OPTIONS, YOUTUBE_SIZE_OPTIONS } from '../../../lib/editor/toolbarOptions';
+import type { YoutubeSizeValue } from '../../../lib/editor/toolbarOptions';
+import { useUploadQueue } from '../../../lib/editor/useUploadQueue';
+import type { UploadKind } from '../../../lib/editor/useUploadQueue';
+import { uploadEditorFileTask } from '../../../entities/file';
+import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../../../shared/lib/files';
+import BaseModal from '../../../shared/ui/BaseModal.vue';
 import ArticleEditorToolbarMobile from './ArticleEditorToolbarMobile.vue';
 import ArticleEditorToolbarDesktop from './ArticleEditorToolbarDesktop.vue';
 

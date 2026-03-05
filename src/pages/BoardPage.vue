@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import BoardArticlePanel from '../components/BoardArticlePanel.vue';
-import BoardHeaderCard from '../components/BoardHeaderCard.vue';
+import BoardArticlePanel from '../widgets/board/BoardArticlePanel.vue';
+import BoardHeaderCard from '../widgets/board/BoardHeaderCard.vue';
 import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
 import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
