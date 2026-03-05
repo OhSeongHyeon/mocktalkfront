@@ -50,7 +50,7 @@ import { useUploadQueue } from '../lib/editor/useUploadQueue';
 import type { UploadKind } from '../lib/editor/useUploadQueue';
 import { uploadEditorFileTask } from '../entities/file';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../shared/lib/files';
-import BaseModal from './BaseModal.vue';
+import BaseModal from '../shared/ui/BaseModal.vue';
 import ArticleEditorToolbarMobile from './ArticleEditorToolbarMobile.vue';
 import ArticleEditorToolbarDesktop from './ArticleEditorToolbarDesktop.vue';
 

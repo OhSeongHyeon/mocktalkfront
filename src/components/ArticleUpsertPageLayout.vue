@@ -2,8 +2,8 @@
 import { ref } from 'vue';
 
 import BoardHeaderCard from './BoardHeaderCard.vue';
-import SideMenuBar from './SideMenuBar.vue';
-import TopMenuBar from './TopMenuBar.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 interface ArticleUpsertPageLayoutProps {
