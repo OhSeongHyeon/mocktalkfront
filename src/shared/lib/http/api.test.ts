@@ -58,4 +58,61 @@ describe('shared/lib/http/api characterization', () => {
 
     globalThis.removeEventListener('auth:logout', onLogout);
   });
+
+  it('JSON 에러의 error.reason을 ApiError 메시지로 사용한다', async () => {
+    // given
+    mockFetchSequence(
+      createJsonResponse(
+        {
+          error: {
+            reason: '잘못된 요청 본문',
+          },
+        },
+        { status: 400 },
+      ),
+    );
+
+    // when
+    const requestPromise = request('/articles');
+
+    // then
+    await expect(requestPromise).rejects.toMatchObject({
+      status: 400,
+      message: '잘못된 요청 본문',
+    });
+  });
+
+  it('텍스트 에러 본문은 ApiError 메시지로 그대로 전달한다', async () => {
+    // given
+    mockFetchSequence(
+      new Response('일시적 장애', {
+        status: 503,
+        headers: { 'content-type': 'text/plain' },
+      }),
+    );
+
+    // when
+    const requestPromise = request('/articles');
+
+    // then
+    await expect(requestPromise).rejects.toMatchObject({
+      status: 503,
+      message: '일시적 장애',
+    });
+  });
+
+  it('204 응답은 null로 역직렬화한다', async () => {
+    // given
+    mockFetchSequence(
+      new Response(null, {
+        status: 204,
+      }),
+    );
+
+    // when
+    const response = await request<null>('/articles');
+
+    // then
+    expect(response).toBeNull();
+  });
 });
