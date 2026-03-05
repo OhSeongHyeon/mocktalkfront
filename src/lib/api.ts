@@ -20,6 +20,9 @@ const buildUrl = (path: string) => {
   }
   const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
   const suffix = path.startsWith('/') ? path : `/${path}`;
+  if (suffix === base || suffix.startsWith(`${base}/`)) {
+    return suffix;
+  }
   return `${base}${suffix}`;
 };
 
