@@ -1,4 +1,4 @@
-import type { BoardDetailResponse, BoardMemberStatus } from '../entities/board';
+import type { BoardDetailResponse, BoardMemberStatus } from '..';
 
 export type BoardArticleWritePolicy = 'ALL_AUTHENTICATED' | 'MEMBER' | 'MODERATOR' | 'OWNER';
 

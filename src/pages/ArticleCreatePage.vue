@@ -3,11 +3,11 @@ import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleUpsertForm from '../widgets/article/ArticleUpsertForm.vue';
-import { validateAttachmentFile } from '../lib/attachments/attachmentPolicy';
+import { validateAttachmentFile } from '../entities/file/lib/attachmentPolicy';
 import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../shared/lib/http/api';
-import { canWriteArticle, resolveWriteUnavailableReason } from '../lib/boardWritePolicy';
-import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
+import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/board/lib/boardWritePolicy';
+import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleCreateRequest } from '../entities/article';
 import { createArticle } from '../entities/article';

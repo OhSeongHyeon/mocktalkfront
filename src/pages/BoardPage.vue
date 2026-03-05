@@ -7,7 +7,7 @@ import BoardHeaderCard from '../widgets/board/BoardHeaderCard.vue';
 import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
 import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
-import { canWriteArticle, resolveWriteUnavailableReason } from '../lib/boardWritePolicy';
+import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/board/lib/boardWritePolicy';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { BoardDetailResponse } from '../entities/board';
 import { cancelBoardJoin, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../entities/board';

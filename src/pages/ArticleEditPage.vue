@@ -3,10 +3,10 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleUpsertForm from '../widgets/article/ArticleUpsertForm.vue';
-import { validateAttachmentFile } from '../lib/attachments/attachmentPolicy';
+import { validateAttachmentFile } from '../entities/file/lib/attachmentPolicy';
 import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../shared/lib/http/api';
-import { extractFileIdsFromContent } from '../lib/editor/contentFiles';
+import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleDetailResponse, ArticleUpdateRequest } from '../entities/article';
 import { getArticleDetail, updateArticle } from '../entities/article';

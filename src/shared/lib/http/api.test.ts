@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { clearAccessToken, getAccessToken, setAccessToken } from '../stores/auth';
-import { ApiError, request } from '../shared/lib/http/api';
+import { clearAccessToken, getAccessToken, setAccessToken } from '../../../stores/auth';
+import { ApiError, request } from './api';
 
 const OLD_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.old';
 const NEW_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.new';

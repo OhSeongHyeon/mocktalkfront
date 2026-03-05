@@ -1,9 +1,9 @@
 import { VueRenderer } from '@tiptap/vue-3';
 import type { SuggestionOptions } from '@tiptap/suggestion';
 
-import MentionList from '../../features/editor/ui/MentionList.vue';
-import { searchMentions } from '../../entities/user';
-import { resolveImageUrl } from '../../shared/lib/files';
+import MentionList from '../ui/MentionList.vue';
+import { searchMentions } from '../../../entities/user';
+import { resolveImageUrl } from '../../../shared/lib/files';
 import type { MentionItem } from './mentionTypes';
 
 const mentionSuggestion: Omit<SuggestionOptions<MentionItem>, 'editor'> = {

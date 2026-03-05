@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 
-import type { MentionItem } from '../../../lib/editor/mentionTypes';
+import type { MentionItem } from '../lib/mentionTypes';
 
 interface MentionListProps {
   items: MentionItem[];

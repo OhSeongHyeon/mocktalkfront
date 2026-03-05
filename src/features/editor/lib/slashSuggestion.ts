@@ -2,7 +2,7 @@ import { Extension } from '@tiptap/core';
 import { VueRenderer } from '@tiptap/vue-3';
 import Suggestion, { type SuggestionOptions } from '@tiptap/suggestion';
 
-import SlashCommandList from '../../features/editor/ui/SlashCommandList.vue';
+import SlashCommandList from '../ui/SlashCommandList.vue';
 import type { SlashCommandContext, SlashCommandItem } from './slashTypes';
 
 const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem[] => [
