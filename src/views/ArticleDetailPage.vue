@@ -9,6 +9,7 @@ import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
+import { requestBlob } from '../lib/api';
 import { resolveArticleAttachmentDownloadUrl, resolveImageUrl } from '../lib/files';
 import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
@@ -356,19 +357,25 @@ const resolveAttachmentUrl = (file: FileResponse) => resolveArticleAttachmentDow
 
 const attachmentSectionId = 'article-attachment-section';
 
-const downloadAttachment = (file: FileResponse) => {
+const triggerBlobDownload = (blob: Blob, fileName: string) => {
+  const objectUrl = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = objectUrl;
+  anchor.download = fileName;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(objectUrl);
+};
+
+const downloadAttachment = async (file: FileResponse) => {
   const url = resolveAttachmentUrl(file);
   if (!url) {
     return;
   }
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = file.fileName;
-  anchor.target = '_blank';
-  anchor.rel = 'noopener';
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
+  const blob = await requestBlob(url, { method: 'GET' });
+  triggerBlobDownload(blob, file.fileName);
 };
 
 const sleep = (milliseconds: number) =>
@@ -383,7 +390,7 @@ const downloadAllAttachments = async () => {
   isDownloadingAllAttachments.value = true;
   try {
     for (const file of attachments.value) {
-      downloadAttachment(file);
+      await downloadAttachment(file);
       await sleep(120);
     }
   } finally {

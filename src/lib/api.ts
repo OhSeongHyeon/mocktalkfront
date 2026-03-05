@@ -103,7 +103,7 @@ const refreshAccessToken = async () => {
   return refreshPromise;
 };
 
-const request = async <T>(path: string, init: RequestInit = {}, retry = true): Promise<T> => {
+const fetchWithAuth = async (path: string, init: RequestInit = {}, retry = true): Promise<Response> => {
   const headers = new Headers(init.headers ?? {});
   const accessToken = getAccessToken();
   if (accessToken && !headers.has('Authorization')) {
@@ -120,7 +120,7 @@ const request = async <T>(path: string, init: RequestInit = {}, retry = true): P
     if (response.status === 401 && retry && shouldAttemptRefresh(path)) {
       const refreshed = await refreshAccessToken();
       if (refreshed) {
-        return request<T>(path, init, false);
+        return fetchWithAuth(path, init, false);
       }
       clearAccessToken();
       globalThis.dispatchEvent(new CustomEvent('auth:logout'));
@@ -129,6 +129,12 @@ const request = async <T>(path: string, init: RequestInit = {}, retry = true): P
     const message = typeof details === 'string' ? details : (extractMessage(details) ?? response.statusText);
     throw new ApiError(response.status, message, details ?? undefined);
   }
+
+  return response;
+};
+
+const request = async <T>(path: string, init: RequestInit = {}, retry = true): Promise<T> => {
+  const response = await fetchWithAuth(path, init, retry);
 
   if (response.status === 204) {
     return null as T;
@@ -140,6 +146,11 @@ const request = async <T>(path: string, init: RequestInit = {}, retry = true): P
   }
 
   return (await response.text()) as T;
+};
+
+const requestBlob = async (path: string, init: RequestInit = {}, retry = true) => {
+  const response = await fetchWithAuth(path, init, retry);
+  return response.blob();
 };
 
 const post = async <T>(path: string, init: RequestInit = {}) => request<T>(path, { ...init, method: 'POST' });
@@ -157,4 +168,4 @@ const postJson = async <T>(path: string, body?: unknown, init: RequestInit = {})
   });
 };
 
-export { API_BASE_URL, ApiError, post, postJson, request };
+export { API_BASE_URL, ApiError, post, postJson, request, requestBlob };
