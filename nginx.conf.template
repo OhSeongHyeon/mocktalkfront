@@ -66,6 +66,9 @@ server {
         proxy_set_header    Connection          "";
         # Presigned URL 서명 검증을 위해 Host는 업스트림 스토리지 호스트를 사용한다.
         proxy_set_header    Host                $proxy_host;
+        # 객체 스토리지에는 Bearer/Cookie 인증 헤더를 전달하지 않는다.
+        proxy_set_header    Authorization       "";
+        proxy_set_header    Cookie              "";
         proxy_set_header    X-Real-IP           $remote_addr;
         proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
         proxy_set_header    X-Forwarded-Proto   $http_x_forwarded_proto;

@@ -42,6 +42,12 @@ export default defineConfig({
         target: 'http://localhost:9000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/storage/, ''),
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.removeHeader('authorization');
+            proxyReq.removeHeader('cookie');
+          });
+        },
       },
     },
   },

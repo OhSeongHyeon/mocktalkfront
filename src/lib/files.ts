@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './api';
+import { buildApiUrl } from './api';
 
 const rawBaseUrl = import.meta.env.VITE_FILE_BASE_URL as string | undefined;
 
@@ -14,7 +14,6 @@ const normalizeBaseUrl = (value: string | undefined) => {
 };
 
 const FILE_BASE_URL = normalizeBaseUrl(rawBaseUrl);
-const API_BASE = normalizeBaseUrl(API_BASE_URL || '/api');
 
 type FileLike = {
   id?: number | null;
@@ -43,8 +42,7 @@ const resolveFileViewUrl = (fileId?: number | null, variant?: FileVariant | null
   if (!fileId || !Number.isFinite(fileId)) {
     return null;
   }
-  const base = API_BASE ? API_BASE : '/api';
-  const path = `${base}/files/${fileId}/view`;
+  const path = buildApiUrl(`/files/${fileId}/view`);
   if (!variant || variant === 'medium') {
     return path;
   }
@@ -55,8 +53,7 @@ const resolveArticleAttachmentDownloadUrl = (articleId?: number | null, fileId?:
   if (!articleId || !Number.isFinite(articleId) || !fileId || !Number.isFinite(fileId)) {
     return null;
   }
-  const base = API_BASE ? API_BASE : '/api';
-  return `${base}/articles/${articleId}/attachments/${fileId}/download`;
+  return buildApiUrl(`/articles/${articleId}/attachments/${fileId}/download`);
 };
 
 const resolveImageUrl = (file?: FileLike | null, variant?: FileVariant | null) => {

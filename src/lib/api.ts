@@ -2,6 +2,37 @@ import { clearAccessToken, getAccessToken, setAccessToken } from '../stores/auth
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = rawBaseUrl && rawBaseUrl.trim().length > 0 ? rawBaseUrl.trim() : '/api';
+const REDIRECT_STATUSES = [301, 302, 303, 307, 308];
+
+const isAbsoluteUrl = (value: string) => value.startsWith('http://') || value.startsWith('https://');
+
+const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
+
+const resolvePathname = (value: string) => {
+  if (!isAbsoluteUrl(value)) {
+    return value;
+  }
+  try {
+    return new URL(value).pathname;
+  } catch {
+    return value;
+  }
+};
+
+const resolveBasePath = (value: string) => {
+  const base = trimTrailingSlash(value);
+  if (!isAbsoluteUrl(base)) {
+    return base;
+  }
+  try {
+    const pathname = trimTrailingSlash(new URL(base).pathname);
+    return pathname.length > 0 ? pathname : '/';
+  } catch {
+    return base;
+  }
+};
+
+const API_BASE_PATH = resolveBasePath(API_BASE_URL);
 
 class ApiError extends Error {
   status: number;
@@ -14,12 +45,27 @@ class ApiError extends Error {
   }
 }
 
-const buildUrl = (path: string) => {
-  if (path.startsWith('http://') || path.startsWith('https://')) {
+const buildApiUrl = (path: string) => {
+  if (isAbsoluteUrl(path)) {
     return path;
   }
-  const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  const base = trimTrailingSlash(API_BASE_URL);
   const suffix = path.startsWith('/') ? path : `/${path}`;
+
+  if (isAbsoluteUrl(base)) {
+    if (API_BASE_PATH.length > 0 && (suffix === API_BASE_PATH || suffix.startsWith(`${API_BASE_PATH}/`))) {
+      const trimmedSuffix = suffix.slice(API_BASE_PATH.length);
+      if (!trimmedSuffix) {
+        return base;
+      }
+      if (trimmedSuffix.startsWith('/')) {
+        return `${base}${trimmedSuffix}`;
+      }
+      return `${base}/${trimmedSuffix}`;
+    }
+    return `${base}${suffix}`;
+  }
+
   if (suffix === base || suffix.startsWith(`${base}/`)) {
     return suffix;
   }
@@ -71,11 +117,14 @@ type TokenResponse = {
 
 let refreshPromise: Promise<boolean> | null = null;
 
-const shouldAttemptRefresh = (path: string) => !path.startsWith('/auth/');
+const shouldAttemptRefresh = (path: string) => {
+  const pathname = resolvePathname(path);
+  return !(pathname.startsWith('/auth/') || pathname.startsWith('/api/auth/'));
+};
 
 const tryRefreshAccessToken = async () => {
   try {
-    const response = await fetch(buildUrl('/auth/refresh'), {
+    const response = await fetch(buildApiUrl('/auth/refresh'), {
       method: 'POST',
       credentials: 'include',
     });
@@ -106,24 +155,34 @@ const refreshAccessToken = async () => {
   return refreshPromise;
 };
 
-const fetchWithAuth = async (path: string, init: RequestInit = {}, retry = true): Promise<Response> => {
+type FetchWithAuthOptions = {
+  retry?: boolean;
+  acceptedStatuses?: readonly number[];
+};
+
+const fetchWithAuth = async (path: string, init: RequestInit = {}, options: FetchWithAuthOptions = {}): Promise<Response> => {
+  const retry = options.retry ?? true;
+  const acceptedStatuses = options.acceptedStatuses ?? [];
   const headers = new Headers(init.headers ?? {});
   const accessToken = getAccessToken();
   if (accessToken && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(buildUrl(path), {
+  const response = await fetch(buildApiUrl(path), {
     ...init,
     headers,
     credentials: 'include',
   });
 
-  if (!response.ok) {
+  if (!response.ok && !acceptedStatuses.includes(response.status)) {
     if (response.status === 401 && retry && shouldAttemptRefresh(path)) {
       const refreshed = await refreshAccessToken();
       if (refreshed) {
-        return fetchWithAuth(path, init, false);
+        return fetchWithAuth(path, init, {
+          retry: false,
+          acceptedStatuses,
+        });
       }
       clearAccessToken();
       globalThis.dispatchEvent(new CustomEvent('auth:logout'));
@@ -137,7 +196,7 @@ const fetchWithAuth = async (path: string, init: RequestInit = {}, retry = true)
 };
 
 const request = async <T>(path: string, init: RequestInit = {}, retry = true): Promise<T> => {
-  const response = await fetchWithAuth(path, init, retry);
+  const response = await fetchWithAuth(path, init, { retry });
 
   if (response.status === 204) {
     return null as T;
@@ -152,7 +211,39 @@ const request = async <T>(path: string, init: RequestInit = {}, retry = true): P
 };
 
 const requestBlob = async (path: string, init: RequestInit = {}, retry = true) => {
-  const response = await fetchWithAuth(path, init, retry);
+  const response = await fetchWithAuth(path, init, { retry });
+  return response.blob();
+};
+
+const requestRedirectLocation = async (path: string, init: RequestInit = {}, retry = true) => {
+  const response = await fetchWithAuth(
+    path,
+    {
+      ...init,
+      redirect: 'manual',
+    },
+    {
+      retry,
+      acceptedStatuses: REDIRECT_STATUSES,
+    },
+  );
+  const location = response.headers.get('location') ?? response.headers.get('Location');
+  if (!location) {
+    throw new ApiError(500, '리다이렉트 위치가 비어있습니다.');
+  }
+  return location;
+};
+
+const requestBlobWithoutAuth = async (path: string, init: RequestInit = {}) => {
+  const response = await fetch(path, {
+    ...init,
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    const details = await readErrorBody(response);
+    const message = typeof details === 'string' ? details : (extractMessage(details) ?? response.statusText);
+    throw new ApiError(response.status, message, details ?? undefined);
+  }
   return response.blob();
 };
 
@@ -171,4 +262,4 @@ const postJson = async <T>(path: string, body?: unknown, init: RequestInit = {})
   });
 };
 
-export { API_BASE_URL, ApiError, post, postJson, request, requestBlob };
+export { API_BASE_URL, ApiError, buildApiUrl, post, postJson, request, requestBlob, requestBlobWithoutAuth, requestRedirectLocation };
