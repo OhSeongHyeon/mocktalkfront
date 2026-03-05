@@ -4,8 +4,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { getAdminReport, getAdminReports, processAdminReport } from '../services/adminModeration';
-import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../services/adminModeration';
+import { getAdminReport, getAdminReports, processAdminReport } from '../features/admin/system';
+import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../features/admin/system';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 type StatusFilter = ReportStatus | 'ALL';

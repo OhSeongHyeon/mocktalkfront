@@ -5,8 +5,8 @@ import BaseModal from '../components/BaseModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { getAdminUsers, lockAdminUser, unlockAdminUser, updateAdminUserRole } from '../services/adminUsers';
-import type { AdminUserListItemResponse, AdminUserStatus } from '../services/adminUsers';
+import { getAdminUsers, lockAdminUser, unlockAdminUser, updateAdminUserRole } from '../features/admin/system';
+import type { AdminUserListItemResponse, AdminUserStatus } from '../features/admin/system';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const isMobileMenuOpen = ref(false);

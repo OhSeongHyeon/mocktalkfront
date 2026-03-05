@@ -9,11 +9,11 @@ import { ApiError } from '../lib/api';
 import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
 import { resolveImageUrl } from '../lib/files';
-import type { BoardCategoryResponse } from '../services/boardCategories';
-import { getBoardCategories } from '../services/boardCategories';
+import type { BoardCategoryResponse } from '../entities/board';
+import { getBoardCategories } from '../entities/board';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../services/boards';
-import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../services/boardSettings';
+import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 

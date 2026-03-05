@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { ApiError } from '../lib/api';
-import type { BoardCategoryResponse } from '../services/boardCategories';
-import { getBoardCategories } from '../services/boardCategories';
+import type { BoardCategoryResponse } from '../entities/board';
+import { getBoardCategories } from '../entities/board';
 import type { ArticleSummaryResponse } from '../services/boards';
 import { getBoardArticles } from '../services/boards';
 import { search } from '../services/search';

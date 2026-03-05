@@ -8,8 +8,8 @@ import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus } from '../services/boards';
-import { approveBoardMember, getBoardMembers, rejectBoardMember, updateBoardMemberRole, updateBoardMemberStatus } from '../services/boardMembers';
-import type { BoardMemberListItemResponse } from '../services/boardMembers';
+import { approveBoardMember, getBoardMembers, rejectBoardMember, updateBoardMemberRole, updateBoardMemberStatus } from '../features/admin/board';
+import type { BoardMemberListItemResponse } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 

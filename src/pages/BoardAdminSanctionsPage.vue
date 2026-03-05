@@ -9,8 +9,8 @@ import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
 import { getBoardBySlug } from '../services/boards';
 import type { BoardDetailResponse, BoardMemberStatus } from '../services/boards';
-import { createBoardSanction, getBoardSanctions, revokeBoardSanction } from '../services/boardModeration';
-import type { SanctionResponse, SanctionType } from '../services/boardModeration';
+import { createBoardSanction, getBoardSanctions, revokeBoardSanction } from '../features/admin/board';
+import type { SanctionResponse, SanctionType } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 

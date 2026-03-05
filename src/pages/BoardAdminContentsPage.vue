@@ -14,8 +14,8 @@ import {
   getBoardAdminArticles,
   getBoardAdminComments,
   updateBoardAdminArticleNotice,
-} from '../services/boardContents';
-import type { BoardAdminArticleItemResponse, BoardAdminCommentItemResponse } from '../services/boardContents';
+} from '../features/admin/board';
+import type { BoardAdminArticleItemResponse, BoardAdminCommentItemResponse } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 

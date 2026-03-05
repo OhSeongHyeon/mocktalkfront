@@ -4,8 +4,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { getAdminAuditLogs } from '../services/adminAuditLogs';
-import type { AdminActionType, AdminAuditLogResponse, AdminTargetType } from '../services/adminAuditLogs';
+import { getAdminAuditLogs } from '../features/admin/system';
+import type { AdminActionType, AdminAuditLogResponse, AdminTargetType } from '../features/admin/system';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const isMobileMenuOpen = ref(false);

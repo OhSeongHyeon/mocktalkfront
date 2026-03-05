@@ -12,7 +12,7 @@ import {
   getAdminBoards,
   updateAdminBoard,
   uploadAdminBoardImage,
-} from '../services/adminBoards';
+} from '../features/admin/system';
 import type { BoardResponse } from '../services/boards';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
