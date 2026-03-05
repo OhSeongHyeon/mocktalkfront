@@ -9,20 +9,20 @@ import ConfirmModal from '../components/ConfirmModal.vue';
 import SideMenuBar from '../components/SideMenuBar.vue';
 import TopMenuBar from '../components/TopMenuBar.vue';
 import { ApiError } from '../lib/api';
-import { requestBlob } from '../lib/api';
-import { resolveArticleAttachmentDownloadUrl, resolveImageUrl } from '../lib/files';
+import { resolveImageUrl } from '../lib/files';
 import { recordHistoryItem } from '../lib/history';
 import { sanitizeHtml } from '../lib/sanitize';
 import type { ArticleDetailResponse, FileResponse } from '../services/articles';
 import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction, unbookmarkArticle } from '../services/articles';
+import { requestArticleAttachmentBlob } from '../services/articleAttachments';
 import type { CommentPageResponse, CommentReactionSummaryResponse, CommentSnapshotResponse, CommentTreeResponse } from '../services/comments';
 import { createComment, createReply, deleteComment, getArticleCommentSnapshot, toggleCommentReaction, updateComment } from '../services/comments';
 import type { UserProfileResponse } from '../services/mypage';
 import { getMyProfile } from '../services/mypage';
 import type { BoardRealtimeSubscription, RealtimeEventEnvelope } from '../services/realtime';
 import { subscribeBoardRealtime } from '../services/realtime';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { isAuthenticated } from '../stores/auth';
+import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 interface ArticleSelectPayload {
   articleId: number;
@@ -353,8 +353,6 @@ const confirmDelete = async () => {
   }
 };
 
-const resolveAttachmentUrl = (file: FileResponse) => resolveArticleAttachmentDownloadUrl(article.value?.id ?? null, file.id ?? null);
-
 const attachmentSectionId = 'article-attachment-section';
 
 const triggerBlobDownload = (blob: Blob, fileName: string) => {
@@ -370,11 +368,11 @@ const triggerBlobDownload = (blob: Blob, fileName: string) => {
 };
 
 const downloadAttachment = async (file: FileResponse) => {
-  const url = resolveAttachmentUrl(file);
-  if (!url) {
+  const id = file.id ?? null;
+  if (!article.value?.id || !id) {
     return;
   }
-  const blob = await requestBlob(url, { method: 'GET' });
+  const blob = await requestArticleAttachmentBlob(article.value.id, id);
   triggerBlobDownload(blob, file.fileName);
 };
 
