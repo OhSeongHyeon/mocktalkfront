@@ -3,7 +3,7 @@ import type { SuggestionOptions } from '@tiptap/suggestion';
 
 import MentionList from '../../components/MentionList.vue';
 import { searchMentions } from '../../entities/user';
-import { resolveImageUrl } from '../files';
+import { resolveImageUrl } from '../../shared/lib/files';
 import type { MentionItem } from './mentionTypes';
 
 const mentionSuggestion: Omit<SuggestionOptions<MentionItem>, 'editor'> = {
