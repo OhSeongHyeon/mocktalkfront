@@ -2,11 +2,11 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
-import { resolveImageUrl } from '../lib/files';
-import { search, type SearchResponse, type SearchType } from '../services/search';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
+import { resolveImageUrl } from '../shared/lib/files';
+import { search, type SearchResponse, type SearchType } from '../features/search';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const route = useRoute();

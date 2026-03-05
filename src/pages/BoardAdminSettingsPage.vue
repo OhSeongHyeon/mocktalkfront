@@ -2,17 +2,17 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import BoardAdminNav from '../components/BoardAdminNav.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
+import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
 import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../lib/boardVisibility';
-import { resolveImageUrl } from '../lib/files';
+import { resolveImageUrl } from '../shared/lib/files';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
-import { getBoardBySlug } from '../services/boards';
-import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../services/boards';
+import { getBoardBySlug } from '../entities/board';
+import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../entities/board';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';

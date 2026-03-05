@@ -1,5 +1,5 @@
 import { request } from '../../../../shared/lib/http/api';
-import { cancelUploadSession, completeUpload, initUpload, uploadBinary } from '../../../../services/uploadSession';
+import { cancelUploadSession, completeUpload, initUpload, uploadBinary } from '../../../../entities/file';
 import type { ApiEnvelope, BoardResponse, PageResponse } from '../../../../entities/board/api/boardApi';
 
 export interface AdminBoardCreateRequest {

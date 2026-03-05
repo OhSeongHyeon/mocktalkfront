@@ -1,4 +1,4 @@
-import type { UserProfileResponse } from '../../services/mypage';
+import type { UserProfileResponse } from '../../entities/user';
 import { setProfileImageUrl, setProfileSummary } from '../../stores/auth';
 import { resolveImageUrl } from './files';
 

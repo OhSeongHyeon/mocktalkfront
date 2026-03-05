@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { ArticleSummaryResponse } from '../services/boards';
+import type { ArticleSummaryResponse } from '../entities/board';
 
 type ArticleListOrder = 'LATEST' | 'OLDEST';
 

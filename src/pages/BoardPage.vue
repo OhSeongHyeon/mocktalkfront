@@ -4,13 +4,13 @@ import { useRoute, useRouter } from 'vue-router';
 
 import BoardArticlePanel from '../components/BoardArticlePanel.vue';
 import BoardHeaderCard from '../components/BoardHeaderCard.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
 import { canWriteArticle, resolveWriteUnavailableReason } from '../lib/boardWritePolicy';
-import { resolveImageUrl } from '../lib/files';
-import type { BoardDetailResponse } from '../services/boards';
-import { cancelBoardJoin, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../services/boards';
+import { resolveImageUrl } from '../shared/lib/files';
+import type { BoardDetailResponse } from '../entities/board';
+import { cancelBoardJoin, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../entities/board';
 import { isAdmin, isAuthenticated } from '../stores/auth';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 

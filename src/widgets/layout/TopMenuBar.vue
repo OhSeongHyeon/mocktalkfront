@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
-import { ApiError } from '../../lib/api';
+import { ApiError } from '../../shared/lib/http/api';
 import { logout } from '../../features/auth';
 import { removeNotificationPresence, updateNotificationPresence } from '../../features/notification';
 import {
@@ -15,7 +15,7 @@ import {
 import type { NotificationResponse } from '../../features/notification';
 import { subscribeNotificationRealtime } from '../../features/realtime';
 import type { NotificationRealtimeSubscription } from '../../features/realtime';
-import { formatNotificationMessage } from '../../lib/notifications';
+import { formatNotificationMessage } from '../../shared/lib/notifications';
 import { applyTheme } from '../../lib/theme';
 import { clearAccessToken, displayName, isAuthenticated, profileImageUrl, userPoint } from '../../stores/auth';
 import defaultAvatar from '../../assets/default-avatar.svg';

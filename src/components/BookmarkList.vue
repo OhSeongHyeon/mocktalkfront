@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import type { ArticleBookmarkItemResponse } from '../services/articles';
+import type { ArticleBookmarkItemResponse } from '../entities/article';
 
 interface BookmarkListProps {
   items: ArticleBookmarkItemResponse[];

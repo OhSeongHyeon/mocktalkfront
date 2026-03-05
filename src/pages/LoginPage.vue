@@ -2,10 +2,10 @@
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { API_BASE_URL, ApiError } from '../lib/api';
-import { applyProfileSummary } from '../lib/profile';
-import { login } from '../services/auth';
-import { getMyProfile } from '../services/mypage';
+import { API_BASE_URL, ApiError } from '../shared/lib/http/api';
+import { applyProfileSummary } from '../shared/lib/profile';
+import { login } from '../features/auth';
+import { getMyProfile } from '../entities/user';
 import { setAccessToken } from '../stores/auth';
 import githubIcon from '../assets/icons/icon-github.svg';
 import googleColorIcon from '../assets/icons/icon-google-color.svg';

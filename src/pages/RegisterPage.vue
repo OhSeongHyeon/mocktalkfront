@@ -2,8 +2,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { ApiError } from '../lib/api';
-import { register } from '../services/auth';
+import { ApiError } from '../shared/lib/http/api';
+import { register } from '../features/auth';
 
 const router = useRouter();
 const loginId = ref('');

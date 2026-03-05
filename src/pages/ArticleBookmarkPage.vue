@@ -3,12 +3,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import BookmarkList from '../components/BookmarkList.vue';
-import ConfirmModal from '../components/ConfirmModal.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
-import { deleteAllArticleBookmarks, deleteArticleBookmarks, getArticleBookmarks } from '../services/articles';
-import type { ArticleBookmarkItemResponse } from '../services/articles';
+import ConfirmModal from '../shared/ui/ConfirmModal.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
+import { deleteAllArticleBookmarks, deleteArticleBookmarks, getArticleBookmarks } from '../entities/article';
+import type { ArticleBookmarkItemResponse } from '../entities/article';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const router = useRouter();

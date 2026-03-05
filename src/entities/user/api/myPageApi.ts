@@ -1,5 +1,5 @@
 import { request } from '../../../shared/lib/http/api';
-import { cancelUploadSession, completeUpload, initUpload, uploadBinary } from '../../../services/uploadSession';
+import { cancelUploadSession, completeUpload, initUpload, uploadBinary } from '../../file';
 
 export interface ApiEnvelope<T> {
   success: boolean;

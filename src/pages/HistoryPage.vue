@@ -2,11 +2,11 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import ConfirmModal from '../components/ConfirmModal.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { clearHistoryItems, getHistoryItems, removeHistoryItem } from '../lib/history';
-import type { HistoryItem } from '../lib/history';
+import ConfirmModal from '../shared/ui/ConfirmModal.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { clearHistoryItems, getHistoryItems, removeHistoryItem } from '../shared/lib/history';
+import type { HistoryItem } from '../shared/lib/history';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 const router = useRouter();

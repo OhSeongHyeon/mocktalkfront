@@ -2,12 +2,12 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
-import { resolveImageUrl } from '../lib/files';
-import { getBoards } from '../services/boards';
-import type { BoardResponse } from '../services/boards';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
+import { resolveImageUrl } from '../shared/lib/files';
+import { getBoards } from '../entities/board';
+import type { BoardResponse } from '../entities/board';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 

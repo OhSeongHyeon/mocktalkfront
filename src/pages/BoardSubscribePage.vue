@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
-import { resolveImageUrl } from '../lib/files';
-import { getBoardSubscribes } from '../services/boards';
-import type { BoardSubscribeItemResponse } from '../services/boards';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
+import { resolveImageUrl } from '../shared/lib/files';
+import { getBoardSubscribes } from '../entities/board';
+import type { BoardSubscribeItemResponse } from '../entities/board';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CommentTreeResponse } from '../services/comments';
+import type { CommentTreeResponse } from '../features/comment';
 
 import CommentItem from './CommentItem.vue';
 

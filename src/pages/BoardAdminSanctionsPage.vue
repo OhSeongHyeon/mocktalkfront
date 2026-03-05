@@ -2,13 +2,13 @@
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-import BaseModal from '../components/BaseModal.vue';
-import BoardAdminNav from '../components/BoardAdminNav.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
-import { getBoardBySlug } from '../services/boards';
-import type { BoardDetailResponse, BoardMemberStatus } from '../services/boards';
+import BaseModal from '../shared/ui/BaseModal.vue';
+import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
+import { getBoardBySlug } from '../entities/board';
+import type { BoardDetailResponse, BoardMemberStatus } from '../entities/board';
 import { createBoardSanction, getBoardSanctions, revokeBoardSanction } from '../features/admin/board';
 import type { SanctionResponse, SanctionType } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';

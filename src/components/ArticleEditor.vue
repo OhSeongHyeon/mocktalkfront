@@ -48,8 +48,8 @@ import { CODE_LANGUAGE_OPTIONS, FONT_FAMILY_OPTIONS, FONT_SIZE_OPTIONS, YOUTUBE_
 import type { YoutubeSizeValue } from '../lib/editor/toolbarOptions';
 import { useUploadQueue } from '../lib/editor/useUploadQueue';
 import type { UploadKind } from '../lib/editor/useUploadQueue';
-import { uploadEditorFileTask } from '../services/files';
-import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../lib/files';
+import { uploadEditorFileTask } from '../entities/file';
+import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../shared/lib/files';
 import BaseModal from './BaseModal.vue';
 import ArticleEditorToolbarMobile from './ArticleEditorToolbarMobile.vue';
 import ArticleEditorToolbarDesktop from './ArticleEditorToolbarDesktop.vue';

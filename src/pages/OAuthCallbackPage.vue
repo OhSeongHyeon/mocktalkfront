@@ -2,8 +2,8 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { ApiError } from '../lib/api';
-import { exchangeOAuth2Code } from '../services/auth';
+import { ApiError } from '../shared/lib/http/api';
+import { exchangeOAuth2Code } from '../features/auth';
 import { setAccessToken } from '../stores/auth';
 
 const route = useRoute();

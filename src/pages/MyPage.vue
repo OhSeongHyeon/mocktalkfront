@@ -2,18 +2,18 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import BaseModal from '../components/BaseModal.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
+import BaseModal from '../shared/ui/BaseModal.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { logout } from '../features/auth';
 import { deleteAllNotifications, deleteNotification, getNotifications, markNotificationRead } from '../features/notification';
 import type { NotificationResponse } from '../features/notification';
 import { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile } from '../entities/user';
 import type { ArticleResponse, CommentResponse, PageResponse, UserProfileResponse } from '../entities/user';
-import { ApiError } from '../lib/api';
-import { resolveImageUrl } from '../lib/files';
-import { formatNotificationMessage } from '../lib/notifications';
-import { applyProfileSummary } from '../lib/profile';
+import { ApiError } from '../shared/lib/http/api';
+import { resolveImageUrl } from '../shared/lib/files';
+import { formatNotificationMessage } from '../shared/lib/notifications';
+import { applyProfileSummary } from '../shared/lib/profile';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 import { clearAccessToken } from '../stores/auth';
 

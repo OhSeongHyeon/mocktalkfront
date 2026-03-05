@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
-import BaseModal from '../components/BaseModal.vue';
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
+import BaseModal from '../shared/ui/BaseModal.vue';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
 import { createAdminSanction, getAdminSanctions, revokeAdminSanction } from '../features/admin/system';
 import type { SanctionResponse, SanctionScopeType, SanctionType } from '../features/admin/system';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';

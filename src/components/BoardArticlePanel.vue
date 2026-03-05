@@ -2,12 +2,12 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { ApiError } from '../lib/api';
+import { ApiError } from '../shared/lib/http/api';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
-import type { ArticleSummaryResponse } from '../services/boards';
-import { getBoardArticles } from '../services/boards';
-import { search } from '../services/search';
+import type { ArticleSummaryResponse } from '../entities/board';
+import { getBoardArticles } from '../entities/board';
+import { search } from '../features/search';
 import {
   ARTICLE_LIST_ORDERS,
   ARTICLE_LIST_PAGE_SIZES,

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
 import { getAdminAuditLogs } from '../features/admin/system';
 import type { AdminActionType, AdminAuditLogResponse, AdminTargetType } from '../features/admin/system';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';

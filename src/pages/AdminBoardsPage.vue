@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
-import SideMenuBar from '../components/SideMenuBar.vue';
-import TopMenuBar from '../components/TopMenuBar.vue';
-import { ApiError } from '../lib/api';
-import { resolveImageUrl } from '../lib/files';
+import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
+import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
+import { ApiError } from '../shared/lib/http/api';
+import { resolveImageUrl } from '../shared/lib/files';
 import {
   createAdminBoard,
   deleteAdminBoard,
@@ -13,7 +13,7 @@ import {
   updateAdminBoard,
   uploadAdminBoardImage,
 } from '../features/admin/system';
-import type { BoardResponse } from '../services/boards';
+import type { BoardResponse } from '../entities/board';
 import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
 
 type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
