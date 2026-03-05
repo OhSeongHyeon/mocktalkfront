@@ -2,32 +2,32 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 import { getAccessToken, isAdmin } from '../../stores/auth';
 
-const LoginPage = () => import('../../views/LoginPage.vue');
-const MainPage = () => import('../../views/MainPage.vue');
-const MyPage = () => import('../../views/MyPage.vue');
-const OAuthCallbackPage = () => import('../../views/OAuthCallbackPage.vue');
-const RegisterPage = () => import('../../views/RegisterPage.vue');
-const CommunityPage = () => import('../../views/CommunityPage.vue');
-const BoardCreatePage = () => import('../../views/BoardCreatePage.vue');
-const BoardPage = () => import('../../views/BoardPage.vue');
-const BoardSubscribePage = () => import('../../views/BoardSubscribePage.vue');
-const ArticleDetailPage = () => import('../../views/ArticleDetailPage.vue');
-const ArticleCreatePage = () => import('../../views/ArticleCreatePage.vue');
-const ArticleEditPage = () => import('../../views/ArticleEditPage.vue');
-const ArticleBookmarkPage = () => import('../../views/ArticleBookmarkPage.vue');
-const HistoryPage = () => import('../../views/HistoryPage.vue');
-const SearchPage = () => import('../../views/SearchPage.vue');
-const AdminReportsPage = () => import('../../views/AdminReportsPage.vue');
-const AdminSanctionsPage = () => import('../../views/AdminSanctionsPage.vue');
-const AdminAuditLogsPage = () => import('../../views/AdminAuditLogsPage.vue');
-const AdminUsersPage = () => import('../../views/AdminUsersPage.vue');
-const AdminBoardsPage = () => import('../../views/AdminBoardsPage.vue');
-const BoardAdminCategoriesPage = () => import('../../views/BoardAdminCategoriesPage.vue');
-const BoardAdminContentsPage = () => import('../../views/BoardAdminContentsPage.vue');
-const BoardAdminMembersPage = () => import('../../views/BoardAdminMembersPage.vue');
-const BoardAdminReportsPage = () => import('../../views/BoardAdminReportsPage.vue');
-const BoardAdminSanctionsPage = () => import('../../views/BoardAdminSanctionsPage.vue');
-const BoardAdminSettingsPage = () => import('../../views/BoardAdminSettingsPage.vue');
+const LoginPage = () => import('../../pages/LoginPage.vue');
+const MainPage = () => import('../../pages/MainPage.vue');
+const MyPage = () => import('../../pages/MyPage.vue');
+const OAuthCallbackPage = () => import('../../pages/OAuthCallbackPage.vue');
+const RegisterPage = () => import('../../pages/RegisterPage.vue');
+const CommunityPage = () => import('../../pages/CommunityPage.vue');
+const BoardCreatePage = () => import('../../pages/BoardCreatePage.vue');
+const BoardPage = () => import('../../pages/BoardPage.vue');
+const BoardSubscribePage = () => import('../../pages/BoardSubscribePage.vue');
+const ArticleDetailPage = () => import('../../pages/ArticleDetailPage.vue');
+const ArticleCreatePage = () => import('../../pages/ArticleCreatePage.vue');
+const ArticleEditPage = () => import('../../pages/ArticleEditPage.vue');
+const ArticleBookmarkPage = () => import('../../pages/ArticleBookmarkPage.vue');
+const HistoryPage = () => import('../../pages/HistoryPage.vue');
+const SearchPage = () => import('../../pages/SearchPage.vue');
+const AdminReportsPage = () => import('../../pages/AdminReportsPage.vue');
+const AdminSanctionsPage = () => import('../../pages/AdminSanctionsPage.vue');
+const AdminAuditLogsPage = () => import('../../pages/AdminAuditLogsPage.vue');
+const AdminUsersPage = () => import('../../pages/AdminUsersPage.vue');
+const AdminBoardsPage = () => import('../../pages/AdminBoardsPage.vue');
+const BoardAdminCategoriesPage = () => import('../../pages/BoardAdminCategoriesPage.vue');
+const BoardAdminContentsPage = () => import('../../pages/BoardAdminContentsPage.vue');
+const BoardAdminMembersPage = () => import('../../pages/BoardAdminMembersPage.vue');
+const BoardAdminReportsPage = () => import('../../pages/BoardAdminReportsPage.vue');
+const BoardAdminSanctionsPage = () => import('../../pages/BoardAdminSanctionsPage.vue');
+const BoardAdminSettingsPage = () => import('../../pages/BoardAdminSettingsPage.vue');
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

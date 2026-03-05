@@ -1,4 +1,4 @@
-import type { NotificationResponse } from '../../services/notifications';
+import type { NotificationResponse } from '../../features/notification';
 
 const buildSenderLabel = (notification: NotificationResponse) => {
   const name = notification.senderName?.trim() ?? '';

@@ -2,7 +2,7 @@ import { VueRenderer } from '@tiptap/vue-3';
 import type { SuggestionOptions } from '@tiptap/suggestion';
 
 import MentionList from '../../components/MentionList.vue';
-import { searchMentions } from '../../services/users';
+import { searchMentions } from '../../entities/user';
 import { resolveImageUrl } from '../files';
 import type { MentionItem } from './mentionTypes';
 
