@@ -2,7 +2,7 @@ import { createApp, watch } from 'vue';
 import './style.css';
 import 'highlight.js/styles/github.css';
 import App from './App.vue';
-import router from './router';
+import router from './app/router';
 import { applyProfileSummary } from './lib/profile';
 import { initTheme } from './lib/theme';
 import { refreshAccessToken } from './services/auth';
