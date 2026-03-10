@@ -7,9 +7,10 @@ import { validateAttachmentFile } from '../entities/file/lib/attachmentPolicy';
 import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
+import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
 import { resolveImageUrl } from '../shared/lib/files';
-import type { ArticleDetailResponse, ArticleUpdateRequest } from '../entities/article';
-import { getArticleDetail, updateArticle } from '../entities/article';
+import type { ArticleContentFormat, ArticleEditorDetailResponse, ArticleUpdateRequest } from '../entities/article';
+import { getArticleEditorDetail, updateArticle } from '../entities/article';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
 import type { BoardDetailResponse } from '../entities/board';
@@ -26,12 +27,13 @@ const router = useRouter();
 const articleId = computed(() => Number(route.params.articleId));
 const slug = computed(() => String(route.params.slug ?? ''));
 
-const article = ref<ArticleDetailResponse | null>(null);
+const article = ref<ArticleEditorDetailResponse | null>(null);
 const board = ref<BoardDetailResponse | null>(null);
 const profile = ref<UserProfileResponse | null>(null);
 
 const title = ref('');
-const content = ref('');
+const contentSource = ref('');
+const contentFormat = ref<ArticleContentFormat>('MARKDOWN');
 const visibility = ref('PUBLIC');
 const selectedCategoryId = ref<number | null>(null);
 const categories = ref<BoardCategoryResponse[]>([]);
@@ -75,13 +77,11 @@ const isAuthor = computed(() => {
   return profile.value.userId === article.value.userId;
 });
 
-const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
-
 const isInvalid = computed(() => {
   if (!title.value.trim()) {
     return true;
   }
-  if (!stripHtml(content.value)) {
+  if (!hasMeaningfulArticleContent(contentSource.value, contentFormat.value)) {
     return true;
   }
   return false;
@@ -125,9 +125,10 @@ const loadArticle = async () => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    article.value = await getArticleDetail(articleId.value);
+    article.value = await getArticleEditorDetail(articleId.value);
     title.value = article.value.title;
-    content.value = article.value.content;
+    contentSource.value = article.value.contentSource;
+    contentFormat.value = article.value.contentFormat;
     visibility.value = article.value.visibility;
     selectedCategoryId.value = article.value.categoryId ?? null;
     attachmentFiles.value = [...article.value.attachments];
@@ -183,12 +184,13 @@ const submit = async () => {
   isSubmitting.value = true;
   errorMessage.value = '';
   attachmentErrorMessage.value = '';
-  const fileIds = Array.from(new Set([...extractFileIdsFromContent(content.value), ...attachmentFiles.value.map((file) => file.id)]));
+  const fileIds = Array.from(new Set([...extractFileIdsFromContent(contentSource.value), ...attachmentFiles.value.map((file) => file.id)]));
   const payload: ArticleUpdateRequest = {
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
     title: title.value.trim(),
-    content: content.value,
+    contentSource: contentSource.value,
+    contentFormat: contentFormat.value,
     notice: article.value.notice,
     fileIds,
   };
@@ -273,7 +275,8 @@ watch(
   >
     <ArticleUpsertForm
       v-model:title="title"
-      v-model:content="content"
+      v-model:content-source="contentSource"
+      v-model:content-format="contentFormat"
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
       :categories="categories"

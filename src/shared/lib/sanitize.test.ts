@@ -66,4 +66,36 @@ describe('shared/lib/sanitize', () => {
     expect(span?.getAttribute('style')).toBe('color: rgb(31, 41, 55); font-size: 16px');
     expect(image?.getAttribute('style')).toBe('width: 640px; height: 360px');
   });
+
+  it('테이블 관련 태그를 유지한다', () => {
+    // given
+    const html = `
+      <table>
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>값</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>예시</td>
+            <td>내용</td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+
+    // when
+    const sanitized = sanitizeHtml(html);
+    const container = document.createElement('div');
+    container.innerHTML = sanitized;
+
+    // then
+    expect(container.querySelector('table')).not.toBeNull();
+    expect(container.querySelector('thead')).not.toBeNull();
+    expect(container.querySelector('tbody')).not.toBeNull();
+    expect(container.querySelector('th')?.textContent).toBe('항목');
+    expect(container.querySelector('td')?.textContent).toBe('예시');
+  });
 });

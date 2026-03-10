@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import '../../../shared/styles/ui-content.css';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
 import type { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
