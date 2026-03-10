@@ -282,6 +282,9 @@ a {
 
   .ui-content.ProseMirror {
     outline: none;
+    min-height: 360px;
+    padding: 1rem;
+    cursor: text;
   }
 
   .ui-content p:empty::before {
@@ -301,7 +304,6 @@ a {
 
   .ui-content img,
   .ui-content video {
-    width: auto;
     max-width: 100%;
     height: auto;
     border-radius: var(--radius-xl);
