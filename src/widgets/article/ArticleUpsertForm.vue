@@ -17,6 +17,7 @@ interface ArticleUpsertFormProps {
   contentSource: string;
   contentFormat: ArticleContentFormat;
   visibility: string;
+  boardSlug?: string;
   selectedCategoryId: number | null;
   categories: BoardCategoryResponse[];
   visibilityOptions: VisibilityOption[];
@@ -113,6 +114,15 @@ const onAttachmentPicked = (event: Event) => {
 const removeAttachment = (fileId: number) => {
   emit('removeAttachment', fileId);
 };
+
+const applyImportedMetadata = (metadata: { title?: string; visibility?: string }) => {
+  if (metadata.title) {
+    titleModel.value = metadata.title;
+  }
+  if (metadata.visibility) {
+    visibilityModel.value = metadata.visibility;
+  }
+};
 </script>
 
 <template>
@@ -167,7 +177,14 @@ const removeAttachment = (fileId: number) => {
     </section>
 
     <section>
-      <ArticleContentEditor v-model="contentSourceModel" v-model:content-format="contentFormatModel" placeholder="본문을 입력하세요." />
+      <ArticleContentEditor
+        v-model="contentSourceModel"
+        v-model:content-format="contentFormatModel"
+        :board-slug="boardSlug"
+        :available-visibilities="visibilityOptions.map((option) => option.value)"
+        placeholder="본문을 입력하세요."
+        @apply-import-metadata="applyImportedMetadata"
+      />
     </section>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">

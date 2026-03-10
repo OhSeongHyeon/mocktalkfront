@@ -245,6 +245,7 @@ onMounted(async () => {
       v-model:content-format="contentFormat"
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
+      :board-slug="board?.slug"
       :categories="categories"
       :visibility-options="visibilityOptions"
       :is-category-loading="isCategoryLoading"
