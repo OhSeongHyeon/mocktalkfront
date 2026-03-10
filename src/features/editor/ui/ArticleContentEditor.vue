@@ -24,6 +24,7 @@ interface ArticleContentEditorProps {
   placeholder?: string;
   boardSlug?: string;
   availableVisibilities?: string[];
+  allowBoardSlugImport?: boolean;
 }
 
 type EditorViewMode = 'markdown' | 'wysiwyg';
@@ -34,7 +35,7 @@ const props = defineProps<ArticleContentEditorProps>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void;
   (event: 'update:contentFormat', value: ArticleContentFormat): void;
-  (event: 'apply-import-metadata', payload: { title?: string; visibility?: string }): void;
+  (event: 'apply-import-metadata', payload: { title?: string; visibility?: string; boardSlug?: string; tags: string[]; summary?: string }): void;
 }>();
 
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
@@ -507,7 +508,7 @@ const applyImportedMarkdown = (result: MarkdownImportResult) => {
   pendingImportedMarkdown.value = null;
   isMarkdownImportConfirmOpen.value = false;
   emit('update:contentFormat', 'MARKDOWN');
-  emit('apply-import-metadata', resolveImportMetadataPatch(result));
+  emit('apply-import-metadata', resolveImportMetadataPayload(result));
   updateMarkdownSource(result.content);
   scheduleMarkdownPreview(result.content);
   markdownImportFeedback.value = resolveImportFeedback(result);
@@ -533,23 +534,25 @@ const onMarkdownImportPicked = async (event: Event) => {
   }
 };
 
-const resolveImportMetadataPatch = (result: MarkdownImportResult) => {
-  const patch: { title?: string; visibility?: string } = {};
+const resolveImportMetadataPayload = (result: MarkdownImportResult) => {
+  const payload: { title?: string; visibility?: string; boardSlug?: string; tags: string[]; summary?: string } = {
+    tags: result.metadata.tags,
+  };
   if (result.metadata.title) {
-    patch.title = result.metadata.title;
+    payload.title = result.metadata.title;
   }
 
   const nextVisibility = result.metadata.visibility?.trim().toUpperCase();
-  if (!nextVisibility) {
-    return patch;
+  if (nextVisibility) {
+    payload.visibility = nextVisibility;
   }
-
-  const allowedVisibilities = props.availableVisibilities?.map((value) => value.trim().toUpperCase()) ?? [];
-  if (allowedVisibilities.length === 0 || allowedVisibilities.includes(nextVisibility)) {
-    patch.visibility = nextVisibility;
+  if (result.metadata.boardSlug) {
+    payload.boardSlug = result.metadata.boardSlug;
   }
-
-  return patch;
+  if (result.metadata.summary) {
+    payload.summary = result.metadata.summary;
+  }
+  return payload;
 };
 
 const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownImportFeedbackTone; messages: string[] } => {
@@ -563,7 +566,10 @@ const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownIm
   const nextVisibility = result.metadata.visibility?.trim().toUpperCase();
   const allowedVisibilities = props.availableVisibilities?.map((value) => value.trim().toUpperCase()) ?? [];
   if (nextVisibility) {
-    if (allowedVisibilities.length === 0 || allowedVisibilities.includes(nextVisibility)) {
+    const canDeferVisibility = Boolean(
+      props.allowBoardSlugImport && result.metadata.boardSlug && props.boardSlug && result.metadata.boardSlug !== props.boardSlug,
+    );
+    if (canDeferVisibility || allowedVisibilities.length === 0 || allowedVisibilities.includes(nextVisibility)) {
       messages.push('공개 범위를 자동 반영했습니다.');
     } else {
       warnings.push(`frontmatter의 visibility(${nextVisibility})는 현재 글에서 사용할 수 없어 적용하지 않았습니다.`);
@@ -571,7 +577,11 @@ const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownIm
   }
 
   if (result.metadata.boardSlug && props.boardSlug && result.metadata.boardSlug !== props.boardSlug) {
-    warnings.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})는 현재 게시판(${props.boardSlug})과 달라 적용하지 않았습니다.`);
+    if (props.allowBoardSlugImport) {
+      messages.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})를 반영해 게시판을 조정합니다.`);
+    } else {
+      warnings.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})는 현재 게시판(${props.boardSlug})과 달라 적용하지 않았습니다.`);
+    }
   }
 
   if (result.metadata.tags.length > 0 || result.metadata.summary) {

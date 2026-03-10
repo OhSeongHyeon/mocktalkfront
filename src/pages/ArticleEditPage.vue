@@ -8,6 +8,7 @@ import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
+import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleEditorDetailResponse, ArticleUpdateRequest } from '../entities/article';
 import { getArticleEditorDetail, updateArticle } from '../entities/article';
@@ -86,6 +87,16 @@ const isInvalid = computed(() => {
   }
   return false;
 });
+
+const applyAllowedVisibility = (nextVisibility?: string | null) => {
+  if (!nextVisibility) {
+    return;
+  }
+  if (!visibilityOptions.value.some((option) => option.value === nextVisibility)) {
+    return;
+  }
+  visibility.value = nextVisibility;
+};
 
 const loadCategories = async (boardId: number) => {
   if (!Number.isFinite(boardId) || boardId <= 0) {
@@ -250,6 +261,13 @@ const removeAttachment = (fileId: number) => {
   attachmentFiles.value = attachmentFiles.value.filter((file) => file.id !== fileId);
 };
 
+const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
+  if (metadata.title) {
+    title.value = metadata.title;
+  }
+  applyAllowedVisibility(metadata.visibility);
+};
+
 onMounted(async () => {
   await loadArticle();
   await loadProfile();
@@ -280,6 +298,7 @@ watch(
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
       :board-slug="article?.board?.slug"
+      :allow-board-slug-import="false"
       :categories="categories"
       :visibility-options="visibilityOptions"
       :is-category-loading="isCategoryLoading"
@@ -297,6 +316,7 @@ watch(
       "
       @add-attachments="addAttachments"
       @remove-attachment="removeAttachment"
+      @apply-import-metadata="applyImportedMetadata"
       @submit="submit"
       @cancel="cancel"
     />

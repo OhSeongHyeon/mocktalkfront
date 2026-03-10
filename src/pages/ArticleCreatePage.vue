@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleUpsertForm from '../widgets/article/ArticleUpsertForm.vue';
@@ -12,6 +12,7 @@ import { hasMeaningfulArticleContent } from '../features/editor/lib/articleConte
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleCreateRequest } from '../entities/article';
 import { createArticle } from '../entities/article';
+import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
 import type { BoardDetailResponse } from '../entities/board';
@@ -45,6 +46,7 @@ const attachmentErrorMessage = ref('');
 const errorMessage = ref('');
 const isLoading = ref(false);
 const isSubmitting = ref(false);
+const pendingImportedVisibility = ref<string | null>(null);
 
 const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 
@@ -82,16 +84,30 @@ const isInvalid = computed(() => {
   return false;
 });
 
-const loadBoard = async () => {
-  if (!slug.value) {
+const applyAllowedVisibility = (nextVisibility?: string | null) => {
+  const allowedValues = visibilityOptions.value.map((option) => option.value);
+  if (nextVisibility && allowedValues.includes(nextVisibility)) {
+    visibility.value = nextVisibility;
+    return;
+  }
+  if (allowedValues.includes(visibility.value)) {
+    return;
+  }
+  visibility.value = allowedValues[0] ?? 'PUBLIC';
+};
+
+const loadBoard = async (slugValue = slug.value) => {
+  if (!slugValue) {
     errorMessage.value = '게시판 정보가 올바르지 않습니다.';
+    board.value = null;
     return;
   }
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    board.value = await getBoardBySlug(slug.value);
+    board.value = await getBoardBySlug(slugValue);
   } catch (error) {
+    board.value = null;
     if (error instanceof ApiError && error.status === 404) {
       errorMessage.value = '게시판을 찾을 수 없습니다.';
       return;
@@ -137,6 +153,35 @@ const loadCategories = async () => {
   } finally {
     isCategoryLoading.value = false;
   }
+};
+
+const loadBoardContext = async (slugValue = slug.value) => {
+  await loadBoard(slugValue);
+  await loadCategories();
+  applyAllowedVisibility(pendingImportedVisibility.value);
+  pendingImportedVisibility.value = null;
+};
+
+const applyImportedMetadata = async (metadata: MarkdownImportMetadata) => {
+  if (metadata.title) {
+    title.value = metadata.title;
+  }
+
+  if (metadata.boardSlug && metadata.boardSlug !== slug.value) {
+    try {
+      errorMessage.value = '';
+      await getBoardBySlug(metadata.boardSlug);
+      pendingImportedVisibility.value = metadata.visibility ?? null;
+      selectedCategoryId.value = null;
+      await router.replace(`/b/${metadata.boardSlug}/articles/new`);
+    } catch (error) {
+      errorMessage.value = error instanceof ApiError ? error.message : 'frontmatter의 게시판 정보를 적용하지 못했습니다.';
+      pendingImportedVisibility.value = null;
+    }
+    return;
+  }
+
+  applyAllowedVisibility(metadata.visibility);
 };
 
 const submit = async () => {
@@ -223,10 +268,20 @@ const removeAttachment = (fileId: number) => {
 };
 
 onMounted(async () => {
-  await loadBoard();
-  await loadCategories();
+  await loadBoardContext();
   await loadProfile();
 });
+
+watch(
+  () => route.params.slug,
+  async (nextSlug, previousSlug) => {
+    if (nextSlug === previousSlug) {
+      return;
+    }
+    selectedCategoryId.value = null;
+    await loadBoardContext(String(nextSlug ?? ''));
+  },
+);
 </script>
 
 <template>
@@ -246,6 +301,7 @@ onMounted(async () => {
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
       :board-slug="board?.slug"
+      :allow-board-slug-import="true"
       :categories="categories"
       :visibility-options="visibilityOptions"
       :is-category-loading="isCategoryLoading"
@@ -267,6 +323,7 @@ onMounted(async () => {
       "
       @add-attachments="addAttachments"
       @remove-attachment="removeAttachment"
+      @apply-import-metadata="applyImportedMetadata"
       @submit="submit"
       @cancel="cancel"
     />

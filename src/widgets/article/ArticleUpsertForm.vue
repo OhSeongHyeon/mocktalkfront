@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 
 import ArticleContentEditor from '../../features/editor/ui/ArticleContentEditor.vue';
+import type { MarkdownImportMetadata } from '../../features/editor/lib/markdownImport';
 import type { ArticleContentFormat } from '../../entities/article';
 import { ATTACHMENT_ALLOWED_EXTENSION_LABEL, ATTACHMENT_FILE_ACCEPT } from '../../entities/file/lib/attachmentPolicy';
 import type { BoardCategoryResponse } from '../../entities/board';
@@ -18,6 +19,7 @@ interface ArticleUpsertFormProps {
   contentFormat: ArticleContentFormat;
   visibility: string;
   boardSlug?: string;
+  allowBoardSlugImport?: boolean;
   selectedCategoryId: number | null;
   categories: BoardCategoryResponse[];
   visibilityOptions: VisibilityOption[];
@@ -44,6 +46,7 @@ const emit = defineEmits<{
   (event: 'update:selectedCategoryId', value: number | null): void;
   (event: 'addAttachments', files: File[]): void;
   (event: 'removeAttachment', fileId: number): void;
+  (event: 'apply-import-metadata', payload: MarkdownImportMetadata): void;
   (event: 'submit'): void;
   (event: 'cancel'): void;
 }>();
@@ -115,13 +118,8 @@ const removeAttachment = (fileId: number) => {
   emit('removeAttachment', fileId);
 };
 
-const applyImportedMetadata = (metadata: { title?: string; visibility?: string }) => {
-  if (metadata.title) {
-    titleModel.value = metadata.title;
-  }
-  if (metadata.visibility) {
-    visibilityModel.value = metadata.visibility;
-  }
+const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
+  emit('apply-import-metadata', metadata);
 };
 </script>
 
@@ -182,6 +180,7 @@ const applyImportedMetadata = (metadata: { title?: string; visibility?: string }
         v-model:content-format="contentFormatModel"
         :board-slug="boardSlug"
         :available-visibilities="visibilityOptions.map((option) => option.value)"
+        :allow-board-slug-import="allowBoardSlugImport"
         placeholder="본문을 입력하세요."
         @apply-import-metadata="applyImportedMetadata"
       />
