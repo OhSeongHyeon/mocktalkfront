@@ -19,6 +19,7 @@ import { getMyProfile } from '../entities/user';
 import { ApiError } from '../shared/lib/http/api';
 import { resolveImageUrl } from '../shared/lib/files';
 import { recordHistoryItem } from '../shared/lib/history';
+import { renderMermaidDiagrams } from '../shared/lib/mermaid';
 import { sanitizeHtml } from '../shared/lib/sanitize';
 import { requestArticleAttachmentBlob } from '../entities/article';
 import { isAuthenticated } from '../stores/auth';
@@ -60,6 +61,7 @@ const isRealtimeSyncing = ref(false);
 const hasPendingRealtimeSync = ref(false);
 const lastCommentSyncVersion = ref<number | null>(null);
 const articleDetailScrollContainer = ref<HTMLElement | null>(null);
+const articleContentRef = ref<HTMLElement | null>(null);
 const isAttachmentExpanded = ref(false);
 const isDownloadingAllAttachments = ref(false);
 const COMMENT_TEXTAREA_MAX_HEIGHT = 240;
@@ -126,6 +128,11 @@ const formatFileSize = (size: number) => {
 
 const attachments = computed(() => article.value?.attachments ?? []);
 const sanitizedContent = computed(() => (article.value?.content ? sanitizeHtml(article.value.content) : ''));
+
+const renderArticleMermaid = async () => {
+  await nextTick();
+  await renderMermaidDiagrams(articleContentRef.value);
+};
 
 const boardLink = computed(() => {
   const slug = article.value?.board?.slug ?? String(route.params.slug ?? '');
@@ -253,6 +260,7 @@ const loadArticle = async () => {
         boardSlug: article.value.board?.slug ?? String(route.params.slug ?? ''),
         boardName: article.value.board?.boardName ?? null,
       });
+      void renderArticleMermaid();
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
@@ -909,6 +917,13 @@ onMounted(async () => {
 });
 
 watch(
+  () => sanitizedContent.value,
+  () => {
+    void renderArticleMermaid();
+  },
+);
+
+watch(
   () => route.params.articleId,
   async () => {
     lastCommentSyncVersion.value = null;
@@ -1053,7 +1068,7 @@ onUnmounted(() => {
                   로그인 후 반응/북마크가 가능합니다.
                 </span>
               </div>
-              <div v-if="article?.content" class="ui-content mt-6 max-w-none" v-html="sanitizedContent"></div>
+              <div v-if="article?.content" ref="articleContentRef" class="ui-content mt-6 max-w-none" v-html="sanitizedContent"></div>
               <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
             </article>
 

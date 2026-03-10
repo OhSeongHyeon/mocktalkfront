@@ -276,8 +276,7 @@ a {
     line-height: 1.8;
     color: color-mix(in oklab, var(--ink-1) 90%, var(--ink-2));
     word-break: break-word;
-    white-space: pre-wrap;
-    white-space: break-spaces;
+    overflow-wrap: anywhere;
   }
 
   .ui-content.ProseMirror {
@@ -294,6 +293,14 @@ a {
 
   .ui-content p:empty {
     min-height: 1em;
+  }
+
+  .ui-content > :first-child {
+    margin-top: 0;
+  }
+
+  .ui-content > :last-child {
+    margin-bottom: 0;
   }
 
   .ui-content a {
@@ -338,6 +345,14 @@ a {
 
   .dark .ui-content pre code.hljs {
     background: transparent;
+  }
+
+  .ui-content code:not(pre code) {
+    border-radius: 0.45rem;
+    background: color-mix(in oklab, var(--surface-2) 82%, var(--surface-0));
+    padding: 0.12rem 0.38rem;
+    font-size: 0.88em;
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   }
 
   .ui-content mark {
@@ -440,6 +455,233 @@ a {
     margin-top: 0.4rem;
     font-size: 0.78rem;
     color: var(--ink-2);
+  }
+
+  .ui-content table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 1.15rem 0;
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklab, var(--line-subtle) 82%, transparent);
+    background: color-mix(in oklab, var(--surface-0) 94%, transparent);
+  }
+
+  .ui-content thead {
+    background: color-mix(in oklab, var(--surface-2) 88%, var(--surface-0));
+  }
+
+  .ui-content th,
+  .ui-content td {
+    min-width: 9rem;
+    padding: 0.72rem 0.9rem;
+    border-right: 1px solid color-mix(in oklab, var(--line-subtle) 78%, transparent);
+    border-bottom: 1px solid color-mix(in oklab, var(--line-subtle) 78%, transparent);
+    text-align: left;
+    vertical-align: top;
+    white-space: normal;
+  }
+
+  .ui-content tr > :last-child {
+    border-right: none;
+  }
+
+  .ui-content tbody tr:last-child > * {
+    border-bottom: none;
+  }
+
+  .ui-markdown-editor-shell {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 420px;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--line-subtle) 92%, transparent);
+    background:
+      radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 30%),
+      linear-gradient(180deg, color-mix(in oklab, var(--surface-0) 98%, transparent), color-mix(in oklab, var(--surface-1) 96%, transparent));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 18px 36px -32px rgba(15, 23, 42, 0.35);
+  }
+
+  .ui-markdown-editor-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.95rem 1.1rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--line-subtle) 85%, transparent);
+    background: color-mix(in oklab, var(--surface-0) 76%, transparent);
+  }
+
+  .ui-markdown-editor-grid {
+    display: grid;
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: 3.7rem minmax(0, 1fr);
+  }
+
+  .ui-markdown-editor-gutter {
+    overflow: hidden;
+    border-right: 1px solid color-mix(in oklab, var(--line-subtle) 84%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--surface-2) 92%, var(--surface-0)),
+      color-mix(in oklab, var(--surface-1) 96%, transparent)
+    );
+    color: color-mix(in oklab, var(--ink-2) 88%, transparent);
+  }
+
+  .ui-markdown-editor-gutter-track {
+    padding: 1rem 0.7rem;
+  }
+
+  .ui-markdown-editor-gutter-line,
+  .ui-markdown-editor-input {
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 0.92rem;
+    line-height: 1.75rem;
+  }
+
+  .ui-markdown-editor-gutter-line {
+    height: 1.75rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ui-markdown-editor-input {
+    min-height: 0;
+    height: auto;
+    border: none;
+    border-radius: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 4rem), transparent;
+    padding: 1rem 1.1rem 1.1rem;
+    resize: none;
+    overflow-y: hidden;
+    color: var(--ink-1);
+    caret-color: #10b981;
+    tab-size: 2;
+  }
+
+  .ui-markdown-editor-input::placeholder {
+    color: color-mix(in oklab, var(--ink-2) 62%, transparent);
+  }
+
+  .ui-markdown-editor-input:focus-visible {
+    outline: none;
+    box-shadow: none;
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.05), transparent 4.5rem), transparent;
+  }
+
+  .ui-markdown-editor-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    border-top: 1px solid color-mix(in oklab, var(--line-subtle) 84%, transparent);
+    background: color-mix(in oklab, var(--surface-0) 76%, transparent);
+    font-size: 0.72rem;
+    color: color-mix(in oklab, var(--ink-2) 88%, transparent);
+  }
+
+  .ui-markdown-preview-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+    overflow: hidden;
+    border-radius: var(--radius-2xl);
+    border: 1px solid color-mix(in oklab, var(--line-subtle) 86%, transparent);
+    background: color-mix(in oklab, var(--surface-0) 98%, transparent);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 18px 36px -32px rgba(15, 23, 42, 0.22);
+  }
+
+  .ui-markdown-preview-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+
+  .ui-mermaid-block {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    margin: 1.15rem 0;
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklab, var(--line-subtle) 82%, transparent);
+    background: radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 42%), color-mix(in oklab, var(--surface-0) 95%, transparent);
+    padding: 1rem;
+  }
+
+  .ui-mermaid-block svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .ui-mermaid-error {
+    margin: 1.15rem 0;
+    border-radius: var(--radius-xl);
+    border: 1px solid color-mix(in oklab, var(--danger-ink) 36%, transparent);
+    background: var(--danger-soft);
+    padding: 0.9rem;
+  }
+
+  .ui-mermaid-unsupported {
+    margin: 1.15rem 0;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.08);
+    padding: 0.9rem;
+  }
+
+  .ui-mermaid-error > p {
+    margin: 0 0 0.65rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--danger-ink);
+  }
+
+  .ui-mermaid-unsupported > p {
+    margin: 0 0 0.65rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #b45309;
+  }
+
+  .ui-mermaid-error pre {
+    margin: 0;
+  }
+
+  .ui-mermaid-unsupported pre {
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .ui-markdown-editor-head,
+    .ui-markdown-editor-status {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .ui-markdown-editor-grid {
+      grid-template-columns: 3rem minmax(0, 1fr);
+    }
+
+    .ui-markdown-editor-input {
+      padding-left: 0.9rem;
+      padding-right: 0.9rem;
+    }
+
+    .ui-markdown-editor-shell,
+    .ui-markdown-preview-shell {
+      min-height: 360px;
+    }
   }
 
   .ui-content .mention {
