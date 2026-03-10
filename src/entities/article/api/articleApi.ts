@@ -28,6 +28,8 @@ export interface ArticleBoardResponse {
   boardImage: FileResponse | null;
 }
 
+export type ArticleContentFormat = 'MARKDOWN' | 'HTML';
+
 export interface ArticleDetailResponse {
   id: number;
   board: ArticleBoardResponse;
@@ -44,6 +46,24 @@ export interface ArticleDetailResponse {
   dislikeCount: number;
   myReaction: number;
   bookmarked: boolean;
+  notice: boolean;
+  createdAt: string;
+  updatedAt: string;
+  attachments: FileResponse[];
+}
+
+export interface ArticleEditorDetailResponse {
+  id: number;
+  board: ArticleBoardResponse;
+  userId: number;
+  categoryId?: number | null;
+  categoryName?: string | null;
+  authorName: string;
+  visibility: string;
+  title: string;
+  content: string;
+  contentSource: string;
+  contentFormat: ArticleContentFormat;
   notice: boolean;
   createdAt: string;
   updatedAt: string;
@@ -87,7 +107,8 @@ export interface ArticleCreateRequest {
   categoryId?: number | null;
   visibility: string;
   title: string;
-  content: string;
+  contentSource: string;
+  contentFormat: ArticleContentFormat;
   notice: boolean;
   fileIds?: number[];
 }
@@ -96,15 +117,30 @@ export interface ArticleUpdateRequest {
   categoryId?: number | null;
   visibility: string;
   title: string;
-  content: string;
+  contentSource: string;
+  contentFormat: ArticleContentFormat;
   notice: boolean;
   fileIds?: number[];
+}
+
+export interface ArticlePreviewRequest {
+  contentSource: string;
+  contentFormat: ArticleContentFormat;
+}
+
+export interface ArticlePreviewResponse {
+  content: string;
 }
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
 
 const getArticleDetail = async (articleId: number) => {
   const response = await request<ApiEnvelope<ArticleDetailResponse>>(`/articles/${articleId}`);
+  return unwrap(response);
+};
+
+const getArticleEditorDetail = async (articleId: number) => {
+  const response = await request<ApiEnvelope<ArticleEditorDetailResponse>>(`/articles/${articleId}/editor`);
   return unwrap(response);
 };
 
@@ -122,6 +158,17 @@ const createArticle = async (payload: ArticleCreateRequest) => {
 const updateArticle = async (articleId: number, payload: ArticleUpdateRequest) => {
   const response = await request<ApiEnvelope<ArticleResponse>>(`/articles/${articleId}`, {
     method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  return unwrap(response);
+};
+
+const previewArticleContent = async (payload: ArticlePreviewRequest) => {
+  const response = await request<ApiEnvelope<ArticlePreviewResponse>>('/articles/preview', {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -193,6 +240,8 @@ export {
   deleteArticleBookmarks,
   getArticleBookmarks,
   getArticleDetail,
+  getArticleEditorDetail,
+  previewArticleContent,
   toggleArticleReaction,
   unbookmarkArticle,
   updateArticle,

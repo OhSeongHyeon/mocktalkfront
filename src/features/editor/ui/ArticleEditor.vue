@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import '../../../shared/styles/ui-content.css';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
 import type { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
@@ -274,7 +275,7 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: 'ui-content',
+      class: 'ui-content article-editor-content',
     },
     handleClickOn(view, _pos, node, nodePos) {
       if (node.type.name !== 'image') {
@@ -1007,9 +1008,11 @@ const applyImageScale = (silent = false) => {
   };
   const originalWidth = resolveImageOriginalDimension(editor.value, imageInfo.position, imageAttrs.originalWidth, imageAttrs.width, 'width');
   const originalHeight = resolveImageOriginalDimension(editor.value, imageInfo.position, imageAttrs.originalHeight, imageAttrs.height, 'height');
+  const scaledWidth = originalWidth !== null ? Math.max(1, Math.round((originalWidth * imageScalePercent.value) / 100)) : null;
+  const scaledHeight = originalHeight !== null ? Math.max(1, Math.round((originalHeight * imageScalePercent.value) / 100)) : null;
   const applied = updateImageNodeAttributes({
-    width: `${imageScalePercent.value}%`,
-    height: null,
+    width: scaledWidth !== null ? `${scaledWidth}px` : null,
+    height: scaledHeight !== null ? `${scaledHeight}px` : null,
     originalWidth,
     originalHeight,
   });
@@ -1337,11 +1340,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
         </div>
       </div>
     </div>
-    <EditorContent
-      v-if="!isHtmlMode"
-      :editor="editor"
-      class="min-h-[360px] bg-white/80 px-4 py-4 text-sm leading-relaxed text-slate-700 dark:bg-slate-950/70 dark:text-slate-200"
-    />
+    <EditorContent v-if="!isHtmlMode" :editor="editor" class="bg-white/80 dark:bg-slate-950/70" />
     <div v-else class="space-y-2 bg-white/80 px-4 py-4 dark:bg-slate-950/70">
       <p class="text-xs font-semibold text-slate-500 dark:text-slate-300">저장 시 sanitize 정책에 따라 위험 태그/속성은 제거됩니다.</p>
       <textarea

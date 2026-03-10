@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import ArticleEditor from '../../features/editor/ui/ArticleEditor.vue';
+import ArticleContentEditor from '../../features/editor/ui/ArticleContentEditor.vue';
+import type { ArticleContentFormat } from '../../entities/article';
 import { ATTACHMENT_ALLOWED_EXTENSION_LABEL, ATTACHMENT_FILE_ACCEPT } from '../../entities/file/lib/attachmentPolicy';
 import type { BoardCategoryResponse } from '../../entities/board';
 import type { FileResponse } from '../../entities/file';
@@ -13,7 +14,8 @@ interface VisibilityOption {
 
 interface ArticleUpsertFormProps {
   title: string;
-  content: string;
+  contentSource: string;
+  contentFormat: ArticleContentFormat;
   visibility: string;
   selectedCategoryId: number | null;
   categories: BoardCategoryResponse[];
@@ -35,7 +37,8 @@ const props = defineProps<ArticleUpsertFormProps>();
 
 const emit = defineEmits<{
   (event: 'update:title', value: string): void;
-  (event: 'update:content', value: string): void;
+  (event: 'update:contentSource', value: string): void;
+  (event: 'update:contentFormat', value: ArticleContentFormat): void;
   (event: 'update:visibility', value: string): void;
   (event: 'update:selectedCategoryId', value: number | null): void;
   (event: 'addAttachments', files: File[]): void;
@@ -49,9 +52,14 @@ const titleModel = computed({
   set: (value: string) => emit('update:title', value),
 });
 
-const contentModel = computed({
-  get: () => props.content,
-  set: (value: string) => emit('update:content', value),
+const contentSourceModel = computed({
+  get: () => props.contentSource,
+  set: (value: string) => emit('update:contentSource', value),
+});
+
+const contentFormatModel = computed({
+  get: () => props.contentFormat,
+  set: (value: ArticleContentFormat) => emit('update:contentFormat', value),
 });
 
 const visibilityModel = computed({
@@ -159,7 +167,7 @@ const removeAttachment = (fileId: number) => {
     </section>
 
     <section>
-      <ArticleEditor v-model="contentModel" placeholder="본문을 입력하세요." />
+      <ArticleContentEditor v-model="contentSourceModel" v-model:content-format="contentFormatModel" placeholder="본문을 입력하세요." />
     </section>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">

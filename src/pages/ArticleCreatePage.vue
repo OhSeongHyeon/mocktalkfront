@@ -8,8 +8,9 @@ import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.
 import { ApiError } from '../shared/lib/http/api';
 import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/board/lib/boardWritePolicy';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
+import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
 import { resolveImageUrl } from '../shared/lib/files';
-import type { ArticleCreateRequest } from '../entities/article';
+import type { ArticleContentFormat, ArticleCreateRequest } from '../entities/article';
 import { createArticle } from '../entities/article';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
@@ -29,7 +30,8 @@ const board = ref<BoardDetailResponse | null>(null);
 const profile = ref<UserProfileResponse | null>(null);
 
 const title = ref('');
-const content = ref('');
+const contentSource = ref('');
+const contentFormat = ref<ArticleContentFormat>('MARKDOWN');
 const visibility = ref('PUBLIC');
 const selectedCategoryId = ref<number | null>(null);
 const categories = ref<BoardCategoryResponse[]>([]);
@@ -70,13 +72,11 @@ const canWrite = computed(() => {
   return canWriteArticle(board.value, isAuthenticated.value, isAdmin.value);
 });
 
-const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').trim();
-
 const isInvalid = computed(() => {
   if (!title.value.trim()) {
     return true;
   }
-  if (!stripHtml(content.value)) {
+  if (!hasMeaningfulArticleContent(contentSource.value, contentFormat.value)) {
     return true;
   }
   return false;
@@ -155,14 +155,15 @@ const submit = async () => {
   isSubmitting.value = true;
   errorMessage.value = '';
   attachmentErrorMessage.value = '';
-  const fileIds = Array.from(new Set([...extractFileIdsFromContent(content.value), ...attachmentFiles.value.map((file) => file.id)]));
+  const fileIds = Array.from(new Set([...extractFileIdsFromContent(contentSource.value), ...attachmentFiles.value.map((file) => file.id)]));
   const payload: ArticleCreateRequest = {
     boardId: board.value.id,
     userId: profile.value.userId,
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
     title: title.value.trim(),
-    content: content.value,
+    contentSource: contentSource.value,
+    contentFormat: contentFormat.value,
     notice: false,
     fileIds,
   };
@@ -240,7 +241,8 @@ onMounted(async () => {
   >
     <ArticleUpsertForm
       v-model:title="title"
-      v-model:content="content"
+      v-model:content-source="contentSource"
+      v-model:content-format="contentFormat"
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
       :categories="categories"

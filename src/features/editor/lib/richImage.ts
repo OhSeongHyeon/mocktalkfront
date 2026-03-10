@@ -47,23 +47,6 @@ const normalizeOriginalWidth = (value: unknown) => {
   return null;
 };
 
-const stripImageSizeStyles = (value: unknown) => {
-  if (typeof value !== 'string') {
-    return '';
-  }
-  return value
-    .split(';')
-    .map((rule) => rule.trim())
-    .filter((rule) => {
-      if (rule.length === 0) {
-        return false;
-      }
-      const lowered = rule.toLowerCase();
-      return !lowered.startsWith('width:') && !lowered.startsWith('height:');
-    })
-    .join('; ');
-};
-
 const normalizeCaption = (value: unknown) => {
   if (typeof value !== 'string') {
     return null;
@@ -89,98 +72,55 @@ const RichImage = Image.extend({
       ...this.parent?.(),
       align: {
         default: 'left',
+        rendered: false,
         parseHTML: (element: HTMLElement) => {
           const figure = element.closest('figure[data-type="editor-image"]');
           const raw = figure?.getAttribute('data-align') ?? element.getAttribute('data-align');
           return normalizeImageAlign(raw);
         },
-        renderHTML: (attributes: { align?: unknown }) => ({
-          'data-align': normalizeImageAlign(attributes.align),
-        }),
       },
       width: {
         default: null,
+        rendered: false,
         parseHTML: (element: HTMLElement) => {
           const raw = element.getAttribute('data-width') ?? element.style.width ?? element.getAttribute('width');
           return normalizeImageSize(raw);
         },
-        renderHTML: (attributes: { width?: unknown }) => {
-          const width = normalizeImageSize(attributes.width);
-          if (!width) {
-            return {};
-          }
-          return {
-            'data-width': width,
-          };
-        },
       },
       height: {
         default: null,
+        rendered: false,
         parseHTML: (element: HTMLElement) => {
           const raw = element.getAttribute('data-height') ?? element.style.height ?? element.getAttribute('height');
           return normalizeImageSize(raw);
         },
-        renderHTML: (attributes: { height?: unknown }) => {
-          const height = normalizeImageSize(attributes.height);
-          if (!height) {
-            return {};
-          }
-          return {
-            'data-height': height,
-          };
-        },
       },
       originalWidth: {
         default: null,
+        rendered: false,
         parseHTML: (element: HTMLElement) => {
           const figure = element.closest('figure[data-type="editor-image"]');
           const raw = figure?.getAttribute('data-original-width') ?? element.getAttribute('data-original-width');
           return normalizeOriginalWidth(raw);
         },
-        renderHTML: (attributes: { originalWidth?: unknown }) => {
-          const originalWidth = normalizeOriginalWidth(attributes.originalWidth);
-          if (!originalWidth) {
-            return {};
-          }
-          return {
-            'data-original-width': String(originalWidth),
-          };
-        },
       },
       originalHeight: {
         default: null,
+        rendered: false,
         parseHTML: (element: HTMLElement) => {
           const figure = element.closest('figure[data-type="editor-image"]');
           const raw = figure?.getAttribute('data-original-height') ?? element.getAttribute('data-original-height');
           return normalizeOriginalWidth(raw);
         },
-        renderHTML: (attributes: { originalHeight?: unknown }) => {
-          const originalHeight = normalizeOriginalWidth(attributes.originalHeight);
-          if (!originalHeight) {
-            return {};
-          }
-          return {
-            'data-original-height': String(originalHeight),
-          };
-        },
       },
       caption: {
         default: null,
+        rendered: false,
         parseHTML: (element: HTMLElement) => {
           const figure = element.closest('figure[data-type="editor-image"]');
           const figcaption = figure?.querySelector('figcaption')?.textContent;
           const raw = figcaption ?? element.getAttribute('data-caption');
           return normalizeCaption(raw);
-        },
-        renderHTML: (attributes: { caption?: unknown }) => {
-          const caption = normalizeCaption(attributes.caption);
-          if (!caption) {
-            return {};
-          }
-          return {
-            'data-caption': caption,
-            title: caption,
-          };
         },
       },
     };
@@ -218,21 +158,26 @@ const RichImage = Image.extend({
     ];
   },
 
-  renderHTML({ HTMLAttributes }) {
-    const align = normalizeImageAlign(HTMLAttributes.align);
-    const width = normalizeImageSize(HTMLAttributes.width);
-    const height = normalizeImageSize(HTMLAttributes.height);
-    const originalWidth = normalizeOriginalWidth(HTMLAttributes.originalWidth);
-    const originalHeight = normalizeOriginalWidth(HTMLAttributes.originalHeight);
-    const caption = normalizeCaption(HTMLAttributes.caption);
-    const baseStyle = stripImageSizeStyles(HTMLAttributes.style);
-    const mergedStyle = [baseStyle, width ? `width: ${width};` : '', height ? `height: ${height};` : ''].filter(Boolean).join(' ');
+  renderHTML({ node, HTMLAttributes }) {
+    const imageNodeAttrs = node.attrs as {
+      align?: unknown;
+      width?: unknown;
+      height?: unknown;
+      originalWidth?: unknown;
+      originalHeight?: unknown;
+      caption?: unknown;
+    };
+    const align = normalizeImageAlign(imageNodeAttrs.align);
+    const width = normalizeImageSize(imageNodeAttrs.width);
+    const height = normalizeImageSize(imageNodeAttrs.height);
+    const originalWidth = normalizeOriginalWidth(imageNodeAttrs.originalWidth);
+    const originalHeight = normalizeOriginalWidth(imageNodeAttrs.originalHeight);
+    const caption = normalizeCaption(imageNodeAttrs.caption);
     const widthAttribute = toHtmlDimensionAttribute(width);
     const heightAttribute = toHtmlDimensionAttribute(height);
 
     const imageAttrs = {
       ...HTMLAttributes,
-      style: mergedStyle,
       class: ['editor-image-node', `editor-image-node-${align}`, HTMLAttributes.class].filter(Boolean).join(' '),
       'data-align': align,
     } as Record<string, unknown>;
@@ -243,9 +188,6 @@ const RichImage = Image.extend({
     delete imageAttrs.originalWidth;
     delete imageAttrs.originalHeight;
     delete imageAttrs.caption;
-    if (!imageAttrs.style) {
-      delete imageAttrs.style;
-    }
     if (!width) {
       delete imageAttrs['data-width'];
     } else {
