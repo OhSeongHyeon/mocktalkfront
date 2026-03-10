@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import { getAccessToken, isAdmin } from '../../stores/auth';
+import { getAccessToken, isAdmin, isManagerOrAdmin } from '../../stores/auth';
 
 const LoginPage = () => import('../../pages/LoginPage.vue');
 const MainPage = () => import('../../pages/MainPage.vue');
@@ -20,6 +20,7 @@ const SearchPage = () => import('../../pages/SearchPage.vue');
 const AdminReportsPage = () => import('../../pages/AdminReportsPage.vue');
 const AdminSanctionsPage = () => import('../../pages/AdminSanctionsPage.vue');
 const AdminAuditLogsPage = () => import('../../pages/AdminAuditLogsPage.vue');
+const AdminArticleImportsPage = () => import('../../pages/AdminArticleImportsPage.vue');
 const AdminUsersPage = () => import('../../pages/AdminUsersPage.vue');
 const AdminBoardsPage = () => import('../../pages/AdminBoardsPage.vue');
 const BoardAdminCategoriesPage = () => import('../../pages/BoardAdminCategoriesPage.vue');
@@ -43,6 +44,12 @@ const router = createRouter({
     { path: '/admin/reports', name: 'admin-reports', component: AdminReportsPage, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/admin/sanctions', name: 'admin-sanctions', component: AdminSanctionsPage, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/admin/audit-logs', name: 'admin-audit-logs', component: AdminAuditLogsPage, meta: { requiresAuth: true, requiresAdmin: true } },
+    {
+      path: '/admin/article-imports',
+      name: 'admin-article-imports',
+      component: AdminArticleImportsPage,
+      meta: { requiresAuth: true, requiresManagerOrAdmin: true },
+    },
     { path: '/boards/create', name: 'board-create', component: BoardCreatePage, meta: { requiresAuth: true } },
     { path: '/b/:slug/admin/settings', name: 'board-admin-settings', component: BoardAdminSettingsPage, meta: { requiresAuth: true } },
     { path: '/b/:slug/admin/categories', name: 'board-admin-categories', component: BoardAdminCategoriesPage, meta: { requiresAuth: true } },
@@ -68,6 +75,9 @@ const router = createRouter({
 router.beforeEach((to) => {
   if (to.meta.requiresAuth && !getAccessToken()) {
     return { path: '/login' };
+  }
+  if (to.meta.requiresManagerOrAdmin && !isManagerOrAdmin.value) {
+    return { path: '/' };
   }
   if (to.meta.requiresAdmin && !isAdmin.value) {
     return { path: '/' };

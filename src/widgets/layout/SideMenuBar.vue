@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import { isAdmin } from '../../stores/auth';
+import { isAdmin, isManagerOrAdmin } from '../../stores/auth';
 import iconBookmark from '../../assets/icons/icon-bookmark.svg';
 import iconChat from '../../assets/icons/icon-chat.svg';
 import iconCommunity from '../../assets/icons/icon-community.svg';
@@ -117,6 +117,14 @@ const handleMenuClick = (item: SideMenuItem) => {
 const sections = computed(() =>
   [
     ...baseSections,
+    ...(isManagerOrAdmin.value
+      ? [
+          {
+            title: '운영',
+            items: [{ name: '게시글 임포트', icon: 'community', path: '/admin/article-imports' }],
+          },
+        ]
+      : []),
     ...(isAdmin.value
       ? [
           {
