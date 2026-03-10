@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import '../../../shared/styles/mermaid.css';
+import '../../../shared/styles/ui-content.css';
+import './article-content-editor.css';
 
 import type { ArticleContentFormat } from '../../../entities/article';
 import { previewArticleContent } from '../../../entities/article';
@@ -752,7 +755,7 @@ onBeforeUnmount(() => {
                 <span v-if="isPreviewLoading" class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">렌더링 중...</span>
               </div>
               <div class="ui-markdown-preview-shell" :style="markdownPreviewShellStyle">
-                <div class="ui-markdown-preview-body">
+                <div class="ui-markdown-preview-body ui-scrollbar">
                   <p v-if="previewErrorMessage" class="text-sm font-semibold text-rose-500">{{ previewErrorMessage }}</p>
                   <p v-else-if="!previewHtml" class="text-sm text-slate-400 dark:text-slate-500">미리보기가 여기에 표시됩니다.</p>
                   <div v-else ref="markdownPreviewRef" class="ui-content max-w-none" v-html="previewHtml"></div>

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import '../shared/styles/mermaid.css';
+import '../shared/styles/ui-content.css';
 import { useRoute, useRouter } from 'vue-router';
 
 import BoardArticlePanel from '../widgets/board/BoardArticlePanel.vue';

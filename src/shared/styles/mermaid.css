@@ -1,0 +1,73 @@
+.ui-mermaid-block {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  margin: 1.15rem 0;
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklab, var(--line-subtle) 82%, transparent);
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.08), transparent 42%),
+    color-mix(in oklab, var(--surface-0) 95%, transparent);
+  padding: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--ink-2) 36%, transparent) transparent;
+}
+
+.ui-mermaid-block::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ui-mermaid-block::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ui-mermaid-block::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--ink-2) 42%, transparent);
+}
+
+.ui-mermaid-block:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--ink-2) 56%, transparent);
+}
+
+.ui-mermaid-block svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.ui-mermaid-error {
+  margin: 1.15rem 0;
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklab, var(--danger-ink) 36%, transparent);
+  background: var(--danger-soft);
+  padding: 0.9rem;
+}
+
+.ui-mermaid-unsupported {
+  margin: 1.15rem 0;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  background: rgba(245, 158, 11, 0.08);
+  padding: 0.9rem;
+}
+
+.ui-mermaid-error > p {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--danger-ink);
+}
+
+.ui-mermaid-unsupported > p {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.ui-mermaid-error pre,
+.ui-mermaid-unsupported pre {
+  margin: 0;
+}
