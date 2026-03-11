@@ -7,6 +7,12 @@ export interface ArticleImportPreviewItemResponse {
   boardSlug: string | null;
   categoryName: string | null;
   visibility: string | null;
+  relativeImageCount: number;
+  relativeVideoCount: number;
+  youtubeEmbedCount: number;
+  missingAssetCount: number;
+  oversizedAssetCount: number;
+  unsupportedAssetCount: number;
   executable: boolean;
   warnings: string[];
   errors: string[];
@@ -26,6 +32,9 @@ export interface ArticleImportExecuteItemResponse {
   boardSlug: string | null;
   categoryName: string | null;
   visibility: string | null;
+  uploadedImageCount: number;
+  uploadedVideoCount: number;
+  youtubeEmbedCount: number;
   created: boolean;
   articleId: number | null;
   warnings: string[];

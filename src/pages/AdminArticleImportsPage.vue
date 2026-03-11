@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 
 import { executeArticleImport, previewArticleImport } from '../features/admin/system';
 import type { ArticleImportExecuteResponse, ArticleImportPreviewResponse } from '../features/admin/system';
@@ -20,11 +21,13 @@ const executeResult = ref<ArticleImportExecuteResponse | null>(null);
 const autoCreateMissingCategories = ref(true);
 
 const importSteps = [
-  '1. zip 안에 manifest.yml 또는 manifest.yaml 하나와 여러 .md 파일을 준비합니다.',
-  '2. zip 파일을 선택한 뒤 미리보기로 제목, 게시판, 카테고리, 공개 범위, 오류를 먼저 확인합니다.',
-  '3. 카테고리 자동 생성이 켜져 있으면 없는 카테고리는 미리보기에서 생성 예정으로 표시됩니다.',
-  '4. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
-  '5. 실행 결과에서 생성 성공/실패와 문서별 경고를 다시 확인합니다.',
+  '1. zip 안에는 여러 .md/.markdown 파일을 넣고, 필요하면 manifest.yml 또는 manifest.yaml을 같이 넣습니다.',
+  '2. manifest가 없으면 zip 안의 Markdown 파일을 자동 스캔해 미리보기 후보를 만듭니다.',
+  '3. 상대경로 이미지 Markdown 문법과 HTML video/source 태그는 현재 Markdown 파일 위치 기준으로 해석합니다.',
+  '4. !youtube[...] 문법은 미리보기에서 검사하고, 해석에 성공하면 렌더 시 임베드로 표시됩니다.',
+  '5. 카테고리 자동 생성이 켜져 있으면 없는 카테고리는 미리보기에서 생성 예정으로 표시됩니다.',
+  '6. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
+  '7. 실행 결과에서 생성 성공/실패와 업로드된 본문 assets 수를 다시 확인합니다.',
 ];
 
 const metadataRules = [
@@ -33,13 +36,25 @@ const metadataRules = [
   'categoryName: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
   'visibility: manifest 항목 > Markdown frontmatter > defaults > PUBLIC 순서로 결정됩니다.',
   '저장 시 title, boardSlug, categoryName, visibility는 최종 적용값 기준으로 frontmatter에 다시 정리됩니다.',
+  'tags, summary, 미지원 사용자 정의 frontmatter 키는 지우지 않고 content_source 원본에 그대로 보존합니다.',
 ];
 
 const unsupportedNotes = [
   'frontmatter의 tags, summary, 미지원 필드는 content_source 원본에 보존되며 별도 UI에는 아직 자동 반영되지 않습니다.',
-  '이미지 상대경로, 첨부 assets 자동 업로드/치환은 아직 지원하지 않습니다.',
-  'manifest 파일은 zip 안에 정확히 하나만 있어야 합니다.',
+  '첨부파일은 기존처럼 별도 업로드 대상이며, 대량 임포트에서 자동 업로드하지 않습니다.',
+  '일반 iframe/embed 외부 임베드는 허용하지 않고, Markdown 유튜브는 !youtube[...] 문법만 지원합니다.',
+  '로컬 이미지/동영상 assets는 파일당 최대 50MB까지 허용합니다.',
+  '상대경로는 현재 Markdown 파일 위치 기준으로 계산하므로 ./assets 경로가 항상 맞는 것은 아닙니다.',
 ];
+
+const sampleZipStructure = `batch-import.zip
+├─ manifest.yml                # 선택
+├─ posts/
+│  ├─ post-1.md
+│  └─ post-2.md
+└─ assets/
+   ├─ cover.png
+   └─ demo.mp4`;
 
 const sampleManifest = `defaults:
   boardSlug: dev
@@ -63,7 +78,44 @@ visibility: "PUBLIC"
 
 # 본문 시작
 
-여기부터 실제 Markdown 본문입니다.`;
+![대표 이미지](../assets/cover.png)
+
+!youtube[dQw4w9WgXcQ]
+
+<video controls src="../assets/demo.mp4"></video>`;
+
+const formatPreviewAssetSummary = (item: ArticleImportPreviewResponse['items'][number]) => {
+  const parts = [`이미지 ${item.relativeImageCount}`, `동영상 ${item.relativeVideoCount}`, `유튜브 ${item.youtubeEmbedCount}`];
+  const issues: string[] = [];
+  if (item.missingAssetCount > 0) {
+    issues.push(`누락 ${item.missingAssetCount}`);
+  }
+  if (item.oversizedAssetCount > 0) {
+    issues.push(`용량초과 ${item.oversizedAssetCount}`);
+  }
+  if (item.unsupportedAssetCount > 0) {
+    issues.push(`미지원 ${item.unsupportedAssetCount}`);
+  }
+  return issues.length > 0 ? `${parts.join(' · ')} / ${issues.join(' · ')}` : parts.join(' · ');
+};
+
+const formatExecuteAssetSummary = (item: ArticleImportExecuteResponse['items'][number]) => {
+  return `이미지 ${item.uploadedImageCount} · 동영상 ${item.uploadedVideoCount} · 유튜브 ${item.youtubeEmbedCount}`;
+};
+
+const resolveCreatedArticlePath = (item: ArticleImportExecuteResponse['items'][number]) => {
+  if (!item.created || !item.articleId || !item.boardSlug) {
+    return null;
+  }
+  return `/b/${item.boardSlug}/articles/${item.articleId}`;
+};
+
+const resolveExecuteCardClass = (item: ArticleImportExecuteResponse['items'][number]) => {
+  if (item.created && item.articleId && item.boardSlug) {
+    return 'border-emerald-200 bg-emerald-50/60 transition hover:border-emerald-300 hover:bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/10 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20';
+  }
+  return 'border-rose-200 bg-rose-50/40 dark:border-rose-900/60 dark:bg-rose-950/10';
+};
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -174,7 +226,8 @@ const resolveStatusBadgeClass = (executable: boolean) => {
             <div>
               <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시글 대량 임포트</h1>
               <p class="text-sm text-slate-500 dark:text-slate-400">
-                <code class="font-mono text-[0.95em]">manifest.yml + 여러 .md + zip</code> 구조를 미리 검증하고 일괄 생성합니다.
+                <code class="font-mono text-[0.95em]">여러 .md/.markdown + 선택적 manifest + 본문 assets + zip</code>
+                구조를 미리 검증하고 일괄 생성합니다.
               </p>
               <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Markdown 원본과 frontmatter는 <code class="font-mono text-[0.95em]">content_source</code>에 함께 보존됩니다.
@@ -199,6 +252,16 @@ const resolveStatusBadgeClass = (executable: boolean) => {
             </div>
 
             <div class="mt-5 grid gap-4 xl:grid-cols-2">
+              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">권장 zip 구조</h3>
+                <pre
+                  class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
+                ><code>{{ sampleZipStructure }}</code></pre>
+                <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
+                  <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의 Markdown 파일을 자동 스캔합니다.
+                </p>
+              </div>
+
               <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
                 <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">실행 순서</h3>
                 <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
@@ -225,6 +288,11 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 <pre
                   class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
                 ><code>{{ sampleMarkdown }}</code></pre>
+                <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
+                  저장 시 <code class="font-mono text-[0.95em]">title</code>, <code class="font-mono text-[0.95em]">boardSlug</code>,
+                  <code class="font-mono text-[0.95em]">categoryName</code>, <code class="font-mono text-[0.95em]">visibility</code>는 현재 적용값으로
+                  다시 정리되고, 나머지 frontmatter는 원본 그대로 보존됩니다.
+                </p>
               </div>
             </div>
 
@@ -243,8 +311,9 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">업로드 파일</p>
                 <p class="text-sm text-slate-500 dark:text-slate-400">{{ selectedFileName }}</p>
                 <p class="text-xs text-slate-400">
-                  zip 루트 또는 하위 폴더에 <code class="font-mono text-[0.95em]">manifest.yml</code> 또는
-                  <code class="font-mono text-[0.95em]">manifest.yaml</code> 하나가 있어야 합니다.
+                  <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의
+                  <code class="font-mono text-[0.95em]">.md</code>/<code class="font-mono text-[0.95em]">.markdown</code>
+                  파일을 자동 스캔합니다.
                 </p>
               </div>
               <div class="flex flex-wrap items-center gap-3">
@@ -327,6 +396,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                     <th class="px-3 py-3">게시판</th>
                     <th class="px-3 py-3">카테고리</th>
                     <th class="px-3 py-3">공개 범위</th>
+                    <th class="px-3 py-3">본문 assets</th>
                     <th class="px-3 py-3">상태</th>
                   </tr>
                 </thead>
@@ -337,6 +407,9 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                     <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.boardSlug ?? '-' }}</td>
                     <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.categoryName ?? '-' }}</td>
                     <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.visibility ?? '-' }}</td>
+                    <td class="px-3 py-4 align-top text-xs text-slate-500 dark:text-slate-400">
+                      {{ formatPreviewAssetSummary(item) }}
+                    </td>
                     <td class="px-3 py-4 align-top">
                       <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(item.executable)">
                         {{ item.executable ? '실행 가능' : '확인 필요' }}
@@ -365,16 +438,30 @@ const resolveStatusBadgeClass = (executable: boolean) => {
             </div>
 
             <div class="mt-4 space-y-3">
-              <div
+              <component
+                :is="resolveCreatedArticlePath(item) ? RouterLink : 'div'"
                 v-for="item in executeResult.items"
                 :key="`${item.filePath}-${item.articleId ?? 'failed'}`"
-                class="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
+                :to="resolveCreatedArticlePath(item) ?? undefined"
+                class="block rounded-2xl border p-4"
+                :class="resolveExecuteCardClass(item)"
               >
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ item.title ?? item.filePath }}</p>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ item.title ?? item.filePath }}</p>
+                      <span
+                        v-if="resolveCreatedArticlePath(item)"
+                        class="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300"
+                      >
+                        클릭해서 글 보기
+                      </span>
+                    </div>
                     <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
                       {{ item.filePath }} · {{ item.boardSlug ?? '-' }} · {{ item.categoryName ?? '-' }} · {{ item.visibility ?? '-' }}
+                    </p>
+                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {{ formatExecuteAssetSummary(item) }}
                     </p>
                   </div>
                   <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(item.created)">
@@ -387,7 +474,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 <ul v-if="item.errors.length > 0" class="mt-3 space-y-1 text-xs text-rose-600 dark:text-rose-300">
                   <li v-for="error in item.errors" :key="`${item.filePath}-err-${error}`">{{ error }}</li>
                 </ul>
-              </div>
+              </component>
             </div>
           </section>
         </div>

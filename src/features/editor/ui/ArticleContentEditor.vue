@@ -383,6 +383,7 @@ const addCodeBlock = () => wrapSelection('```text\n', '\n```', '코드');
 const addLink = () => wrapSelection('[', '](https://example.com)', '링크 텍스트');
 const addTable = () => insertBlock('\n\n| 항목 | 값 |\n| --- | --- |\n| 예시 | 내용 |\n\n');
 const addMermaidBlock = () => wrapSelection('```mermaid\n', '\n```', 'graph TD\n  A[시작] --> B[다음]');
+const addYouTubeEmbed = () => wrapSelection('!youtube[', ']', 'https://youtu.be/dQw4w9WgXcQ');
 const addBold = () => wrapSelection('**', '**', '굵은 텍스트');
 const addItalic = () => wrapSelection('*', '*', '기울임 텍스트');
 
@@ -765,6 +766,7 @@ onBeforeUnmount(() => {
           <button type="button" :class="actionButtonClass" @click="addCodeBlock">코드</button>
           <button type="button" :class="actionButtonClass" @click="addTable">표</button>
           <button type="button" :class="actionButtonClass" @click="addMermaidBlock">Mermaid</button>
+          <button type="button" :class="actionButtonClass" @click="addYouTubeEmbed">유튜브</button>
           <button type="button" :class="actionButtonClass" @click="openMarkdownImagePicker">이미지 업로드</button>
           <button type="button" :class="actionButtonClass" @click="openMarkdownVideoPicker">영상 업로드</button>
           <button type="button" :class="actionButtonClass" @click="openMarkdownImportPicker">MD 불러오기</button>
@@ -803,6 +805,18 @@ onBeforeUnmount(() => {
             <span>Markdown으로 작성하고, 오른쪽에서 실제 렌더 결과를 확인합니다.</span>
             <span class="text-[11px]">이미지/영상 드래그 앤 드롭 가능</span>
           </div>
+          <div
+            class="mb-3 rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400"
+          >
+            유튜브 임베드 문법:
+            <code class="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >!youtube[dQw4w9WgXcQ]</code
+            >
+            또는
+            <code class="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >!youtube[https://youtu.be/dQw4w9WgXcQ]</code
+            >
+          </div>
 
           <div class="gap-4" :class="isMarkdownSplitMode ? 'grid lg:grid-cols-2 lg:items-stretch' : 'block'">
             <div v-if="markdownPreviewMode !== 'preview'" class="space-y-2" :class="isMarkdownSplitMode ? 'min-h-0' : ''">
@@ -840,6 +854,7 @@ onBeforeUnmount(() => {
                 <div class="ui-markdown-editor-status">
                   <span>표, Mermaid, 코드블록은 실제 게시글과 같은 서버 렌더 규칙을 사용합니다.</span>
                   <span class="hidden sm:inline">Mermaid 지원: `graph/flowchart`, `sequenceDiagram`, `erDiagram`</span>
+                  <span class="hidden xl:inline">유튜브 지원: `!youtube[URL 또는 VIDEO_ID]`</span>
                 </div>
               </div>
             </div>
