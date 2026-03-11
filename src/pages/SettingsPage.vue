@@ -23,7 +23,7 @@ const layoutOptions: LayoutOption[] = [
   {
     value: 'wide',
     label: '넓게',
-    description: '홈, 커뮤니티, 검색 같은 목록형 화면을 더 넓게 표시합니다.',
+    description: '목록형 화면과 본문형 화면을 기본보다 더 넓게 표시합니다.',
   },
   {
     value: 'full',
@@ -46,12 +46,12 @@ const handleSelectPreset = (preset: ContentWidthPreset) => {
         <PageHeader
           eyebrow="설정"
           title="사이트 레이아웃"
-          description="데스크톱 화면에서 메인 콘텐츠 영역의 폭을 조절합니다. 모바일에서는 화면 전체 폭을 그대로 사용합니다."
+          description="데스크톱 화면에서 공통 레이아웃을 사용하는 메인 콘텐츠 영역의 폭을 조절합니다. 모바일에서는 화면 전체 폭을 그대로 사용합니다."
         />
 
         <section class="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.9fr)]">
           <div class="ui-panel px-5 py-5 sm:px-6">
-            <SectionHeader title="사이트 레이아웃 사이즈" description="홈, 커뮤니티, 검색 등 공통 레이아웃을 사용하는 화면에 바로 반영됩니다." />
+            <SectionHeader title="사이트 레이아웃 사이즈" description="공통 레이아웃을 사용하는 화면 전반에 바로 반영됩니다." />
 
             <div class="mt-5 grid gap-3">
               <button
@@ -96,7 +96,7 @@ const handleSelectPreset = (preset: ContentWidthPreset) => {
               <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">적용 범위</p>
                 <ul class="mt-3 space-y-2 text-sm text-slate-500 dark:text-slate-400">
-                  <li>홈, 커뮤니티, 검색 같은 공통 페이지 레이아웃</li>
+                  <li>홈, 커뮤니티, 게시글 상세와 작성 화면 같은 공통 레이아웃 페이지</li>
                   <li>브라우저에만 저장되는 개인 설정</li>
                   <li>모바일 화면에서는 전체 폭 사용</li>
                 </ul>

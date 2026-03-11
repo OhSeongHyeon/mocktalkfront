@@ -18,7 +18,7 @@ const props = defineProps<ArticleUpsertPageLayoutProps>();
 
 <template>
   <AppShell>
-    <PageContainer width="narrow">
+    <PageContainer width="auto">
       <div>
         <BoardHeaderCard
           :title="boardTitle"

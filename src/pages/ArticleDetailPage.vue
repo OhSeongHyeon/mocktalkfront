@@ -965,7 +965,7 @@ onUnmounted(() => {
 
 <template>
   <AppShell ref="appShellRef">
-    <PageContainer width="narrow">
+    <PageContainer width="auto">
       <div>
         <BoardHeaderCard
           :title="article?.board?.boardName ?? '커뮤니티'"
