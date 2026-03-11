@@ -14,6 +14,7 @@ import { formatNotificationMessage } from '../shared/lib/notifications';
 import { applyProfileSummary } from '../shared/lib/profile';
 import { clearAccessToken } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
@@ -484,15 +485,8 @@ onBeforeUnmount(() => {
   <AppShell>
     <PageContainer width="auto">
       <div class="flex flex-col gap-6">
-        <section
-          class="flex flex-col gap-3 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80"
-        >
-          <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">My Page</p>
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">나의 프로필 관리</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">프로필 정보를 수정하고 내 활동을 확인하세요.</p>
-            </div>
+        <PageHeader eyebrow="마이페이지" title="나의 프로필 관리" description="프로필 정보를 수정하고 내 활동을 확인하세요.">
+          <template #actions>
             <div class="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -519,13 +513,11 @@ onBeforeUnmount(() => {
                 프로필 수정
               </button>
             </div>
-          </div>
-        </section>
+          </template>
+        </PageHeader>
 
         <section v-if="mainTab === 'profile'" class="grid gap-6 lg:grid-cols-[1.1fr_1.3fr]">
-          <div
-            class="flex h-full flex-col gap-5 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80"
-          >
+          <div class="ui-panel flex h-full flex-col gap-5 p-6">
             <div class="flex items-center gap-4">
               <div class="h-20 w-20 overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-100 dark:border-slate-800/80 dark:bg-slate-900">
                 <img v-if="resolvedProfileImage" :src="resolvedProfileImage" alt="프로필 이미지" class="h-full w-full object-cover" />
@@ -572,17 +564,10 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <div
-              class="rounded-2xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-xs text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/70 dark:text-slate-400"
-            >
-              프로필 이미지 업로드는 이미지 파일만 가능합니다.
-            </div>
+            <div class="ui-sub-panel px-4 py-3 text-xs text-slate-500 dark:text-slate-400">프로필 이미지 업로드는 이미지 파일만 가능합니다.</div>
           </div>
 
-          <form
-            class="flex flex-col gap-4 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80"
-            @submit.prevent="handleSubmit"
-          >
+          <form class="ui-panel flex flex-col gap-4 p-6" @submit.prevent="handleSubmit">
             <div class="flex items-center justify-between">
               <h2 class="text-lg font-semibold text-slate-900 dark:text-white">프로필 수정</h2>
               <span v-if="isProfileLoading" class="text-xs text-slate-400">불러오는 중...</span>
@@ -726,10 +711,7 @@ onBeforeUnmount(() => {
           </form>
         </section>
 
-        <section
-          v-else
-          class="flex flex-col gap-4 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-sm backdrop-blur dark:border-slate-800/80 dark:bg-slate-950/80"
-        >
+        <section v-else class="ui-panel flex flex-col gap-4 p-6">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex gap-2">
               <button
@@ -858,11 +840,7 @@ onBeforeUnmount(() => {
           </p>
           <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">{{ activityEmptyMessage }}</div>
           <div v-else class="grid gap-3">
-            <div
-              v-for="item in currentList?.items"
-              :key="item.id"
-              class="rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/70 dark:text-slate-200"
-            >
+            <div v-for="item in currentList?.items" :key="item.id" class="ui-sub-panel px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
               <button
                 v-if="activeTab === 'notifications'"
                 type="button"

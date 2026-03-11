@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
+import SectionHeader from '../shared/ui/SectionHeader.vue';
 import { contentWidthPreset, setContentWidthPreset } from '../stores/layout';
 import type { ContentWidthPreset } from '../stores/layout';
 import AppShell from '../widgets/layout/AppShell.vue';
@@ -41,22 +43,15 @@ const handleSelectPreset = (preset: ContentWidthPreset) => {
   <AppShell>
     <PageContainer width="auto">
       <div class="space-y-6">
-        <section class="ui-panel px-5 py-6 sm:px-6">
-          <div class="space-y-2">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">설정</p>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100 sm:text-3xl">사이트 레이아웃</h1>
-            <p class="max-w-3xl text-sm text-slate-500 dark:text-slate-400">
-              데스크톱 화면에서 메인 콘텐츠 영역의 폭을 조절합니다. 모바일에서는 화면 전체 폭을 그대로 사용합니다.
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow="설정"
+          title="사이트 레이아웃"
+          description="데스크톱 화면에서 메인 콘텐츠 영역의 폭을 조절합니다. 모바일에서는 화면 전체 폭을 그대로 사용합니다."
+        />
 
         <section class="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.9fr)]">
           <div class="ui-panel px-5 py-5 sm:px-6">
-            <div class="space-y-1">
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">사이트 레이아웃 사이즈</h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400">홈, 커뮤니티, 검색 등 공통 레이아웃을 사용하는 화면에 바로 반영됩니다.</p>
-            </div>
+            <SectionHeader title="사이트 레이아웃 사이즈" description="홈, 커뮤니티, 검색 등 공통 레이아웃을 사용하는 화면에 바로 반영됩니다." />
 
             <div class="mt-5 grid gap-3">
               <button
@@ -96,13 +91,7 @@ const handleSelectPreset = (preset: ContentWidthPreset) => {
 
           <aside class="ui-panel px-5 py-5 sm:px-6">
             <div class="space-y-4">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">현재 설정</p>
-                <p class="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">{{ selectedOption.label }}</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                  {{ selectedOption.description }}
-                </p>
-              </div>
+              <SectionHeader eyebrow="현재 설정" :title="selectedOption.label" :description="selectedOption.description" />
 
               <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">적용 범위</p>

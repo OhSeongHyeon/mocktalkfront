@@ -8,6 +8,7 @@ import { ApiError } from '../shared/lib/http/api';
 import { deleteAllArticleBookmarks, deleteArticleBookmarks, getArticleBookmarks } from '../entities/article';
 import type { ArticleBookmarkItemResponse } from '../entities/article';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
@@ -128,13 +129,10 @@ onMounted(() => {
 <template>
   <AppShell>
     <PageContainer width="auto">
-      <div>
-        <div class="flex flex-col gap-2">
-          <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">보관함</h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400">북마크한 게시글을 모아볼 수 있습니다.</p>
-        </div>
+      <div class="space-y-6">
+        <PageHeader title="보관함" description="북마크한 게시글을 모아볼 수 있습니다." />
 
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div class="ui-sub-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <span>선택 {{ selectedIds.length }}개</span>
             <button
@@ -156,11 +154,11 @@ onMounted(() => {
           </button>
         </div>
 
-        <div v-if="listError" class="ui-state ui-state-danger mt-6">
+        <div v-if="listError" class="ui-state ui-state-danger">
           {{ listError }}
         </div>
 
-        <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500">
+        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500">
           <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
           북마크 목록을 불러오는 중입니다.
         </div>

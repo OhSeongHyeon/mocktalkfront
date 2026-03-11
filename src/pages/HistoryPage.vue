@@ -6,6 +6,7 @@ import ConfirmModal from '../shared/ui/ConfirmModal.vue';
 import { clearHistoryItems, getHistoryItems, removeHistoryItem } from '../shared/lib/history';
 import type { HistoryItem } from '../shared/lib/history';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
@@ -73,22 +74,20 @@ onMounted(async () => {
 <template>
   <AppShell>
     <PageContainer width="auto">
-      <div>
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">기록</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">최근 열람한 게시글을 확인할 수 있습니다. 이 기록은 브라우저에만 저장됩니다.</p>
-          </div>
-          <button
-            type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-            @click="openClearModal"
-          >
-            전체 삭제
-          </button>
-        </div>
+      <div class="space-y-6">
+        <PageHeader title="기록" description="최근 열람한 게시글을 확인할 수 있습니다. 이 기록은 브라우저에만 저장됩니다.">
+          <template #actions>
+            <button
+              type="button"
+              class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+              @click="openClearModal"
+            >
+              전체 삭제
+            </button>
+          </template>
+        </PageHeader>
 
-        <div class="ui-panel mt-6 p-4">
+        <div class="ui-panel p-4">
           <div class="flex flex-wrap items-center gap-3">
             <input
               v-model="searchKeyword"
@@ -100,11 +99,11 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div v-if="filteredItems.length > 0" class="mt-6 flex flex-col gap-3">
+        <div v-if="filteredItems.length > 0" class="flex flex-col gap-3">
           <div
             v-for="item in filteredItems"
             :key="item.articleId"
-            class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm transition hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950"
+            class="ui-sub-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition hover:border-slate-300"
           >
             <button type="button" class="flex min-w-0 flex-1 flex-col gap-1 text-left" @click="goArticle(item)">
               <p class="text-xs font-semibold text-slate-400">
@@ -126,7 +125,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div v-else class="ui-state ui-state-empty mt-10 px-6 py-12">기록이 없습니다.</div>
+        <div v-else class="ui-state ui-state-empty px-6 py-12">기록이 없습니다.</div>
       </div>
     </PageContainer>
 

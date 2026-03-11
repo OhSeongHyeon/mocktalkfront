@@ -7,6 +7,7 @@ import { getBoardSubscribes } from '../entities/board';
 import type { BoardSubscribeItemResponse } from '../entities/board';
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const isLoading = ref(false);
@@ -76,22 +77,19 @@ onMounted(() => {
 <template>
   <AppShell>
     <PageContainer width="auto">
-      <div>
-        <div class="flex flex-col gap-2">
-          <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">구독 목록</h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400">구독 중인 커뮤니티를 한눈에 확인할 수 있습니다.</p>
-        </div>
+      <div class="space-y-6">
+        <PageHeader title="구독 목록" description="구독 중인 커뮤니티를 한눈에 확인할 수 있습니다." />
 
-        <div v-if="listError" class="ui-state ui-state-danger mt-6">
+        <div v-if="listError" class="ui-state ui-state-danger">
           {{ listError }}
         </div>
 
-        <div v-if="subscribes.length > 0" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div v-if="subscribes.length > 0" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <RouterLink
             v-for="board in subscribes"
             :key="board.id"
             :to="`/b/${board.slug}`"
-            class="group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
+            class="ui-sub-panel group block overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md"
           >
             <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
               <img
@@ -117,14 +115,14 @@ onMounted(() => {
           </RouterLink>
         </div>
 
-        <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty mt-10 px-6 py-12">아직 구독 중인 커뮤니티가 없습니다.</div>
+        <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 구독 중인 커뮤니티가 없습니다.</div>
 
-        <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500">
+        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500">
           <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
           구독 목록을 불러오는 중입니다.
         </div>
 
-        <div v-if="showPagination" class="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div v-if="showPagination" class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
