@@ -10,6 +10,7 @@ interface ArticleListProps {
   articles: ArticleSummaryResponse[];
   isLoading?: boolean;
   emptyMessage?: string;
+  resolveHref?: (article: ArticleSummaryResponse) => string;
   order?: ArticleListOrder;
   orderOptions?: readonly ArticleListOrder[];
   pageSize?: number;
@@ -78,8 +79,23 @@ const formatDate = (value: string) => {
   });
 };
 
+const resolveCategoryName = (article: ArticleSummaryResponse) => {
+  const trimmed = article.categoryName?.trim();
+  return trimmed ? trimmed : null;
+};
+
+const resolveHref = (article: ArticleSummaryResponse) => props.resolveHref?.(article) ?? '#';
+
 const handleSelect = (articleId: number) => {
   emit('select', articleId);
+};
+
+const handleArticleClick = (event: MouseEvent, articleId: number) => {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  event.preventDefault();
+  handleSelect(articleId);
 };
 
 const handleOrderChange = (event: Event) => {
@@ -141,15 +157,21 @@ const handleNextPageWindow = () => {
   <section v-if="showPinned" class="mt-8">
     <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">공지</h2>
     <div class="mt-3 space-y-3">
-      <button
+      <a
         v-for="article in pinnedList"
         :key="article.id"
-        type="button"
+        :href="resolveHref(article)"
         class="flex w-full flex-col gap-2 rounded-2xl border border-amber-200/70 bg-amber-50/70 px-5 py-4 text-left transition hover:-translate-y-0.5 dark:border-amber-900/40 dark:bg-amber-950/30"
-        @click="handleSelect(article.id)"
+        @click="handleArticleClick($event, article.id)"
       >
         <div class="flex items-center gap-2">
           <span class="inline-flex rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white"> 공지 </span>
+          <span
+            v-if="resolveCategoryName(article)"
+            class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
+          >
+            {{ resolveCategoryName(article) }}
+          </span>
           <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
             {{ article.title }}
           </span>
@@ -162,7 +184,7 @@ const handleNextPageWindow = () => {
           <span>싫어요 {{ article.dislikeCount }}</span>
           <span>조회 {{ article.hit }}</span>
         </div>
-      </button>
+      </a>
     </div>
   </section>
 
@@ -281,16 +303,24 @@ const handleNextPageWindow = () => {
     </div>
 
     <div v-else class="mt-4 space-y-3">
-      <button
+      <a
         v-for="article in articles"
         :key="article.id"
-        type="button"
+        :href="resolveHref(article)"
         class="ui-sub-panel flex w-full cursor-pointer flex-col gap-2 px-5 py-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:hover:border-slate-700"
-        @click="handleSelect(article.id)"
+        @click="handleArticleClick($event, article.id)"
       >
-        <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
-          {{ article.title }}
-        </span>
+        <div class="flex flex-wrap items-center gap-2">
+          <span
+            v-if="resolveCategoryName(article)"
+            class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
+          >
+            {{ resolveCategoryName(article) }}
+          </span>
+          <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            {{ article.title }}
+          </span>
+        </div>
         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
           <span>{{ article.authorName }}</span>
           <span>{{ formatDate(article.createdAt) }}</span>
@@ -299,7 +329,7 @@ const handleNextPageWindow = () => {
           <span>싫어요 {{ article.dislikeCount }}</span>
           <span>조회 {{ article.hit }}</span>
         </div>
-      </button>
+      </a>
     </div>
 
     <div v-if="showPagination" class="mt-4 grid items-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-[1fr_auto_1fr]">

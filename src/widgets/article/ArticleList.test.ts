@@ -10,6 +10,8 @@ const createArticle = (overrides: Partial<ArticleSummaryResponse> = {}): Article
   userId: 100,
   authorName: '작성자',
   title: '테스트 게시글',
+  categoryId: 7,
+  categoryName: '일반',
   hit: 12,
   commentCount: 3,
   likeCount: 5,
@@ -34,12 +36,16 @@ describe('widgets/article/ArticleList', () => {
         totalPages: 3,
         hasPrevious: false,
         hasNext: true,
+        resolveHref: (article: ArticleSummaryResponse) => `/b/test-board/articles/${article.id}`,
       },
     });
 
     // when
-    await wrapper.find('button[class*="bg-amber-50"]').trigger('click');
-    await wrapper.find('button[class*="ui-sub-panel"]').trigger('click');
+    const pinnedLink = wrapper.get('a[href="/b/test-board/articles/99"]');
+    const articleLink = wrapper.get('a[href="/b/test-board/articles/11"]');
+    await pinnedLink.trigger('click');
+    await articleLink.trigger('click');
+    await articleLink.trigger('click', { ctrlKey: true });
     await wrapper.get('select[aria-label="정렬"]').setValue('OLDEST');
     await wrapper.get('select[aria-label="표시 개수"]').setValue('20');
     const pageTwoButton = wrapper.findAll('button').find((button) => button.text().trim() === '2');
@@ -53,6 +59,7 @@ describe('widgets/article/ArticleList', () => {
     expect(wrapper.emitted('update:order')).toEqual([['OLDEST']]);
     expect(wrapper.emitted('update:pageSize')).toEqual([[20]]);
     expect(wrapper.emitted('update:page')).toEqual([[1]]);
+    expect(wrapper.text()).toContain('일반');
   });
 
   it('게시글이 없고 로딩 중이 아니면 빈 상태 메시지를 보여준다', () => {
