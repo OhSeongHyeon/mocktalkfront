@@ -26,7 +26,7 @@ const widthClass = computed(() => {
     return 'max-w-4xl';
   }
   if (resolvedWidth.value === 'wide') {
-    return 'max-w-7xl';
+    return 'max-w-screen-2xl';
   }
   if (resolvedWidth.value === 'full') {
     return 'max-w-none';
