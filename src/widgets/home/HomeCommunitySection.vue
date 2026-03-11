@@ -10,8 +10,8 @@ import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg'
 const boards = ref<BoardResponse[]>([]);
 const isLoading = ref(false);
 const listError = ref('');
-const targetCount = 6;
-const pageSize = 12;
+const targetCount = 15;
+const pageSize = 15;
 const excludedSlugs = new Set(['notice', 'inquiry']);
 
 const resolveBoardImage = (board: BoardResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
@@ -83,14 +83,14 @@ onMounted(() => {
       공개 커뮤니티를 불러오는 중입니다.
     </div>
 
-    <div v-else-if="boards.length > 0" class="mt-5 grid gap-3">
+    <div v-else-if="boards.length > 0" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <RouterLink
         v-for="board in boards"
         :key="board.id"
         :to="`/b/${board.slug}`"
-        class="ui-sub-panel group flex items-center gap-4 px-4 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:hover:border-slate-700"
+        class="ui-sub-panel group flex h-full flex-col px-4 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:hover:border-slate-700"
       >
-        <div class="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900">
+        <div class="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900">
           <img
             v-if="resolveBoardImage(board)"
             :src="resolveBoardImage(board) ?? undefined"
@@ -98,10 +98,10 @@ onMounted(() => {
             class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
           <div v-else class="flex h-full w-full items-center justify-center text-slate-400">
-            <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-6 w-6" />
+            <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-8 w-8" />
           </div>
         </div>
-        <div class="min-w-0 flex-1">
+        <div class="mt-4 min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2">
             <h3 class="truncate text-base font-semibold text-slate-900 dark:text-slate-100">{{ board.boardName }}</h3>
             <span
@@ -110,7 +110,7 @@ onMounted(() => {
               공개
             </span>
           </div>
-          <p class="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
+          <p class="mt-2 line-clamp-3 text-sm text-slate-500 dark:text-slate-400">
             {{ resolveDescription(board.description) }}
           </p>
         </div>
