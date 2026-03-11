@@ -4,7 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 import { logout } from '../../features/auth';
-import { removeNotificationPresence, updateNotificationPresence } from '../../features/notification';
+import { useNotificationPresence } from '../../features/notification';
 import type { NotificationResponse } from '../../features/notification';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
 import { applyTheme } from '../../shared/lib/theme';
@@ -37,8 +37,6 @@ const notificationButtonRef = ref<HTMLButtonElement | null>(null);
 const resolvedAvatar = computed(() => profileImageUrl.value ?? defaultAvatar);
 const resolvedDisplayName = computed(() => displayName.value ?? '사용자');
 const resolvedPoint = computed(() => userPoint.value.toLocaleString());
-const notificationPresenceSessionId = ref<string | null>(null);
-const notificationPresenceHeartbeatTimer = ref<number | null>(null);
 const hasUnreadNotifications = computed(() => notificationUnreadCount.value > 0);
 const notificationUnreadLabel = computed(() => (notificationUnreadCount.value > 9 ? '9+' : String(notificationUnreadCount.value)));
 const notificationButtonLabel = computed(() => {
@@ -48,8 +46,10 @@ const notificationButtonLabel = computed(() => {
   return `알림 ${notificationUnreadCount.value}개`;
 });
 const searchKeyword = ref('');
-const NOTIFICATION_PRESENCE_SESSION_KEY = 'notification_presence_session_id';
-const NOTIFICATION_PRESENCE_HEARTBEAT_MS = 15_000;
+const { stopNotificationPresence } = useNotificationPresence({
+  isAuthenticated,
+  isNotificationMenuOpen,
+});
 
 onMounted(() => {
   isDark.value = globalThis.document?.documentElement.classList.contains('dark') ?? false;
@@ -199,117 +199,15 @@ const handleSearch = async () => {
   await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
 };
 
-const buildPresenceSessionId = () => {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
-  }
-  return `presence-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-};
-
-const ensurePresenceSessionId = () => {
-  if (notificationPresenceSessionId.value) {
-    return notificationPresenceSessionId.value;
-  }
-  if (typeof window === 'undefined') {
-    const fallbackSessionId = buildPresenceSessionId();
-    notificationPresenceSessionId.value = fallbackSessionId;
-    return fallbackSessionId;
-  }
-
-  const savedSessionId = window.sessionStorage.getItem(NOTIFICATION_PRESENCE_SESSION_KEY);
-  if (savedSessionId && savedSessionId.trim().length > 0) {
-    notificationPresenceSessionId.value = savedSessionId;
-    return savedSessionId;
-  }
-
-  const createdSessionId = buildPresenceSessionId();
-  window.sessionStorage.setItem(NOTIFICATION_PRESENCE_SESSION_KEY, createdSessionId);
-  notificationPresenceSessionId.value = createdSessionId;
-  return createdSessionId;
-};
-
-const resolvePresenceViewType = () => {
-  if (route.name === 'home') {
-    return 'HOME' as const;
-  }
-  if (route.name === 'article-detail') {
-    return 'ARTICLE_DETAIL' as const;
-  }
-  return 'OTHER' as const;
-};
-
-const resolvePresenceArticleId = () => {
-  if (route.name !== 'article-detail') {
-    return null;
-  }
-  const rawArticleId = route.params.articleId;
-  if (typeof rawArticleId !== 'string') {
-    return null;
-  }
-  const parsedArticleId = Number(rawArticleId);
-  if (!Number.isInteger(parsedArticleId) || parsedArticleId <= 0) {
-    return null;
-  }
-  return parsedArticleId;
-};
-
-const syncNotificationPresence = async () => {
-  if (!isAuthenticated.value) {
-    return;
-  }
-  const sessionId = ensurePresenceSessionId();
-  try {
-    await updateNotificationPresence({
-      sessionId,
-      viewType: resolvePresenceViewType(),
-      articleId: resolvePresenceArticleId(),
-      notificationPanelOpen: isNotificationMenuOpen.value,
-    });
-  } catch {
-    // presence 동기화 실패는 본 기능을 막지 않도록 무시한다.
-  }
-};
-
-const clearNotificationPresenceHeartbeat = () => {
-  if (notificationPresenceHeartbeatTimer.value === null) {
-    return;
-  }
-  window.clearInterval(notificationPresenceHeartbeatTimer.value);
-  notificationPresenceHeartbeatTimer.value = null;
-};
-
-const startNotificationPresence = () => {
-  ensurePresenceSessionId();
-  clearNotificationPresenceHeartbeat();
-  void syncNotificationPresence();
-  notificationPresenceHeartbeatTimer.value = window.setInterval(() => {
-    void syncNotificationPresence();
-  }, NOTIFICATION_PRESENCE_HEARTBEAT_MS);
-};
-
-const stopNotificationPresence = (removePresence: boolean) => {
-  clearNotificationPresenceHeartbeat();
-  if (!removePresence) {
-    return;
-  }
-  if (!isAuthenticated.value) {
-    return;
-  }
-  const sessionId = ensurePresenceSessionId();
-  void removeNotificationPresence(sessionId).catch(() => {});
-};
-
 watch(
   isAuthenticated,
   (authenticated) => {
     if (!authenticated) {
       notificationStore.stopNotificationRealtime();
-      stopNotificationPresence(false);
       notificationStore.resetNotificationState();
       return;
     }
     notificationStore.startNotificationRealtime();
-    startNotificationPresence();
     void notificationStore.refreshUnreadCount();
   },
   { immediate: true },
@@ -320,13 +218,6 @@ watch([isNotificationMenuOpen, notificationListDirty], ([menuOpen, listDirty]) =
     return;
   }
   void notificationStore.loadNotifications();
-});
-
-watch([() => route.fullPath, isNotificationMenuOpen], () => {
-  if (!isAuthenticated.value) {
-    return;
-  }
-  void syncNotificationPresence();
 });
 
 const handleAuthLogout = () => {
