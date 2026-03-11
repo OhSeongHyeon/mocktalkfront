@@ -39,6 +39,17 @@ describe('router guard characterization', () => {
     setAccessToken(MANAGER_TOKEN, 60);
 
     // when
+    await router.push('/admin');
+
+    // then
+    expect(router.currentRoute.value.path).toBe('/admin');
+  });
+
+  it('매니저 권한 사용자는 운영자 전용 임포트 페이지에 접근할 수 있다', async () => {
+    // given
+    setAccessToken(MANAGER_TOKEN, 60);
+
+    // when
     await router.push('/admin/article-imports');
 
     // then
