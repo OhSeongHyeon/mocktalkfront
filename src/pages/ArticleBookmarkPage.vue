@@ -4,16 +4,14 @@ import { useRouter } from 'vue-router';
 
 import BookmarkList from '../widgets/article/BookmarkList.vue';
 import ConfirmModal from '../shared/ui/ConfirmModal.vue';
-import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
-import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { deleteAllArticleBookmarks, deleteArticleBookmarks, getArticleBookmarks } from '../entities/article';
 import type { ArticleBookmarkItemResponse } from '../entities/article';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import PageContainer from '../shared/ui/PageContainer.vue';
+import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
 
-const isMobileMenuOpen = ref(false);
 const isLoading = ref(false);
 const listError = ref('');
 const bookmarks = ref<ArticleBookmarkItemResponse[]>([]);
@@ -27,20 +25,6 @@ const isDeleting = ref(false);
 const deleteError = ref('');
 const showDeleteModal = ref(false);
 const deleteMode = ref<'selected' | 'all' | null>(null);
-
-const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-
-const toggleMenu = () => {
-  if (isMobileView()) {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
 
 const isInitialLoading = computed(() => isLoading.value && bookmarks.value.length === 0);
 const hasSelection = computed(() => selectedIds.value.length > 0);
@@ -142,65 +126,61 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl">
-          <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">보관함</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">북마크한 게시글을 모아볼 수 있습니다.</p>
-          </div>
+  <AppShell>
+    <PageContainer width="auto">
+      <div>
+        <div class="flex flex-col gap-2">
+          <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">보관함</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400">북마크한 게시글을 모아볼 수 있습니다.</p>
+        </div>
 
-          <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <span>선택 {{ selectedIds.length }}개</span>
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-                :disabled="!hasSelection || isLoading"
-                @click="openDeleteModal('selected')"
-              >
-                선택 삭제
-              </button>
-            </div>
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <span>선택 {{ selectedIds.length }}개</span>
             <button
               type="button"
-              class="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
-              :disabled="bookmarks.length === 0 || isLoading"
-              @click="openDeleteModal('all')"
+              class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+              :disabled="!hasSelection || isLoading"
+              @click="openDeleteModal('selected')"
             >
-              전체 삭제
+              선택 삭제
             </button>
           </div>
-
-          <div v-if="listError" class="ui-state ui-state-danger mt-6">
-            {{ listError }}
-          </div>
-
-          <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500">
-            <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-            북마크 목록을 불러오는 중입니다.
-          </div>
-
-          <BookmarkList
-            v-if="!isInitialLoading"
-            :items="bookmarks"
-            :selected-ids="selectedIds"
-            :is-loading="isLoading"
-            :page="page"
-            :total-pages="totalPages"
-            :has-next="hasNext"
-            :has-previous="hasPrevious"
-            @select="handleSelect"
-            @toggle="toggleSelection"
-            @toggle-all="toggleAllSelection"
-            @update:page="handlePageChange"
-          />
+          <button
+            type="button"
+            class="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
+            :disabled="bookmarks.length === 0 || isLoading"
+            @click="openDeleteModal('all')"
+          >
+            전체 삭제
+          </button>
         </div>
-      </main>
-    </div>
+
+        <div v-if="listError" class="ui-state ui-state-danger mt-6">
+          {{ listError }}
+        </div>
+
+        <div v-if="isInitialLoading" class="mt-6 flex items-center gap-2 text-sm text-slate-500">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+          북마크 목록을 불러오는 중입니다.
+        </div>
+
+        <BookmarkList
+          v-if="!isInitialLoading"
+          :items="bookmarks"
+          :selected-ids="selectedIds"
+          :is-loading="isLoading"
+          :page="page"
+          :total-pages="totalPages"
+          :has-next="hasNext"
+          :has-previous="hasPrevious"
+          @select="handleSelect"
+          @toggle="toggleSelection"
+          @toggle-all="toggleAllSelection"
+          @update:page="handlePageChange"
+        />
+      </div>
+    </PageContainer>
 
     <ConfirmModal
       :open="showDeleteModal"
@@ -221,5 +201,5 @@ onMounted(() => {
         {{ deleteError }}
       </p>
     </ConfirmModal>
-  </div>
+  </AppShell>
 </template>
