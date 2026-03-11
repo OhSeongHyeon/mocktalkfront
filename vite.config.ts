@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
 const normalizePath = (value: string) => value.replaceAll('\\', '/');
-const MERMAID_PARSER_PACKAGES = new Set([
+const MERMAID_PACKAGES = new Set([
+  'mermaid',
   '@mermaid-js/parser',
   'langium',
   'chevrotain',
@@ -11,9 +12,6 @@ const MERMAID_PARSER_PACKAGES = new Set([
   'vscode-languageserver-types',
   'vscode-languageserver-textdocument',
   'vscode-uri',
-]);
-
-const MERMAID_RENDER_PACKAGES = new Set([
   'katex',
   'marked',
   'dayjs',
@@ -24,19 +22,14 @@ const MERMAID_RENDER_PACKAGES = new Set([
   'khroma',
   '@braintree/sanitize-url',
   'roughjs',
-]);
-
-const MERMAID_LAYOUT_PACKAGES = new Set([
   'layout-base',
   'cose-base',
+  'cytoscape',
   'cytoscape-fcose',
   'cytoscape-cose-bilkent',
   'dagre-d3-es',
   'lodash-es',
   '@upsetjs/venn.js',
-]);
-
-const MERMAID_D3_PACKAGES = new Set([
   'internmap',
   'delaunator',
   'robust-predicates',
@@ -72,11 +65,7 @@ const resolveManualChunk = (id: string) => {
     return 'vendor-vue';
   }
 
-  if (
-    packageName.startsWith('@tiptap/')
-    || packageName.startsWith('prosemirror-')
-    || packageName === 'orderedmap'
-  ) {
+  if (packageName.startsWith('@tiptap/') || packageName.startsWith('prosemirror-') || packageName === 'orderedmap') {
     return 'editor';
   }
 
@@ -88,28 +77,8 @@ const resolveManualChunk = (id: string) => {
     return 'editor-markdown';
   }
 
-  if (packageName === 'mermaid') {
-    return 'vendor-mermaid';
-  }
-
-  if (packageName === 'cytoscape') {
-    return 'vendor-cytoscape';
-  }
-
-  if (packageName.startsWith('d3-') || MERMAID_D3_PACKAGES.has(packageName)) {
-    return 'vendor-mermaid-d3';
-  }
-
-  if (MERMAID_PARSER_PACKAGES.has(packageName)) {
-    return 'vendor-mermaid-parser';
-  }
-
-  if (MERMAID_RENDER_PACKAGES.has(packageName)) {
-    return 'vendor-mermaid-render';
-  }
-
-  if (MERMAID_LAYOUT_PACKAGES.has(packageName)) {
-    return 'vendor-mermaid-layout';
+  if (MERMAID_PACKAGES.has(packageName) || packageName.startsWith('d3-')) {
+    return undefined;
   }
 
   if (packageName === 'dompurify') {
