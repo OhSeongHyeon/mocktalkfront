@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
-import { menuCollapsed, setMenuCollapsed } from '../../stores/layout';
+import { menuCollapsed, setMenuCollapsed, sideMenuDisplayMode } from '../../stores/layout';
 import SideMenuBar from './SideMenuBar.vue';
 import TopMenuBar from './TopMenuBar.vue';
 
@@ -33,7 +33,7 @@ defineExpose({
   <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
+      <SideMenuBar :collapsed="menuCollapsed" :display-mode="sideMenuDisplayMode" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
       <main ref="mainElementRef" class="min-h-0 flex-1 overflow-y-auto">
         <slot />
       </main>
