@@ -12,12 +12,13 @@ import { ApiError } from '../shared/lib/http/api';
 import { resolveImageUrl } from '../shared/lib/files';
 import { formatNotificationMessage } from '../shared/lib/notifications';
 import { applyProfileSummary } from '../shared/lib/profile';
-import { clearAccessToken } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
+const authStore = useAuthStore();
 type ActivityTab = 'articles' | 'comments' | 'notifications';
 
 const profile = ref<UserProfileResponse | null>(null);
@@ -305,7 +306,7 @@ const confirmDelete = async () => {
     try {
       await logout();
     } catch {}
-    clearAccessToken();
+    authStore.clearAccessToken();
     closeDeleteModal();
     await router.push('/');
   } catch (error) {

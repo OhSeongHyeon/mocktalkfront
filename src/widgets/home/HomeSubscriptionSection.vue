@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
 import { getBoardSubscribes, type BoardSubscribeItemResponse } from '../../entities/board';
-import { isAuthenticated } from '../../stores/auth';
+import { useAuthStore } from '../../stores/auth';
 import { ApiError } from '../../shared/lib/http/api';
 import { resolveImageUrl } from '../../shared/lib/files';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
@@ -12,6 +13,8 @@ const isLoading = ref(false);
 const listError = ref('');
 const subscribes = ref<BoardSubscribeItemResponse[]>([]);
 const pageSize = 6;
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
 
 const showEmptyState = computed(() => !isLoading.value && !listError.value && subscribes.value.length === 0);
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
@@ -17,7 +18,7 @@ import { subscribeNotificationRealtime } from '../../features/realtime';
 import type { NotificationRealtimeSubscription } from '../../features/realtime';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
 import { applyTheme } from '../../shared/lib/theme';
-import { clearAccessToken, displayName, isAuthenticated, profileImageUrl, userPoint } from '../../stores/auth';
+import { useAuthStore } from '../../stores/auth';
 import defaultAvatar from '../../assets/default-avatar.svg';
 import iconBell from '../../assets/icons/icon-bell.svg';
 import iconMoon from '../../assets/icons/icon-moon.svg';
@@ -31,6 +32,8 @@ const emit = defineEmits<{
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
+const { displayName, isAuthenticated, profileImageUrl, userPoint } = storeToRefs(authStore);
 const isDark = ref(false);
 const isProfileMenuOpen = ref(false);
 const isNotificationMenuOpen = ref(false);
@@ -159,7 +162,7 @@ const handleLogout = async () => {
     stopNotificationPresence(true);
     await logout();
   } finally {
-    clearAccessToken();
+    authStore.clearAccessToken();
     closeNotificationMenu();
     closeProfileMenu();
     globalThis.dispatchEvent(new CustomEvent('auth:logout'));

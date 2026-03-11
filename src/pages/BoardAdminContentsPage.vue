@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -14,7 +15,7 @@ import {
   updateBoardAdminArticleNotice,
 } from '../features/admin/board';
 import type { BoardAdminArticleItemResponse, BoardAdminCommentItemResponse } from '../features/admin/board';
-import { isAdmin } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
@@ -23,6 +24,8 @@ type ReportedFilter = 'ALL' | 'REPORTED' | 'UNREPORTED';
 type NoticeFilter = 'ALL' | 'NOTICE' | 'NORMAL';
 
 const route = useRoute();
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 

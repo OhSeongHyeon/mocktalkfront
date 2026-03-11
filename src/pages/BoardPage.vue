@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -9,7 +10,7 @@ import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/boar
 import { resolveImageUrl } from '../shared/lib/files';
 import type { BoardDetailResponse } from '../entities/board';
 import { cancelBoardJoin, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../entities/board';
-import { isAdmin, isAuthenticated } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
@@ -21,6 +22,8 @@ interface ArticleSelectPayload {
 const route = useRoute();
 const router = useRouter();
 const slug = computed(() => String(route.params.slug ?? ''));
+const authStore = useAuthStore();
+const { isAdmin, isAuthenticated } = storeToRefs(authStore);
 
 const board = ref<BoardDetailResponse | null>(null);
 const isBoardLoading = ref(false);

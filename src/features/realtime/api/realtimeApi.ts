@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '../../../shared/lib/http/api';
-import { getAccessToken, setAccessToken } from '../../../stores/auth';
+import { useAuthStore } from '../../../stores/auth';
 
 export type RealtimeEventType = 'CONNECTED' | 'HEARTBEAT' | 'COMMENT_CHANGED' | 'REACTION_CHANGED';
 export type NotificationRealtimeEventType = 'CONNECTED' | 'HEARTBEAT' | 'UNREAD_COUNT_CHANGED';
@@ -145,7 +145,8 @@ const tryRefreshAccessTokenForRealtime = async () => {
     if (!data.accessToken || typeof data.expiresInSec !== 'number') {
       return false;
     }
-    setAccessToken(data.accessToken, data.expiresInSec);
+    const authStore = useAuthStore();
+    authStore.setAccessToken(data.accessToken, data.expiresInSec);
     return true;
   } catch {
     return false;
@@ -187,7 +188,8 @@ const subscribeNotificationRealtime = (handlers: NotificationRealtimeHandlers = 
       return;
     }
 
-    const accessToken = getAccessToken();
+    const authStore = useAuthStore();
+    const accessToken = authStore.getAccessToken();
     if (!accessToken) {
       scheduleReconnect();
       return;

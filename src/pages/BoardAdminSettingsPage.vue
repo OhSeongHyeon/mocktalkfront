@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
@@ -12,11 +13,13 @@ import { getBoardCategories } from '../entities/board';
 import { getBoardBySlug } from '../entities/board';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../entities/board';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../features/admin/board';
-import { isAdmin } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 const formError = ref('');

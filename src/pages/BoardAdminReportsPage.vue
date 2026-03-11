@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -8,13 +9,15 @@ import { getBoardBySlug } from '../entities/board';
 import type { BoardDetailResponse, BoardMemberStatus } from '../entities/board';
 import { getBoardReport, getBoardReports, processBoardReport } from '../features/admin/board';
 import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../features/admin/board';
-import { isAdmin } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 type StatusFilter = ReportStatus | 'ALL';
 
 const route = useRoute();
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 
