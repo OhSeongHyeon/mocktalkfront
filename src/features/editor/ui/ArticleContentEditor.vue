@@ -35,7 +35,10 @@ const props = defineProps<ArticleContentEditorProps>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void;
   (event: 'update:contentFormat', value: ArticleContentFormat): void;
-  (event: 'apply-import-metadata', payload: { title?: string; visibility?: string; boardSlug?: string; tags: string[]; summary?: string }): void;
+  (
+    event: 'apply-import-metadata',
+    payload: { title?: string; visibility?: string; boardSlug?: string; categoryName?: string; tags: string[]; summary?: string },
+  ): void;
 }>();
 
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
@@ -509,8 +512,8 @@ const applyImportedMarkdown = (result: MarkdownImportResult) => {
   isMarkdownImportConfirmOpen.value = false;
   emit('update:contentFormat', 'MARKDOWN');
   emit('apply-import-metadata', resolveImportMetadataPayload(result));
-  updateMarkdownSource(result.content);
-  scheduleMarkdownPreview(result.content);
+  updateMarkdownSource(result.contentSource);
+  scheduleMarkdownPreview(result.contentSource);
   markdownImportFeedback.value = resolveImportFeedback(result);
 };
 
@@ -535,7 +538,7 @@ const onMarkdownImportPicked = async (event: Event) => {
 };
 
 const resolveImportMetadataPayload = (result: MarkdownImportResult) => {
-  const payload: { title?: string; visibility?: string; boardSlug?: string; tags: string[]; summary?: string } = {
+  const payload: { title?: string; visibility?: string; boardSlug?: string; categoryName?: string; tags: string[]; summary?: string } = {
     tags: result.metadata.tags,
   };
   if (result.metadata.title) {
@@ -548,6 +551,9 @@ const resolveImportMetadataPayload = (result: MarkdownImportResult) => {
   }
   if (result.metadata.boardSlug) {
     payload.boardSlug = result.metadata.boardSlug;
+  }
+  if (result.metadata.categoryName) {
+    payload.categoryName = result.metadata.categoryName;
   }
   if (result.metadata.summary) {
     payload.summary = result.metadata.summary;
@@ -585,11 +591,11 @@ const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownIm
   }
 
   if (result.metadata.tags.length > 0 || result.metadata.summary) {
-    warnings.push('태그와 요약 자동 반영은 아직 지원하지 않아 무시했습니다.');
+    warnings.push('태그와 요약은 frontmatter 원본에 보존되며 별도 UI에는 아직 반영되지 않습니다.');
   }
 
   if (result.unsupportedFields.length > 0) {
-    warnings.push(`지원하지 않는 frontmatter 필드(${result.unsupportedFields.join(', ')})는 무시했습니다.`);
+    warnings.push(`지원하지 않는 frontmatter 필드(${result.unsupportedFields.join(', ')})도 원본에 그대로 보존됩니다.`);
   }
 
   return {

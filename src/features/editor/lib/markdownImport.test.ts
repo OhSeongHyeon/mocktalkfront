@@ -11,6 +11,7 @@ tags:
   - markdown
   - mermaid
 boardSlug: dev
+categoryName: 백엔드
 visibility: public
 summary: "요약"
 ---
@@ -28,9 +29,11 @@ summary: "요약"
     expect(result.metadata.title).toBe('Mermaid 렌더링 최적화 기록');
     expect(result.metadata.tags).toEqual(['markdown', 'mermaid']);
     expect(result.metadata.boardSlug).toBe('dev');
+    expect(result.metadata.categoryName).toBe('백엔드');
     expect(result.metadata.visibility).toBe('PUBLIC');
     expect(result.metadata.summary).toBe('요약');
     expect(result.content).toContain('# 본문');
+    expect(result.contentSource).toBe(markdown);
     expect(result.warnings).toEqual([]);
   });
 
@@ -45,6 +48,7 @@ summary: "요약"
     expect(result.hadFrontmatter).toBe(false);
     expect(result.metadata.title).toBe('release note v1');
     expect(result.content).toBe(markdown);
+    expect(result.contentSource).toBe(markdown);
   });
 
   it('닫히지 않은 frontmatter는 본문 전체를 그대로 유지하고 경고한다', () => {
@@ -60,6 +64,7 @@ title: "초안"
     // then: 파일 전체를 본문으로 유지하고 경고를 남긴다
     expect(result.hadFrontmatter).toBe(false);
     expect(result.content).toBe(markdown);
+    expect(result.contentSource).toBe(markdown);
     expect(result.metadata.title).toBe('draft');
     expect(result.warnings).toContain('frontmatter 닫힘 구분자를 찾지 못해 파일 본문 전체를 그대로 불러왔습니다.');
   });
@@ -81,6 +86,7 @@ board_slug: docs
     // then: 지원 필드는 파싱하고 미지원 필드는 따로 모아야 한다
     expect(result.metadata.tags).toEqual(['alpha', 'beta test']);
     expect(result.metadata.boardSlug).toBe('docs');
+    expect(result.contentSource).toBe(markdown);
     expect(result.unsupportedFields).toEqual(['author']);
   });
 });

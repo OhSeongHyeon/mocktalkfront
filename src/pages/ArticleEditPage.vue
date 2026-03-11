@@ -8,6 +8,7 @@ import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
+import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
 import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleEditorDetailResponse, ArticleUpdateRequest } from '../entities/article';
@@ -56,6 +57,12 @@ const isBoardAdmin = computed(() => {
   return role === 'OWNER' || role === 'MODERATOR';
 });
 const canManageCategories = computed(() => isAdmin.value || isBoardAdmin.value);
+const selectedCategoryName = computed(() => {
+  if (selectedCategoryId.value == null) {
+    return undefined;
+  }
+  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName;
+});
 
 const visibilityOptions = computed(() => {
   const base = [
@@ -87,6 +94,19 @@ const isInvalid = computed(() => {
   }
   return false;
 });
+
+const applyImportedCategory = (nextCategoryName?: string | null) => {
+  if (!nextCategoryName) {
+    return;
+  }
+  const normalizedCategoryName = nextCategoryName.trim().toLowerCase();
+  const matchedCategory = categories.value.find((category) => category.categoryName.trim().toLowerCase() === normalizedCategoryName);
+  if (!matchedCategory) {
+    selectedCategoryId.value = null;
+    return;
+  }
+  selectedCategoryId.value = matchedCategory.id;
+};
 
 const applyAllowedVisibility = (nextVisibility?: string | null) => {
   if (!nextVisibility) {
@@ -196,11 +216,21 @@ const submit = async () => {
   errorMessage.value = '';
   attachmentErrorMessage.value = '';
   const fileIds = Array.from(new Set([...extractFileIdsFromContent(contentSource.value), ...attachmentFiles.value.map((file) => file.id)]));
+  const normalizedTitle = title.value.trim();
+  const normalizedContentSource =
+    contentFormat.value === 'MARKDOWN'
+      ? mergeManagedMarkdownFrontmatter(contentSource.value, {
+          title: normalizedTitle,
+          boardSlug: article.value.board.slug,
+          visibility: visibility.value,
+          categoryName: selectedCategoryName.value,
+        })
+      : contentSource.value;
   const payload: ArticleUpdateRequest = {
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
-    title: title.value.trim(),
-    contentSource: contentSource.value,
+    title: normalizedTitle,
+    contentSource: normalizedContentSource,
     contentFormat: contentFormat.value,
     notice: article.value.notice,
     fileIds,
@@ -266,6 +296,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
     title.value = metadata.title;
   }
   applyAllowedVisibility(metadata.visibility);
+  applyImportedCategory(metadata.categoryName);
 };
 
 onMounted(async () => {

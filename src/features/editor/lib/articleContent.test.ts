@@ -15,6 +15,20 @@ describe('articleContent', () => {
     expect(result).toBe(true);
   });
 
+  it('hasMeaningfulArticleContent는 frontmatter만 있는 Markdown을 빈 본문으로 본다', () => {
+    // given: frontmatter만 있고 본문이 없는 Markdown
+    const markdown = `---
+title: "제목"
+visibility: "PUBLIC"
+---`;
+
+    // when: 본문 유효성을 검사하면
+    const result = hasMeaningfulArticleContent(markdown, 'MARKDOWN');
+
+    // then: 의미 있는 본문으로 판단하지 않아야 한다
+    expect(result).toBe(false);
+  });
+
   it('hasMarkdownConversionRisk는 표와 인라인 스타일을 위험 요소로 감지한다', () => {
     // given: 표와 스타일이 포함된 HTML
     const html = '<table><tr><td style="color:red">값</td></tr></table>';

@@ -9,6 +9,7 @@ import { ApiError } from '../shared/lib/http/api';
 import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/board/lib/boardWritePolicy';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
+import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleCreateRequest } from '../entities/article';
 import { createArticle } from '../entities/article';
@@ -47,6 +48,7 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const isSubmitting = ref(false);
 const pendingImportedVisibility = ref<string | null>(null);
+const pendingImportedCategoryName = ref<string | null>(null);
 
 const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 
@@ -55,6 +57,12 @@ const isBoardAdmin = computed(() => {
   return role === 'OWNER' || role === 'MODERATOR';
 });
 const canManageCategories = computed(() => isAdmin.value || isBoardAdmin.value);
+const selectedCategoryName = computed(() => {
+  if (selectedCategoryId.value == null) {
+    return undefined;
+  }
+  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName;
+});
 
 const visibilityOptions = computed(() => {
   const base = [
@@ -94,6 +102,19 @@ const applyAllowedVisibility = (nextVisibility?: string | null) => {
     return;
   }
   visibility.value = allowedValues[0] ?? 'PUBLIC';
+};
+
+const applyImportedCategory = (nextCategoryName?: string | null) => {
+  if (!nextCategoryName) {
+    return;
+  }
+  const normalizedCategoryName = nextCategoryName.trim().toLowerCase();
+  const matchedCategory = categories.value.find((category) => category.categoryName.trim().toLowerCase() === normalizedCategoryName);
+  if (!matchedCategory) {
+    selectedCategoryId.value = null;
+    return;
+  }
+  selectedCategoryId.value = matchedCategory.id;
 };
 
 const loadBoard = async (slugValue = slug.value) => {
@@ -159,7 +180,9 @@ const loadBoardContext = async (slugValue = slug.value) => {
   await loadBoard(slugValue);
   await loadCategories();
   applyAllowedVisibility(pendingImportedVisibility.value);
+  applyImportedCategory(pendingImportedCategoryName.value);
   pendingImportedVisibility.value = null;
+  pendingImportedCategoryName.value = null;
 };
 
 const applyImportedMetadata = async (metadata: MarkdownImportMetadata) => {
@@ -172,16 +195,19 @@ const applyImportedMetadata = async (metadata: MarkdownImportMetadata) => {
       errorMessage.value = '';
       await getBoardBySlug(metadata.boardSlug);
       pendingImportedVisibility.value = metadata.visibility ?? null;
+      pendingImportedCategoryName.value = metadata.categoryName ?? null;
       selectedCategoryId.value = null;
       await router.replace(`/b/${metadata.boardSlug}/articles/new`);
     } catch (error) {
       errorMessage.value = error instanceof ApiError ? error.message : 'frontmatter의 게시판 정보를 적용하지 못했습니다.';
       pendingImportedVisibility.value = null;
+      pendingImportedCategoryName.value = null;
     }
     return;
   }
 
   applyAllowedVisibility(metadata.visibility);
+  applyImportedCategory(metadata.categoryName);
 };
 
 const submit = async () => {
@@ -201,13 +227,23 @@ const submit = async () => {
   errorMessage.value = '';
   attachmentErrorMessage.value = '';
   const fileIds = Array.from(new Set([...extractFileIdsFromContent(contentSource.value), ...attachmentFiles.value.map((file) => file.id)]));
+  const normalizedTitle = title.value.trim();
+  const normalizedContentSource =
+    contentFormat.value === 'MARKDOWN'
+      ? mergeManagedMarkdownFrontmatter(contentSource.value, {
+          title: normalizedTitle,
+          boardSlug: board.value.slug,
+          visibility: visibility.value,
+          categoryName: selectedCategoryName.value,
+        })
+      : contentSource.value;
   const payload: ArticleCreateRequest = {
     boardId: board.value.id,
     userId: profile.value.userId,
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
-    title: title.value.trim(),
-    contentSource: contentSource.value,
+    title: normalizedTitle,
+    contentSource: normalizedContentSource,
     contentFormat: contentFormat.value,
     notice: false,
     fileIds,

@@ -22,8 +22,9 @@ const autoCreateMissingCategories = ref(true);
 const importSteps = [
   '1. zip 안에 manifest.yml 또는 manifest.yaml 하나와 여러 .md 파일을 준비합니다.',
   '2. zip 파일을 선택한 뒤 미리보기로 제목, 게시판, 카테고리, 공개 범위, 오류를 먼저 확인합니다.',
-  '3. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
-  '4. 실행 결과에서 생성 성공/실패와 문서별 경고를 다시 확인합니다.',
+  '3. 카테고리 자동 생성이 켜져 있으면 없는 카테고리는 미리보기에서 생성 예정으로 표시됩니다.',
+  '4. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
+  '5. 실행 결과에서 생성 성공/실패와 문서별 경고를 다시 확인합니다.',
 ];
 
 const metadataRules = [
@@ -31,10 +32,11 @@ const metadataRules = [
   'boardSlug: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
   'categoryName: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
   'visibility: manifest 항목 > Markdown frontmatter > defaults > PUBLIC 순서로 결정됩니다.',
+  '저장 시 title, boardSlug, categoryName, visibility는 최종 적용값 기준으로 frontmatter에 다시 정리됩니다.',
 ];
 
 const unsupportedNotes = [
-  'frontmatter의 tags, summary는 현재 읽기만 하고 실제 게시글 데이터에는 자동 반영되지 않습니다.',
+  'frontmatter의 tags, summary, 미지원 필드는 content_source 원본에 보존되며 별도 UI에는 아직 자동 반영되지 않습니다.',
   '이미지 상대경로, 첨부 assets 자동 업로드/치환은 아직 지원하지 않습니다.',
   'manifest 파일은 zip 안에 정확히 하나만 있어야 합니다.',
 ];
@@ -174,6 +176,9 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               <p class="text-sm text-slate-500 dark:text-slate-400">
                 <code class="font-mono text-[0.95em]">manifest.yml + 여러 .md + zip</code> 구조를 미리 검증하고 일괄 생성합니다.
               </p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Markdown 원본과 frontmatter는 <code class="font-mono text-[0.95em]">content_source</code>에 함께 보존됩니다.
+              </p>
             </div>
           </div>
 
@@ -183,6 +188,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">사용 가이드</h2>
                 <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   이 화면은 <code class="font-mono text-[0.95em]">ADMIN</code>, <code class="font-mono text-[0.95em]">MANAGER</code> 전용입니다.
+                  <span class="mt-1 block">기본값은 <code class="font-mono text-[0.95em]">카테고리 자동 생성 켜짐</code>입니다.</span>
                 </p>
               </div>
               <span
@@ -226,7 +232,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">현재 제한 사항</h3>
               <ul class="mt-3 space-y-2 text-sm leading-6 text-amber-800 dark:text-amber-200">
                 <li v-for="note in unsupportedNotes" :key="note">{{ note }}</li>
-                <li>카테고리 자동 생성이 켜져 있으면 없는 카테고리는 오류 대신 생성 예정으로 처리합니다.</li>
+                <li>카테고리 자동 생성이 켜져 있으면 없는 카테고리는 오류 대신 생성 예정으로 처리하고, 실행 시 실제로 생성합니다.</li>
               </ul>
             </div>
           </section>

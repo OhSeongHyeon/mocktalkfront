@@ -3,11 +3,13 @@ export interface MarkdownImportMetadata {
   tags: string[];
   boardSlug?: string;
   visibility?: string;
+  categoryName?: string;
   summary?: string;
 }
 
 export interface MarkdownImportResult {
   content: string;
+  contentSource: string;
   metadata: MarkdownImportMetadata;
   hadFrontmatter: boolean;
   unsupportedFields: string[];
@@ -25,6 +27,10 @@ const FRONTMATTER_KEY_ALIASES: Record<string, keyof MarkdownImportMetadata | nul
   board_slug: 'boardSlug',
   'board-slug': 'boardSlug',
   visibility: 'visibility',
+  categoryname: 'categoryName',
+  category_name: 'categoryName',
+  'category-name': 'categoryName',
+  category: 'categoryName',
   summary: 'summary',
 };
 
@@ -124,6 +130,7 @@ export const parseMarkdownImport = (rawText: string, fileName?: string | null): 
     }
     return {
       content: normalizedText,
+      contentSource: normalizedText,
       metadata,
       hadFrontmatter: false,
       unsupportedFields,
@@ -147,6 +154,7 @@ export const parseMarkdownImport = (rawText: string, fileName?: string | null): 
     warnings.push('frontmatter 닫힘 구분자를 찾지 못해 파일 본문 전체를 그대로 불러왔습니다.');
     return {
       content: normalizedText,
+      contentSource: normalizedText,
       metadata,
       hadFrontmatter: false,
       unsupportedFields,
@@ -234,6 +242,7 @@ export const parseMarkdownImport = (rawText: string, fileName?: string | null): 
 
   return {
     content: body,
+    contentSource: normalizedText,
     metadata,
     hadFrontmatter: true,
     unsupportedFields: Array.from(new Set(unsupportedFields)),
