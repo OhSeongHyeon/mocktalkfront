@@ -162,7 +162,7 @@ const handleLogout = async () => {
     clearAccessToken();
     closeNotificationMenu();
     closeProfileMenu();
-    await router.push('/');
+    globalThis.dispatchEvent(new CustomEvent('auth:logout'));
   }
 };
 

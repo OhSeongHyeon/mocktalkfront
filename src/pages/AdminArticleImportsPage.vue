@@ -18,6 +18,46 @@ const actionSuccessMessage = ref('');
 const previewResult = ref<ArticleImportPreviewResponse | null>(null);
 const executeResult = ref<ArticleImportExecuteResponse | null>(null);
 
+const importSteps = [
+  '1. zip 안에 manifest.yml 또는 manifest.yaml 하나와 여러 .md 파일을 준비합니다.',
+  '2. zip 파일을 선택한 뒤 미리보기로 제목, 게시판, 공개 범위, 오류를 먼저 확인합니다.',
+  '3. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
+  '4. 실행 결과에서 생성 성공/실패와 문서별 경고를 다시 확인합니다.',
+];
+
+const metadataRules = [
+  'title: manifest 항목 > Markdown frontmatter > 파일명 순서로 결정됩니다.',
+  'boardSlug: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
+  'visibility: manifest 항목 > Markdown frontmatter > defaults > PUBLIC 순서로 결정됩니다.',
+];
+
+const unsupportedNotes = [
+  'frontmatter의 tags, summary는 현재 읽기만 하고 실제 게시글 데이터에는 자동 반영되지 않습니다.',
+  '이미지 상대경로, 첨부 assets 자동 업로드/치환은 아직 지원하지 않습니다.',
+  'manifest 파일은 zip 안에 정확히 하나만 있어야 합니다.',
+];
+
+const sampleManifest = `defaults:
+  boardSlug: dev
+  visibility: PUBLIC
+
+articles:
+  - file: posts/post-1.md
+  - file: posts/post-2.md
+    title: "manifest 제목 우선"
+    boardSlug: notice
+    visibility: MEMBERS`;
+
+const sampleMarkdown = `---
+title: "Mermaid 사용기"
+boardSlug: "dev"
+visibility: "PUBLIC"
+---
+
+# 본문 시작
+
+여기부터 실제 Markdown 본문입니다.`;
+
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
 const toggleMenu = () => {
@@ -131,6 +171,59 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               </p>
             </div>
           </div>
+
+          <section class="ui-panel mt-6 p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">사용 가이드</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  이 화면은 <code class="font-mono text-[0.95em]">ADMIN</code>, <code class="font-mono text-[0.95em]">MANAGER</code> 전용입니다.
+                </p>
+              </div>
+              <span
+                class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+              >
+                preview → execute
+              </span>
+            </div>
+
+            <div class="mt-5 grid gap-4 xl:grid-cols-2">
+              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">실행 순서</h3>
+                <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  <li v-for="step in importSteps" :key="step">{{ step }}</li>
+                </ul>
+              </div>
+
+              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">메타데이터 우선순위</h3>
+                <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  <li v-for="rule in metadataRules" :key="rule">{{ rule }}</li>
+                </ul>
+              </div>
+
+              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">manifest 예시</h3>
+                <pre
+                  class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
+                ><code>{{ sampleManifest }}</code></pre>
+              </div>
+
+              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Markdown 예시</h3>
+                <pre
+                  class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
+                ><code>{{ sampleMarkdown }}</code></pre>
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-3xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+              <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">현재 제한 사항</h3>
+              <ul class="mt-3 space-y-2 text-sm leading-6 text-amber-800 dark:text-amber-200">
+                <li v-for="note in unsupportedNotes" :key="note">{{ note }}</li>
+              </ul>
+            </div>
+          </section>
 
           <section class="ui-panel mt-6 p-5">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
