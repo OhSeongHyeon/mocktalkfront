@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import SectionHeader from '../shared/ui/SectionHeader.vue';
-import { contentWidthPreset, setContentWidthPreset, setSideMenuDisplayMode, sideMenuDisplayMode } from '../stores/layout';
+import { useLayoutStore } from '../stores/layout';
 import type { ContentWidthPreset, SideMenuDisplayMode } from '../stores/layout';
 import AppShell from '../widgets/layout/AppShell.vue';
 
@@ -50,6 +51,9 @@ const sideMenuOptions: SideMenuOption[] = [
     description: '사이드메뉴를 완전히 숨겼다가 필요할 때 전체 메뉴를 다시 펼칩니다.',
   },
 ];
+const layoutStore = useLayoutStore();
+const { contentWidthPreset, sideMenuDisplayMode } = storeToRefs(layoutStore);
+const { setContentWidthPreset, setSideMenuDisplayMode } = layoutStore;
 
 const selectedOption = computed<LayoutOption>(() => layoutOptions.find((option) => option.value === contentWidthPreset.value) ?? layoutOptions[0]!);
 const selectedSideMenuOption = computed<SideMenuOption>(

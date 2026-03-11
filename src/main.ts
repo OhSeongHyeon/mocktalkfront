@@ -1,3 +1,4 @@
+import { createPinia } from 'pinia';
 import { createApp, watch } from 'vue';
 import './style.css';
 import 'highlight.js/styles/github.css';
@@ -24,7 +25,11 @@ const bootstrap = async () => {
   } catch {
     // 시작 시 토큰 갱신 실패는 무시
   }
-  createApp(App).use(router).mount('#app');
+  const app = createApp(App);
+  const pinia = createPinia();
+  app.use(pinia);
+  app.use(router);
+  app.mount('#app');
 };
 
 bootstrap();
