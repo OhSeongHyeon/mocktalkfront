@@ -22,6 +22,8 @@ export interface ArticleSearchResponse {
   userId: number;
   authorName: string;
   title: string;
+  categoryId?: number | null;
+  categoryName?: string | null;
   hit: number;
   commentCount: number;
   likeCount: number;

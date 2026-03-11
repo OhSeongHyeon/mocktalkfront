@@ -146,6 +146,8 @@ const loadPage = async (pageIndex: number) => {
         userId: item.userId,
         authorName: item.authorName,
         title: item.title,
+        categoryId: item.categoryId ?? null,
+        categoryName: item.categoryName ?? null,
         hit: item.hit,
         commentCount: item.commentCount,
         likeCount: item.likeCount,
@@ -272,6 +274,16 @@ const handleSelect = (articleId: number) => {
     articleId,
     query: resolveArticleFilterQuery(),
   });
+};
+
+const resolveArticleHref = (article: ArticleSummaryResponse) => {
+  if (!props.boardSlug) {
+    return '#';
+  }
+  const params = new URLSearchParams(resolveArticleFilterQuery());
+  const queryString = params.toString();
+  const path = `/b/${props.boardSlug}/articles/${article.id}`;
+  return queryString ? `${path}?${queryString}` : path;
 };
 
 watch(
@@ -454,6 +466,7 @@ watch(
     :total-pages="totalPages"
     :has-next="hasNext"
     :has-previous="hasPrevious"
+    :resolve-href="resolveArticleHref"
     @select="handleSelect"
     @update:order="handleOrderChange"
     @update:page-size="handlePageSizeChange"

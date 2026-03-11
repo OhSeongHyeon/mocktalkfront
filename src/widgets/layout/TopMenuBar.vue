@@ -532,7 +532,7 @@ const handleDeleteAllNotifications = async () => {
           <img v-else :src="iconMoon" alt="" aria-hidden="true" class="h-5 w-5" />
         </button>
 
-        <div class="relative">
+        <div v-if="isAuthenticated" class="relative">
           <button
             ref="notificationButtonRef"
             type="button"
@@ -576,11 +576,7 @@ const handleDeleteAllNotifications = async () => {
             </div>
             <div class="h-px bg-slate-200/80 dark:bg-slate-800" role="presentation"></div>
 
-            <div v-if="!isAuthenticated" class="p-4 text-sm text-slate-500 dark:text-slate-400">
-              <p>로그인이 필요합니다.</p>
-              <button type="button" class="ui-chip-button ui-chip-button-muted mt-3" @click="openLogin">로그인하기</button>
-            </div>
-            <div v-else class="max-h-80 overflow-y-auto">
+            <div class="max-h-80 overflow-y-auto">
               <div v-if="notificationLoading" class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">불러오는 중...</div>
               <div v-else-if="notificationError" class="px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-300">
                 {{ notificationError }}

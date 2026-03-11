@@ -4,6 +4,7 @@ import { getAccessToken, isAdmin, isManagerOrAdmin } from '../../stores/auth';
 
 const LoginPage = () => import('../../pages/LoginPage.vue');
 const MainPage = () => import('../../pages/MainPage.vue');
+const SettingsPage = () => import('../../pages/SettingsPage.vue');
 const MyPage = () => import('../../pages/MyPage.vue');
 const OAuthCallbackPage = () => import('../../pages/OAuthCallbackPage.vue');
 const RegisterPage = () => import('../../pages/RegisterPage.vue');
@@ -35,6 +36,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'home', component: MainPage },
+    { path: '/settings', name: 'settings', component: SettingsPage },
     { path: '/boards', name: 'boards', component: CommunityPage },
     { path: '/search', name: 'search', component: SearchPage },
     { path: '/boards/subscribes', name: 'board-subscribes', component: BoardSubscribePage, meta: { requiresAuth: true } },

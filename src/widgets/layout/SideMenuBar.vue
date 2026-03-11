@@ -19,6 +19,7 @@ import iconSubscribe from '../../assets/icons/icon-subscribe.svg';
 import iconUsers from '../../assets/icons/icon-users.svg';
 const props = defineProps<{
   collapsed: boolean;
+  displayMode: 'collapse' | 'hidden';
   mobileOpen: boolean;
 }>();
 
@@ -69,7 +70,7 @@ const serviceSections: RawSideMenuSection[] = [
   {
     title: '설정',
     items: [
-      { name: '설정', icon: 'settings' },
+      { name: '설정', icon: 'settings', path: '/settings' },
       { name: '도움말', icon: 'help' },
     ],
   },
@@ -108,7 +109,8 @@ const isActive = (path?: string) => {
   return route.path.startsWith(path);
 };
 
-const isCompact = computed(() => props.collapsed && !props.mobileOpen);
+const isCompact = computed(() => props.displayMode === 'collapse' && props.collapsed && !props.mobileOpen);
+const isDesktopHidden = computed(() => props.displayMode === 'hidden' && props.collapsed && !props.mobileOpen);
 const isBackofficeRoute = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'));
 const menuTitle = computed(() => (isBackofficeRoute.value ? '백오피스' : '메뉴'));
 
@@ -194,8 +196,15 @@ const sections = computed(() => {
 <template>
   <div v-if="props.mobileOpen" class="fixed inset-0 z-40 bg-slate-900/40 md:hidden" aria-hidden="true" @click="closeMobileMenu"></div>
   <aside
-    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] min-h-0 w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-[color:var(--surface-glass)] p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 md:static md:top-auto md:h-auto md:translate-x-0 md:self-stretch"
-    :class="[props.mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0', isCompact ? 'md:w-20 md:items-center' : 'md:w-64']"
+    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] min-h-0 w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-[color:var(--surface-glass)] p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 md:static md:top-auto md:h-auto md:self-stretch"
+    :class="[
+      props.mobileOpen ? 'translate-x-0' : '-translate-x-full',
+      isDesktopHidden
+        ? 'md:pointer-events-none md:w-0 md:min-w-0 md:translate-x-0 md:border-transparent md:bg-transparent md:p-0 md:opacity-0 md:shadow-none'
+        : isCompact
+          ? 'md:w-20 md:translate-x-0 md:items-center'
+          : 'md:w-64 md:translate-x-0',
+    ]"
   >
     <div v-if="!isCompact" class="px-3 pt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ menuTitle }}</div>
 
