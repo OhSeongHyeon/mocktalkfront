@@ -5,6 +5,7 @@ import { getBoardSubscribes, type BoardSubscribeItemResponse } from '../../entit
 import { isAuthenticated } from '../../stores/auth';
 import { ApiError } from '../../shared/lib/http/api';
 import { resolveImageUrl } from '../../shared/lib/files';
+import SectionHeader from '../../shared/ui/SectionHeader.vue';
 import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
 
 const isLoading = ref(false);
@@ -66,18 +67,16 @@ watch(
 
 <template>
   <section class="ui-panel px-5 py-5 sm:px-6">
-    <div class="flex flex-wrap items-start justify-between gap-3">
-      <div class="space-y-1">
-        <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">내 구독 커뮤니티</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">자주 찾는 커뮤니티를 바로 열 수 있습니다.</p>
-      </div>
-      <RouterLink
-        to="/boards/subscribes"
-        class="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
-      >
-        전체 보기
-      </RouterLink>
-    </div>
+    <SectionHeader title="내 구독 커뮤니티" description="자주 찾는 커뮤니티를 바로 열 수 있습니다.">
+      <template #actions>
+        <RouterLink
+          to="/boards/subscribes"
+          class="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
+        >
+          전체 보기
+        </RouterLink>
+      </template>
+    </SectionHeader>
 
     <div v-if="listError" class="ui-state ui-state-danger mt-5">
       {{ listError }}

@@ -6,6 +6,8 @@ import { search, type SearchResponse, type SearchType } from '../features/search
 import PageContainer from '../shared/ui/PageContainer.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { resolveImageUrl } from '../shared/lib/files';
+import PageHeader from '../shared/ui/PageHeader.vue';
+import SectionHeader from '../shared/ui/SectionHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
@@ -76,6 +78,7 @@ const currentPageInfo = computed(() => {
       return emptyPage(page.value, size.value);
   }
 });
+const selectedTypeLabel = computed(() => types.find((type) => type.value === selectedType.value)?.label ?? '검색');
 const paginationPages = computed(() => {
   const info = currentPageInfo.value;
   if (!info) {
@@ -256,13 +259,9 @@ watch(
 <template>
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
-      <div>
-        <div class="flex flex-col gap-3">
-          <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">검색</h1>
-          <form
-            class="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
-            @submit.prevent="handleSubmit"
-          >
+      <div class="space-y-6">
+        <PageHeader eyebrow="검색" title="통합검색" description="게시판, 게시글, 댓글, 사용자를 한 번에 찾을 수 있습니다.">
+          <form class="ui-sub-panel flex flex-col gap-3 p-4" @submit.prevent="handleSubmit">
             <div class="flex flex-wrap items-center gap-2">
               <label for="global-search-page" class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색어</label>
               <input
@@ -331,34 +330,35 @@ watch(
               </select>
             </div>
           </form>
-        </div>
+        </PageHeader>
 
-        <div v-if="errorMessage" class="ui-state ui-state-danger mt-6">
+        <div v-if="errorMessage" class="ui-state ui-state-danger">
           {{ errorMessage }}
         </div>
 
-        <div v-if="isLoading" class="mt-6 text-sm text-slate-500">검색 결과를 불러오는 중입니다...</div>
+        <div v-if="isLoading" class="text-sm text-slate-500">검색 결과를 불러오는 중입니다...</div>
 
-        <div v-if="selectedType === 'ALL'" class="mt-6 space-y-8">
+        <div v-if="selectedType === 'ALL'" class="space-y-8">
           <section>
-            <div class="flex items-center justify-between gap-2">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">게시판</h2>
-              <button
-                v-if="results?.boards.hasNext"
-                type="button"
-                class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                @click="openSection('BOARD')"
-              >
-                더보기
-              </button>
-            </div>
+            <SectionHeader title="게시판">
+              <template #actions>
+                <button
+                  v-if="results?.boards.hasNext"
+                  type="button"
+                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                  @click="openSection('BOARD')"
+                >
+                  더보기
+                </button>
+              </template>
+            </SectionHeader>
             <div v-if="boardResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <RouterLink
                 v-for="board in boardResults"
                 :key="board.id"
                 :to="`/b/${board.slug}`"
-                class="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:border-slate-800 dark:bg-slate-950"
+                class="ui-sub-panel group overflow-hidden p-3 transition hover:-translate-y-0.5 hover:border-slate-300/80"
               >
                 <div class="flex items-center gap-3">
                   <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
@@ -381,24 +381,25 @@ watch(
           </section>
 
           <section>
-            <div class="flex items-center justify-between gap-2">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">게시글</h2>
-              <button
-                v-if="results?.articles.hasNext"
-                type="button"
-                class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                @click="openSection('ARTICLE')"
-              >
-                더보기
-              </button>
-            </div>
+            <SectionHeader title="게시글">
+              <template #actions>
+                <button
+                  v-if="results?.articles.hasNext"
+                  type="button"
+                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                  @click="openSection('ARTICLE')"
+                >
+                  더보기
+                </button>
+              </template>
+            </SectionHeader>
             <div v-if="articleResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 space-y-3">
               <RouterLink
                 v-for="article in articleResults"
                 :key="article.id"
                 :to="`/b/${article.boardSlug}/articles/${article.id}`"
-                class="block rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
               >
                 <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <span>{{ article.boardName }}</span>
@@ -411,24 +412,25 @@ watch(
           </section>
 
           <section>
-            <div class="flex items-center justify-between gap-2">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">댓글</h2>
-              <button
-                v-if="results?.comments.hasNext"
-                type="button"
-                class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                @click="openSection('COMMENT')"
-              >
-                더보기
-              </button>
-            </div>
+            <SectionHeader title="댓글">
+              <template #actions>
+                <button
+                  v-if="results?.comments.hasNext"
+                  type="button"
+                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                  @click="openSection('COMMENT')"
+                >
+                  더보기
+                </button>
+              </template>
+            </SectionHeader>
             <div v-if="commentResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 space-y-3">
               <RouterLink
                 v-for="comment in commentResults"
                 :key="comment.id"
                 :to="`/b/${comment.boardSlug}/articles/${comment.articleId}`"
-                class="block rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
               >
                 <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <span>{{ comment.boardName }}</span>
@@ -441,24 +443,21 @@ watch(
           </section>
 
           <section>
-            <div class="flex items-center justify-between gap-2">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">사용자</h2>
-              <button
-                v-if="results?.users.hasNext"
-                type="button"
-                class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                @click="openSection('USER')"
-              >
-                더보기
-              </button>
-            </div>
+            <SectionHeader title="사용자">
+              <template #actions>
+                <button
+                  v-if="results?.users.hasNext"
+                  type="button"
+                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                  @click="openSection('USER')"
+                >
+                  더보기
+                </button>
+              </template>
+            </SectionHeader>
             <div v-if="userResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div
-                v-for="user in userResults"
-                :key="user.id"
-                class="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-              >
+              <div v-for="user in userResults" :key="user.id" class="ui-sub-panel px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                 <div class="font-semibold text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
                 <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
               </div>
@@ -466,7 +465,9 @@ watch(
           </section>
         </div>
 
-        <div v-else class="mt-6">
+        <div v-else class="space-y-5">
+          <SectionHeader :title="`${selectedTypeLabel} 검색 결과`" description="현재 선택한 범위의 검색 결과입니다." />
+
           <div v-if="currentPageInfo.items.length === 0" class="ui-state ui-state-empty px-4 py-6">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
           <div v-else class="space-y-3">
             <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
@@ -478,7 +479,7 @@ watch(
                 v-for="board in boardResults"
                 :key="board.id"
                 :to="`/b/${board.slug}`"
-                class="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:border-slate-800 dark:bg-slate-950"
+                class="ui-sub-panel group overflow-hidden p-3 transition hover:-translate-y-0.5 hover:border-slate-300/80"
               >
                 <div class="flex items-center gap-3">
                   <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
@@ -504,7 +505,7 @@ watch(
                 v-for="article in articleResults"
                 :key="article.id"
                 :to="`/b/${article.boardSlug}/articles/${article.id}`"
-                class="block rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
               >
                 <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <span>{{ article.boardName }}</span>
@@ -520,7 +521,7 @@ watch(
                 v-for="comment in commentResults"
                 :key="comment.id"
                 :to="`/b/${comment.boardSlug}/articles/${comment.articleId}`"
-                class="block rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
               >
                 <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                   <span>{{ comment.boardName }}</span>
@@ -532,11 +533,7 @@ watch(
             </div>
 
             <div v-else-if="selectedType === 'USER'" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div
-                v-for="user in userResults"
-                :key="user.id"
-                class="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-              >
+              <div v-for="user in userResults" :key="user.id" class="ui-sub-panel px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                 <div class="font-semibold text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
                 <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
               </div>

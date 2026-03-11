@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue';
 import { getBoards, type BoardResponse } from '../../entities/board';
 import { ApiError } from '../../shared/lib/http/api';
 import { resolveImageUrl } from '../../shared/lib/files';
+import SectionHeader from '../../shared/ui/SectionHeader.vue';
 import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
 
 const boards = ref<BoardResponse[]>([]);
@@ -62,18 +63,16 @@ onMounted(() => {
 
 <template>
   <section class="ui-panel px-5 py-5 sm:px-6">
-    <div class="flex flex-wrap items-start justify-between gap-3">
-      <div class="space-y-1">
-        <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">공개 커뮤니티</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">홈에는 누구나 둘러볼 수 있는 공개 커뮤니티만 표시됩니다.</p>
-      </div>
-      <RouterLink
-        to="/boards"
-        class="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
-      >
-        더보기
-      </RouterLink>
-    </div>
+    <SectionHeader title="공개 커뮤니티" description="홈에는 누구나 둘러볼 수 있는 공개 커뮤니티만 표시됩니다.">
+      <template #actions>
+        <RouterLink
+          to="/boards"
+          class="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
+        >
+          더보기
+        </RouterLink>
+      </template>
+    </SectionHeader>
 
     <div v-if="listError" class="ui-state ui-state-danger mt-5">
       {{ listError }}

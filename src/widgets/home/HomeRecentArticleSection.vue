@@ -4,6 +4,7 @@ import { onMounted, ref } from 'vue';
 import ArticleFeedCard from '../../entities/article/ui/ArticleFeedCard.vue';
 import { getRecentArticles, type ArticleRecentItemResponse } from '../../entities/article';
 import { ApiError } from '../../shared/lib/http/api';
+import SectionHeader from '../../shared/ui/SectionHeader.vue';
 
 const RECENT_ARTICLE_BATCH_SIZE = 15;
 
@@ -68,10 +69,7 @@ onMounted(() => {
 
 <template>
   <section class="ui-panel px-5 py-5 sm:px-6">
-    <div class="space-y-1">
-      <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">공개 최신글</h2>
-      <p class="text-sm text-slate-500 dark:text-slate-400">최근 올라온 공개 글만 빠르게 살펴볼 수 있습니다.</p>
-    </div>
+    <SectionHeader title="공개 최신글" description="최근 올라온 공개 글만 빠르게 살펴볼 수 있습니다." />
 
     <div v-if="listError" class="ui-state ui-state-danger mt-5">
       {{ listError }}
