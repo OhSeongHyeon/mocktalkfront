@@ -6,6 +6,7 @@ import SideMenuBar from './SideMenuBar.vue';
 import TopMenuBar from './TopMenuBar.vue';
 
 const isMobileMenuOpen = ref(false);
+const mainElementRef = ref<HTMLElement | null>(null);
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
@@ -20,6 +21,12 @@ const toggleMenu = () => {
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false;
 };
+
+const getMainElement = () => mainElementRef.value;
+
+defineExpose({
+  getMainElement,
+});
 </script>
 
 <template>
@@ -27,7 +34,7 @@ const closeMobileMenu = () => {
     <TopMenuBar @toggle-menu="toggleMenu" />
     <div class="flex min-h-0 w-full flex-1 overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto">
+      <main ref="mainElementRef" class="min-h-0 flex-1 overflow-y-auto">
         <slot />
       </main>
     </div>
