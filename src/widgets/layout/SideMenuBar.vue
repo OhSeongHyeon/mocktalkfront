@@ -69,7 +69,7 @@ const serviceSections: RawSideMenuSection[] = [
   {
     title: '설정',
     items: [
-      { name: '설정', icon: 'settings' },
+      { name: '설정', icon: 'settings', path: '/settings' },
       { name: '도움말', icon: 'help' },
     ],
   },
