@@ -5,6 +5,7 @@ export interface ArticleImportPreviewItemResponse {
   filePath: string;
   title: string | null;
   boardSlug: string | null;
+  categoryName: string | null;
   visibility: string | null;
   executable: boolean;
   warnings: string[];
@@ -23,6 +24,7 @@ export interface ArticleImportExecuteItemResponse {
   filePath: string;
   title: string | null;
   boardSlug: string | null;
+  categoryName: string | null;
   visibility: string | null;
   created: boolean;
   articleId: number | null;
@@ -39,24 +41,25 @@ export interface ArticleImportExecuteResponse {
 
 const unwrap = <T>(envelope: ApiEnvelope<T>): T => envelope.data;
 
-const createImportFormData = (file: File) => {
+const createImportFormData = (file: File, autoCreateMissingCategories: boolean) => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('autoCreateMissingCategories', String(autoCreateMissingCategories));
   return formData;
 };
 
-const previewArticleImport = async (file: File) => {
+const previewArticleImport = async (file: File, autoCreateMissingCategories = true) => {
   const response = await request<ApiEnvelope<ArticleImportPreviewResponse>>('/articles/imports/preview', {
     method: 'POST',
-    body: createImportFormData(file),
+    body: createImportFormData(file, autoCreateMissingCategories),
   });
   return unwrap(response);
 };
 
-const executeArticleImport = async (file: File) => {
+const executeArticleImport = async (file: File, autoCreateMissingCategories = true) => {
   const response = await request<ApiEnvelope<ArticleImportExecuteResponse>>('/articles/imports/execute', {
     method: 'POST',
-    body: createImportFormData(file),
+    body: createImportFormData(file, autoCreateMissingCategories),
   });
   return unwrap(response);
 };

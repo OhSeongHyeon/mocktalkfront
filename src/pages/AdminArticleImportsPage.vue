@@ -17,10 +17,11 @@ const actionErrorMessage = ref('');
 const actionSuccessMessage = ref('');
 const previewResult = ref<ArticleImportPreviewResponse | null>(null);
 const executeResult = ref<ArticleImportExecuteResponse | null>(null);
+const autoCreateMissingCategories = ref(true);
 
 const importSteps = [
   '1. zip 안에 manifest.yml 또는 manifest.yaml 하나와 여러 .md 파일을 준비합니다.',
-  '2. zip 파일을 선택한 뒤 미리보기로 제목, 게시판, 공개 범위, 오류를 먼저 확인합니다.',
+  '2. zip 파일을 선택한 뒤 미리보기로 제목, 게시판, 카테고리, 공개 범위, 오류를 먼저 확인합니다.',
   '3. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
   '4. 실행 결과에서 생성 성공/실패와 문서별 경고를 다시 확인합니다.',
 ];
@@ -28,6 +29,7 @@ const importSteps = [
 const metadataRules = [
   'title: manifest 항목 > Markdown frontmatter > 파일명 순서로 결정됩니다.',
   'boardSlug: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
+  'categoryName: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
   'visibility: manifest 항목 > Markdown frontmatter > defaults > PUBLIC 순서로 결정됩니다.',
 ];
 
@@ -39,6 +41,7 @@ const unsupportedNotes = [
 
 const sampleManifest = `defaults:
   boardSlug: dev
+  categoryName: "백엔드"
   visibility: PUBLIC
 
 articles:
@@ -46,11 +49,13 @@ articles:
   - file: posts/post-2.md
     title: "manifest 제목 우선"
     boardSlug: notice
+    categoryName: "공지"
     visibility: MEMBERS`;
 
 const sampleMarkdown = `---
 title: "Mermaid 사용기"
 boardSlug: "dev"
+categoryName: "백엔드"
 visibility: "PUBLIC"
 ---
 
@@ -118,7 +123,7 @@ const runPreview = async () => {
   executeResult.value = null;
   isPreviewLoading.value = true;
   try {
-    previewResult.value = await previewArticleImport(selectedZipFile.value);
+    previewResult.value = await previewArticleImport(selectedZipFile.value, autoCreateMissingCategories.value);
   } catch (error) {
     actionErrorMessage.value = resolveErrorMessage(error, '임포트 미리보기에 실패했습니다.');
   } finally {
@@ -139,7 +144,7 @@ const runExecute = async () => {
   actionSuccessMessage.value = '';
   isExecuteLoading.value = true;
   try {
-    const response = await executeArticleImport(selectedZipFile.value);
+    const response = await executeArticleImport(selectedZipFile.value, autoCreateMissingCategories.value);
     executeResult.value = response;
     actionSuccessMessage.value = `총 ${response.successCount}건 생성, ${response.failedCount}건 실패했습니다.`;
   } catch (error) {
@@ -221,6 +226,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">현재 제한 사항</h3>
               <ul class="mt-3 space-y-2 text-sm leading-6 text-amber-800 dark:text-amber-200">
                 <li v-for="note in unsupportedNotes" :key="note">{{ note }}</li>
+                <li>카테고리 자동 생성이 켜져 있으면 없는 카테고리는 오류 대신 생성 예정으로 처리합니다.</li>
               </ul>
             </div>
           </section>
@@ -236,6 +242,16 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 </p>
               </div>
               <div class="flex flex-wrap items-center gap-3">
+                <label
+                  class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                >
+                  <input
+                    v-model="autoCreateMissingCategories"
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-900"
+                  />
+                  <span>카테고리 자동 생성</span>
+                </label>
                 <label
                   class="inline-flex cursor-pointer items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
                 >
@@ -303,6 +319,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                     <th class="px-3 py-3">파일</th>
                     <th class="px-3 py-3">제목</th>
                     <th class="px-3 py-3">게시판</th>
+                    <th class="px-3 py-3">카테고리</th>
                     <th class="px-3 py-3">공개 범위</th>
                     <th class="px-3 py-3">상태</th>
                   </tr>
@@ -312,6 +329,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                     <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.filePath }}</td>
                     <td class="px-3 py-4 align-top font-medium text-slate-900 dark:text-slate-100">{{ item.title ?? '-' }}</td>
                     <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.boardSlug ?? '-' }}</td>
+                    <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.categoryName ?? '-' }}</td>
                     <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.visibility ?? '-' }}</td>
                     <td class="px-3 py-4 align-top">
                       <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(item.executable)">
@@ -350,7 +368,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                   <div>
                     <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ item.title ?? item.filePath }}</p>
                     <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {{ item.filePath }} · {{ item.boardSlug ?? '-' }} · {{ item.visibility ?? '-' }}
+                      {{ item.filePath }} · {{ item.boardSlug ?? '-' }} · {{ item.categoryName ?? '-' }} · {{ item.visibility ?? '-' }}
                     </p>
                   </div>
                   <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(item.created)">
