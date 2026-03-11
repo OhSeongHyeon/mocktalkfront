@@ -29,9 +29,20 @@ const bootstrap = async () => {
 
 bootstrap();
 
+let isLogoutRedirecting = false;
+
 globalThis.addEventListener('auth:logout', () => {
+  if (isLogoutRedirecting) {
+    return;
+  }
+  isLogoutRedirecting = true;
+  const homeHref = router.resolve({ path: '/' }).href;
+  if (typeof window !== 'undefined') {
+    window.location.replace(homeHref);
+    return;
+  }
   if (router.currentRoute.value.path !== '/') {
-    router.push('/');
+    void router.push('/');
   }
 });
 

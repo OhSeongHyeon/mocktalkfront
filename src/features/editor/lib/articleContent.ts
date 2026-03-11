@@ -1,4 +1,5 @@
 import type { ArticleContentFormat } from '../../../entities/article';
+import { stripMarkdownFrontmatter } from './markdownFrontmatter';
 
 const stripHtmlTags = (value: string) => value.replace(/<[^>]*>/g, ' ');
 
@@ -31,7 +32,7 @@ const hasMeaningfulArticleContent = (contentSource: string, contentFormat: Artic
         .trim().length > 0
     );
   }
-  return stripMarkdownSyntax(stripHtmlTags(contentSource)).length > 0;
+  return stripMarkdownSyntax(stripHtmlTags(stripMarkdownFrontmatter(contentSource))).length > 0;
 };
 
 const hasMarkdownConversionRisk = (htmlSource: string) => {

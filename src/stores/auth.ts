@@ -42,7 +42,9 @@ const userRole = computed(() => {
   return typeof role === 'string' ? role : null;
 });
 
+const isManager = computed(() => userRole.value === 'MANAGER');
 const isAdmin = computed(() => userRole.value === 'ADMIN');
+const isManagerOrAdmin = computed(() => isManager.value || isAdmin.value);
 
 const setAccessToken = (token: string, expiresInSec: number) => {
   accessToken.value = token;
@@ -75,6 +77,8 @@ export {
   getAccessToken,
   isAuthenticated,
   isAdmin,
+  isManager,
+  isManagerOrAdmin,
   userRole,
   displayName,
   profileImageUrl,

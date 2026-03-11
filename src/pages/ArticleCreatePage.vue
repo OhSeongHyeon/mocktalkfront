@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleUpsertForm from '../widgets/article/ArticleUpsertForm.vue';
@@ -9,9 +9,11 @@ import { ApiError } from '../shared/lib/http/api';
 import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/board/lib/boardWritePolicy';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
+import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleCreateRequest } from '../entities/article';
 import { createArticle } from '../entities/article';
+import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
 import type { BoardDetailResponse } from '../entities/board';
@@ -45,6 +47,8 @@ const attachmentErrorMessage = ref('');
 const errorMessage = ref('');
 const isLoading = ref(false);
 const isSubmitting = ref(false);
+const pendingImportedVisibility = ref<string | null>(null);
+const pendingImportedCategoryName = ref<string | null>(null);
 
 const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 
@@ -53,6 +57,12 @@ const isBoardAdmin = computed(() => {
   return role === 'OWNER' || role === 'MODERATOR';
 });
 const canManageCategories = computed(() => isAdmin.value || isBoardAdmin.value);
+const selectedCategoryName = computed(() => {
+  if (selectedCategoryId.value == null) {
+    return undefined;
+  }
+  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName;
+});
 
 const visibilityOptions = computed(() => {
   const base = [
@@ -82,16 +92,43 @@ const isInvalid = computed(() => {
   return false;
 });
 
-const loadBoard = async () => {
-  if (!slug.value) {
+const applyAllowedVisibility = (nextVisibility?: string | null) => {
+  const allowedValues = visibilityOptions.value.map((option) => option.value);
+  if (nextVisibility && allowedValues.includes(nextVisibility)) {
+    visibility.value = nextVisibility;
+    return;
+  }
+  if (allowedValues.includes(visibility.value)) {
+    return;
+  }
+  visibility.value = allowedValues[0] ?? 'PUBLIC';
+};
+
+const applyImportedCategory = (nextCategoryName?: string | null) => {
+  if (!nextCategoryName) {
+    return;
+  }
+  const normalizedCategoryName = nextCategoryName.trim().toLowerCase();
+  const matchedCategory = categories.value.find((category) => category.categoryName.trim().toLowerCase() === normalizedCategoryName);
+  if (!matchedCategory) {
+    selectedCategoryId.value = null;
+    return;
+  }
+  selectedCategoryId.value = matchedCategory.id;
+};
+
+const loadBoard = async (slugValue = slug.value) => {
+  if (!slugValue) {
     errorMessage.value = '게시판 정보가 올바르지 않습니다.';
+    board.value = null;
     return;
   }
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    board.value = await getBoardBySlug(slug.value);
+    board.value = await getBoardBySlug(slugValue);
   } catch (error) {
+    board.value = null;
     if (error instanceof ApiError && error.status === 404) {
       errorMessage.value = '게시판을 찾을 수 없습니다.';
       return;
@@ -139,6 +176,40 @@ const loadCategories = async () => {
   }
 };
 
+const loadBoardContext = async (slugValue = slug.value) => {
+  await loadBoard(slugValue);
+  await loadCategories();
+  applyAllowedVisibility(pendingImportedVisibility.value);
+  applyImportedCategory(pendingImportedCategoryName.value);
+  pendingImportedVisibility.value = null;
+  pendingImportedCategoryName.value = null;
+};
+
+const applyImportedMetadata = async (metadata: MarkdownImportMetadata) => {
+  if (metadata.title) {
+    title.value = metadata.title;
+  }
+
+  if (metadata.boardSlug && metadata.boardSlug !== slug.value) {
+    try {
+      errorMessage.value = '';
+      await getBoardBySlug(metadata.boardSlug);
+      pendingImportedVisibility.value = metadata.visibility ?? null;
+      pendingImportedCategoryName.value = metadata.categoryName ?? null;
+      selectedCategoryId.value = null;
+      await router.replace(`/b/${metadata.boardSlug}/articles/new`);
+    } catch (error) {
+      errorMessage.value = error instanceof ApiError ? error.message : 'frontmatter의 게시판 정보를 적용하지 못했습니다.';
+      pendingImportedVisibility.value = null;
+      pendingImportedCategoryName.value = null;
+    }
+    return;
+  }
+
+  applyAllowedVisibility(metadata.visibility);
+  applyImportedCategory(metadata.categoryName);
+};
+
 const submit = async () => {
   if (!board.value || !profile.value) {
     errorMessage.value = '게시글 작성에 필요한 정보를 불러오지 못했습니다.';
@@ -156,13 +227,23 @@ const submit = async () => {
   errorMessage.value = '';
   attachmentErrorMessage.value = '';
   const fileIds = Array.from(new Set([...extractFileIdsFromContent(contentSource.value), ...attachmentFiles.value.map((file) => file.id)]));
+  const normalizedTitle = title.value.trim();
+  const normalizedContentSource =
+    contentFormat.value === 'MARKDOWN'
+      ? mergeManagedMarkdownFrontmatter(contentSource.value, {
+          title: normalizedTitle,
+          boardSlug: board.value.slug,
+          visibility: visibility.value,
+          categoryName: selectedCategoryName.value,
+        })
+      : contentSource.value;
   const payload: ArticleCreateRequest = {
     boardId: board.value.id,
     userId: profile.value.userId,
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
-    title: title.value.trim(),
-    contentSource: contentSource.value,
+    title: normalizedTitle,
+    contentSource: normalizedContentSource,
     contentFormat: contentFormat.value,
     notice: false,
     fileIds,
@@ -223,10 +304,20 @@ const removeAttachment = (fileId: number) => {
 };
 
 onMounted(async () => {
-  await loadBoard();
-  await loadCategories();
+  await loadBoardContext();
   await loadProfile();
 });
+
+watch(
+  () => route.params.slug,
+  async (nextSlug, previousSlug) => {
+    if (nextSlug === previousSlug) {
+      return;
+    }
+    selectedCategoryId.value = null;
+    await loadBoardContext(String(nextSlug ?? ''));
+  },
+);
 </script>
 
 <template>
@@ -245,6 +336,8 @@ onMounted(async () => {
       v-model:content-format="contentFormat"
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
+      :board-slug="board?.slug"
+      :allow-board-slug-import="true"
       :categories="categories"
       :visibility-options="visibilityOptions"
       :is-category-loading="isCategoryLoading"
@@ -266,6 +359,7 @@ onMounted(async () => {
       "
       @add-attachments="addAttachments"
       @remove-attachment="removeAttachment"
+      @apply-import-metadata="applyImportedMetadata"
       @submit="submit"
       @cancel="cancel"
     />
