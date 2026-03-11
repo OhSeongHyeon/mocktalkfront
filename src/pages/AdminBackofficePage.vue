@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import { isAdmin, isManagerOrAdmin } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
+
+const authStore = useAuthStore();
+const { isAdmin, isManagerOrAdmin } = storeToRefs(authStore);
 
 const adminTools = computed(() => {
   const base = [

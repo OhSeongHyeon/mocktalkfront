@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import '../shared/styles/mermaid.css';
 import '../shared/styles/ui-content.css';
@@ -22,7 +23,7 @@ import { recordHistoryItem } from '../shared/lib/history';
 import { renderMermaidDiagrams } from '../shared/lib/mermaid';
 import { sanitizeHtml } from '../shared/lib/sanitize';
 import { requestArticleAttachmentBlob } from '../entities/article';
-import { isAuthenticated } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
@@ -38,6 +39,8 @@ type AppShellExposed = {
 const route = useRoute();
 const router = useRouter();
 const articleId = computed(() => Number(route.params.articleId));
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
 
 const appShellRef = ref<AppShellExposed | null>(null);
 const article = ref<ArticleDetailResponse | null>(null);

@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 
 const ARTICLE_LIST_PAGE_SIZE_KEY = 'board.articleListPageSize';
@@ -50,22 +51,32 @@ const writeString = (key: string, value: string) => {
   window.localStorage.setItem(key, value);
 };
 
-const articleListPageSize = ref<ArticleListPageSize>(normalizePageSize(readNumber(ARTICLE_LIST_PAGE_SIZE_KEY, DEFAULT_PAGE_SIZE)));
-const articleListOrder = ref<ArticleListOrder>(
-  ARTICLE_LIST_ORDERS.includes(readString(ARTICLE_LIST_ORDER_KEY, DEFAULT_ORDER) as ArticleListOrder)
-    ? (readString(ARTICLE_LIST_ORDER_KEY, DEFAULT_ORDER) as ArticleListOrder)
-    : DEFAULT_ORDER,
-);
+const useArticleListStore = defineStore('articleList', () => {
+  const articleListPageSize = ref<ArticleListPageSize>(normalizePageSize(readNumber(ARTICLE_LIST_PAGE_SIZE_KEY, DEFAULT_PAGE_SIZE)));
+  const articleListOrder = ref<ArticleListOrder>(
+    ARTICLE_LIST_ORDERS.includes(readString(ARTICLE_LIST_ORDER_KEY, DEFAULT_ORDER) as ArticleListOrder)
+      ? (readString(ARTICLE_LIST_ORDER_KEY, DEFAULT_ORDER) as ArticleListOrder)
+      : DEFAULT_ORDER,
+  );
 
-const setArticleListPageSize = (value: number) => {
-  articleListPageSize.value = normalizePageSize(value) as ArticleListPageSize;
-};
+  const setArticleListPageSize = (value: number) => {
+    articleListPageSize.value = normalizePageSize(value) as ArticleListPageSize;
+  };
 
-watch(articleListPageSize, (value) => writeNumber(ARTICLE_LIST_PAGE_SIZE_KEY, value));
-watch(articleListOrder, (value) => writeString(ARTICLE_LIST_ORDER_KEY, value));
+  const setArticleListOrder = (value: ArticleListOrder) => {
+    articleListOrder.value = ARTICLE_LIST_ORDERS.includes(value) ? value : DEFAULT_ORDER;
+  };
 
-const setArticleListOrder = (value: ArticleListOrder) => {
-  articleListOrder.value = ARTICLE_LIST_ORDERS.includes(value) ? value : DEFAULT_ORDER;
-};
+  watch(articleListPageSize, (value) => writeNumber(ARTICLE_LIST_PAGE_SIZE_KEY, value));
+  watch(articleListOrder, (value) => writeString(ARTICLE_LIST_ORDER_KEY, value));
 
-export { ARTICLE_LIST_ORDERS, ARTICLE_LIST_PAGE_SIZES, articleListOrder, articleListPageSize, setArticleListOrder, setArticleListPageSize };
+  return {
+    articleListOrder,
+    articleListPageSize,
+    setArticleListOrder,
+    setArticleListPageSize,
+  };
+});
+
+export { ARTICLE_LIST_ORDERS, ARTICLE_LIST_PAGE_SIZES, useArticleListStore };
+export type { ArticleListOrder, ArticleListPageSize };

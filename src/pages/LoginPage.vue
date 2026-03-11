@@ -6,12 +6,13 @@ import { API_BASE_URL, ApiError } from '../shared/lib/http/api';
 import { applyProfileSummary } from '../shared/lib/profile';
 import { login } from '../features/auth';
 import { getMyProfile } from '../entities/user';
-import { setAccessToken } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import githubIcon from '../assets/icons/icon-github.svg';
 import googleColorIcon from '../assets/icons/icon-google-color.svg';
 import googleMonoIcon from '../assets/icons/icon-google-mono.svg';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const loginId = ref('');
 const password = ref('');
 const rememberMe = ref(false);
@@ -43,7 +44,7 @@ const handleSubmit = async () => {
       password: password.value,
       rememberMe: rememberMe.value,
     });
-    setAccessToken(token.accessToken, token.expiresInSec);
+    authStore.setAccessToken(token.accessToken, token.expiresInSec);
     try {
       const profile = await getMyProfile();
       applyProfileSummary(profile);

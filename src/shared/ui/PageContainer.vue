@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
-import { contentWidthPreset } from '../../stores/layout';
+import { useLayoutStore } from '../../stores/layout';
 import type { ContentWidthPreset } from '../../stores/layout';
 
 type PageContainerWidth = 'auto' | 'narrow' | ContentWidthPreset;
@@ -13,6 +14,8 @@ interface PageContainerProps {
 const props = withDefaults(defineProps<PageContainerProps>(), {
   width: 'auto',
 });
+const layoutStore = useLayoutStore();
+const { contentWidthPreset } = storeToRefs(layoutStore);
 
 const resolvedWidth = computed<Exclude<PageContainerWidth, 'auto'>>(() => {
   if (props.width === 'auto') {

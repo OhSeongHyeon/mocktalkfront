@@ -1,3 +1,4 @@
+import { createPinia, setActivePinia } from 'pinia';
 import { createApp, watch } from 'vue';
 import './style.css';
 import 'highlight.js/styles/github.css';
@@ -7,14 +8,17 @@ import { getMyProfile } from './entities/user';
 import { refreshAccessToken } from './features/auth';
 import { applyProfileSummary } from './shared/lib/profile';
 import { initTheme } from './shared/lib/theme';
-import { accessTokenExpiresAt, clearAccessToken, setAccessToken } from './stores/auth';
+import { useAuthStore } from './stores/auth';
 
+const pinia = createPinia();
+setActivePinia(pinia);
 initTheme();
+const authStore = useAuthStore();
 
 const bootstrap = async () => {
   try {
     const token = await refreshAccessToken();
-    setAccessToken(token.accessToken, token.expiresInSec);
+    authStore.setAccessToken(token.accessToken, token.expiresInSec);
     try {
       const profile = await getMyProfile();
       applyProfileSummary(profile);
@@ -24,7 +28,10 @@ const bootstrap = async () => {
   } catch {
     // 시작 시 토큰 갱신 실패는 무시
   }
-  createApp(App).use(router).mount('#app');
+  const app = createApp(App);
+  app.use(pinia);
+  app.use(router);
+  app.mount('#app');
 };
 
 bootstrap();
@@ -49,7 +56,7 @@ globalThis.addEventListener('auth:logout', () => {
 let refreshTimerId: number | null = null;
 
 const scheduleRefresh = () => {
-  const expiresAt = accessTokenExpiresAt.value;
+  const expiresAt = authStore.accessTokenExpiresAt;
   if (!expiresAt) {
     if (refreshTimerId !== null) {
       globalThis.clearTimeout(refreshTimerId);
@@ -66,9 +73,9 @@ const scheduleRefresh = () => {
   refreshTimerId = globalThis.setTimeout(async () => {
     try {
       const token = await refreshAccessToken();
-      setAccessToken(token.accessToken, token.expiresInSec);
+      authStore.setAccessToken(token.accessToken, token.expiresInSec);
     } catch {
-      clearAccessToken();
+      authStore.clearAccessToken();
       globalThis.dispatchEvent(new CustomEvent('auth:logout'));
     } finally {
       scheduleRefresh();
@@ -76,7 +83,7 @@ const scheduleRefresh = () => {
   }, delay);
 };
 
-watch(accessTokenExpiresAt, scheduleRefresh, { immediate: true });
+watch(() => authStore.accessTokenExpiresAt, scheduleRefresh, { immediate: true });
 
 // env 테스트용 정크코드
 if ('development' === import.meta.env.MODE) {

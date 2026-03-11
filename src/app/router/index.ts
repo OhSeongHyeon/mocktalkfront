@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import { getAccessToken, isAdmin, isManagerOrAdmin } from '../../stores/auth';
+import { useAuthStore } from '../../stores/auth';
 
 const LoginPage = () => import('../../pages/LoginPage.vue');
 const MainPage = () => import('../../pages/MainPage.vue');
@@ -77,13 +77,14 @@ const router = createRouter({
 });
 
 router.beforeEach((to) => {
-  if (to.meta.requiresAuth && !getAccessToken()) {
+  const authStore = useAuthStore();
+  if (to.meta.requiresAuth && !authStore.getAccessToken()) {
     return { path: '/login' };
   }
-  if (to.meta.requiresManagerOrAdmin && !isManagerOrAdmin.value) {
+  if (to.meta.requiresManagerOrAdmin && !authStore.isManagerOrAdmin) {
     return { path: '/' };
   }
-  if (to.meta.requiresAdmin && !isAdmin.value) {
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
     return { path: '/' };
   }
   return true;

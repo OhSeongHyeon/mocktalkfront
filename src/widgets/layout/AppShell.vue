@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 
-import { menuCollapsed, setMenuCollapsed, sideMenuDisplayMode } from '../../stores/layout';
+import { useLayoutStore } from '../../stores/layout';
 import SideMenuBar from './SideMenuBar.vue';
 import TopMenuBar from './TopMenuBar.vue';
 
 const isMobileMenuOpen = ref(false);
 const mainElementRef = ref<HTMLElement | null>(null);
+const layoutStore = useLayoutStore();
+const { menuCollapsed, sideMenuDisplayMode } = storeToRefs(layoutStore);
+const { setMenuCollapsed } = layoutStore;
 
 const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 

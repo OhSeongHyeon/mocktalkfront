@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import { isAdmin, isManagerOrAdmin } from '../../stores/auth';
+import { useAuthStore } from '../../stores/auth';
 import iconBookmark from '../../assets/icons/icon-bookmark.svg';
 import iconChat from '../../assets/icons/icon-chat.svg';
 import iconCommunity from '../../assets/icons/icon-community.svg';
@@ -28,6 +29,8 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
+const authStore = useAuthStore();
+const { isAdmin, isManagerOrAdmin } = storeToRefs(authStore);
 
 type SideMenuItem = {
   name: string;

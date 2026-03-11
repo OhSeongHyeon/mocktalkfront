@@ -4,10 +4,11 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { ApiError } from '../shared/lib/http/api';
 import { exchangeOAuth2Code } from '../features/auth';
-import { setAccessToken } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
 
 const isLoading = ref(true);
 const errorMessage = ref('');
@@ -57,7 +58,7 @@ const handleExchange = async () => {
 
   try {
     const token = await exchangeOAuth2Code({ code: code.value });
-    setAccessToken(token.accessToken, token.expiresInSec);
+    authStore.setAccessToken(token.accessToken, token.expiresInSec);
     await router.replace('/');
   } catch (err) {
     if (err instanceof ApiError) {

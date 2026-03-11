@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -6,12 +7,14 @@ import { ApiError } from '../shared/lib/http/api';
 import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../entities/board/lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../entities/board/lib/boardVisibility';
 import { createBoard, uploadBoardImage } from '../entities/board';
-import { isAdmin } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 const router = useRouter();
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 
 const form = reactive({
   boardName: '',
