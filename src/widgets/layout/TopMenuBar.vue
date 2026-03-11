@@ -3,22 +3,13 @@ import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
-import { ApiError } from '../../shared/lib/http/api';
 import { logout } from '../../features/auth';
 import { removeNotificationPresence, updateNotificationPresence } from '../../features/notification';
-import {
-  deleteAllNotifications,
-  getNotifications,
-  markAllNotificationsRead,
-  markNotificationRead,
-  markNotificationsReadByRedirectUrl,
-} from '../../features/notification';
 import type { NotificationResponse } from '../../features/notification';
-import { subscribeNotificationRealtime } from '../../features/realtime';
-import type { NotificationRealtimeSubscription } from '../../features/realtime';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
 import { applyTheme } from '../../shared/lib/theme';
 import { useAuthStore } from '../../stores/auth';
+import { useNotificationStore } from '../../stores/notification';
 import defaultAvatar from '../../assets/default-avatar.svg';
 import iconBell from '../../assets/icons/icon-bell.svg';
 import iconMoon from '../../assets/icons/icon-moon.svg';
@@ -33,7 +24,9 @@ const emit = defineEmits<{
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const notificationStore = useNotificationStore();
 const { displayName, isAuthenticated, profileImageUrl, userPoint } = storeToRefs(authStore);
+const { notificationError, notificationListDirty, notificationLoading, notificationUnreadCount, notifications } = storeToRefs(notificationStore);
 const isDark = ref(false);
 const isProfileMenuOpen = ref(false);
 const isNotificationMenuOpen = ref(false);
@@ -44,15 +37,8 @@ const notificationButtonRef = ref<HTMLButtonElement | null>(null);
 const resolvedAvatar = computed(() => profileImageUrl.value ?? defaultAvatar);
 const resolvedDisplayName = computed(() => displayName.value ?? '사용자');
 const resolvedPoint = computed(() => userPoint.value.toLocaleString());
-const notifications = ref<NotificationResponse[]>([]);
-const notificationLoading = ref(false);
-const notificationError = ref('');
-const notificationUnreadCount = ref(0);
-const notificationRealtimeSubscription = ref<NotificationRealtimeSubscription | null>(null);
-const notificationListDirty = ref(false);
 const notificationPresenceSessionId = ref<string | null>(null);
 const notificationPresenceHeartbeatTimer = ref<number | null>(null);
-const notificationPageSize = 5;
 const hasUnreadNotifications = computed(() => notificationUnreadCount.value > 0);
 const notificationUnreadLabel = computed(() => (notificationUnreadCount.value > 9 ? '9+' : String(notificationUnreadCount.value)));
 const notificationButtonLabel = computed(() => {
@@ -84,7 +70,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  stopNotificationRealtime();
+  notificationStore.stopNotificationRealtime();
   stopNotificationPresence(true);
   if (!globalThis.document) {
     return;
@@ -149,7 +135,7 @@ const toggleNotificationMenu = async () => {
   closeProfileMenu();
   isNotificationMenuOpen.value = true;
   if (notificationListDirty.value || notifications.value.length === 0) {
-    await loadNotifications();
+    await notificationStore.loadNotifications();
   }
 };
 
@@ -205,57 +191,12 @@ const formatNotificationDate = (value: string) => {
   });
 };
 
-const loadNotifications = async () => {
-  if (!isAuthenticated.value) {
-    notifications.value = [];
-    notificationError.value = '';
-    notificationUnreadCount.value = 0;
-    notificationListDirty.value = false;
-    return;
-  }
-  notificationError.value = '';
-  notificationLoading.value = true;
-  try {
-    const data = await getNotifications(0, notificationPageSize);
-    notifications.value = data.items;
-    await loadUnreadCount();
-    notificationListDirty.value = false;
-  } catch (error) {
-    if (error instanceof ApiError && error.status === 401) {
-      notificationError.value = '로그인이 필요합니다.';
-      notifications.value = [];
-      notificationUnreadCount.value = 0;
-      return;
-    }
-    notificationError.value = error instanceof ApiError ? error.message : '알림을 불러오지 못했습니다.';
-  } finally {
-    notificationLoading.value = false;
-  }
-};
-
 const handleSearch = async () => {
   const trimmed = searchKeyword.value.trim();
   if (!trimmed) {
     return;
   }
   await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
-};
-
-const loadUnreadCount = async () => {
-  if (!isAuthenticated.value) {
-    notificationUnreadCount.value = 0;
-    return;
-  }
-  try {
-    const data = await getNotifications(0, 1, false);
-    notificationUnreadCount.value = data.totalElements;
-  } catch {
-    notificationUnreadCount.value = 0;
-  }
-};
-
-const refreshUnreadCount = async () => {
-  await loadUnreadCount();
 };
 
 const buildPresenceSessionId = () => {
@@ -358,47 +299,28 @@ const stopNotificationPresence = (removePresence: boolean) => {
   void removeNotificationPresence(sessionId).catch(() => {});
 };
 
-const startNotificationRealtime = () => {
-  stopNotificationRealtime();
-  notificationRealtimeSubscription.value = subscribeNotificationRealtime({
-    onUnreadCountChanged: async (event) => {
-      const unreadCount = event.data?.unreadCount;
-      if (typeof unreadCount === 'number' && Number.isInteger(unreadCount) && unreadCount >= 0) {
-        notificationUnreadCount.value = unreadCount;
-      } else {
-        await loadUnreadCount();
-      }
-
-      if (isNotificationMenuOpen.value) {
-        await loadNotifications();
-        return;
-      }
-      notificationListDirty.value = true;
-    },
-  });
-};
-
-const stopNotificationRealtime = () => {
-  notificationRealtimeSubscription.value?.close();
-  notificationRealtimeSubscription.value = null;
-};
-
 watch(
   isAuthenticated,
   (authenticated) => {
     if (!authenticated) {
-      stopNotificationRealtime();
+      notificationStore.stopNotificationRealtime();
       stopNotificationPresence(false);
-      notificationUnreadCount.value = 0;
-      notificationListDirty.value = false;
+      notificationStore.resetNotificationState();
       return;
     }
-    startNotificationRealtime();
+    notificationStore.startNotificationRealtime();
     startNotificationPresence();
-    void loadUnreadCount();
+    void notificationStore.refreshUnreadCount();
   },
   { immediate: true },
 );
+
+watch([isNotificationMenuOpen, notificationListDirty], ([menuOpen, listDirty]) => {
+  if (!menuOpen || !listDirty) {
+    return;
+  }
+  void notificationStore.loadNotifications();
+});
 
 watch([() => route.fullPath, isNotificationMenuOpen], () => {
   if (!isAuthenticated.value) {
@@ -408,42 +330,16 @@ watch([() => route.fullPath, isNotificationMenuOpen], () => {
 });
 
 const handleAuthLogout = () => {
-  stopNotificationRealtime();
+  notificationStore.stopNotificationRealtime();
   stopNotificationPresence(false);
-  notificationUnreadCount.value = 0;
-  notificationListDirty.value = false;
-  notifications.value = [];
-  notificationError.value = '';
+  notificationStore.resetNotificationState();
   closeNotificationMenu();
   closeProfileMenu();
 };
 
 const handleNotificationClick = async (notification: NotificationResponse) => {
   if (!notification.read) {
-    try {
-      if (notification.redirectUrl && notification.redirectUrl.trim().length > 0) {
-        await markNotificationsReadByRedirectUrl(notification.redirectUrl);
-        notifications.value = notifications.value.map((item) => {
-          if (item.redirectUrl === notification.redirectUrl) {
-            return {
-              ...item,
-              read: true,
-            };
-          }
-          return item;
-        });
-      } else {
-        const updated = await markNotificationRead(notification.id);
-        const index = notifications.value.findIndex((item) => item.id === notification.id);
-        if (index >= 0) {
-          notifications.value[index] = updated;
-        }
-      }
-      await refreshUnreadCount();
-      notificationListDirty.value = false;
-    } catch (error) {
-      notificationError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
-    }
+    await notificationStore.markAsRead(notification);
   }
   closeNotificationMenu();
   if (!notification.redirectUrl) {
@@ -457,29 +353,11 @@ const handleNotificationClick = async (notification: NotificationResponse) => {
 };
 
 const handleMarkAllRead = async () => {
-  try {
-    await markAllNotificationsRead();
-    notifications.value = notifications.value.map((item) => ({
-      ...item,
-      read: true,
-    }));
-    await refreshUnreadCount();
-    notificationListDirty.value = false;
-  } catch (error) {
-    notificationError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
-  }
+  await notificationStore.markAllAsRead();
 };
 
 const handleDeleteAllNotifications = async () => {
-  notificationError.value = '';
-  try {
-    await deleteAllNotifications();
-    notifications.value = [];
-    notificationUnreadCount.value = 0;
-    notificationListDirty.value = false;
-  } catch (error) {
-    notificationError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
-  }
+  await notificationStore.deleteAll();
 };
 </script>
 
