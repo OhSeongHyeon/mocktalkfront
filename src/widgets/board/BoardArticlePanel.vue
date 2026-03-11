@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -8,14 +9,7 @@ import { getBoardCategories } from '../../entities/board';
 import type { ArticleSummaryResponse } from '../../entities/board';
 import { getBoardArticles } from '../../entities/board';
 import { search } from '../../features/search';
-import {
-  ARTICLE_LIST_ORDERS,
-  ARTICLE_LIST_PAGE_SIZES,
-  articleListOrder,
-  articleListPageSize,
-  setArticleListOrder,
-  setArticleListPageSize,
-} from '../../stores/articleList';
+import { ARTICLE_LIST_ORDERS, ARTICLE_LIST_PAGE_SIZES, useArticleListStore } from '../../stores/articleList';
 import ArticleList from '../article/ArticleList.vue';
 
 interface BoardArticlePanelProps {
@@ -35,6 +29,9 @@ const emit = defineEmits<{
 
 const route = useRoute();
 const router = useRouter();
+const articleListStore = useArticleListStore();
+const { articleListOrder, articleListPageSize } = storeToRefs(articleListStore);
+const { setArticleListOrder, setArticleListPageSize } = articleListStore;
 
 const pinned = ref<ArticleSummaryResponse[]>([]);
 const articles = ref<ArticleSummaryResponse[]>([]);
@@ -146,6 +143,8 @@ const loadPage = async (pageIndex: number) => {
         userId: item.userId,
         authorName: item.authorName,
         title: item.title,
+        categoryId: item.categoryId ?? null,
+        categoryName: item.categoryName ?? null,
         hit: item.hit,
         commentCount: item.commentCount,
         likeCount: item.likeCount,
@@ -272,6 +271,16 @@ const handleSelect = (articleId: number) => {
     articleId,
     query: resolveArticleFilterQuery(),
   });
+};
+
+const resolveArticleHref = (article: ArticleSummaryResponse) => {
+  if (!props.boardSlug) {
+    return '#';
+  }
+  const params = new URLSearchParams(resolveArticleFilterQuery());
+  const queryString = params.toString();
+  const path = `/b/${props.boardSlug}/articles/${article.id}`;
+  return queryString ? `${path}?${queryString}` : path;
 };
 
 watch(
@@ -454,6 +463,7 @@ watch(
     :total-pages="totalPages"
     :has-next="hasNext"
     :has-previous="hasPrevious"
+    :resolve-href="resolveArticleHref"
     @select="handleSelect"
     @update:order="handleOrderChange"
     @update:page-size="handlePageSizeChange"

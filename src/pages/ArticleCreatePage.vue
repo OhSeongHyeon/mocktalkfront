@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -22,11 +23,13 @@ import type { UserProfileResponse } from '../entities/user';
 import { getMyProfile } from '../entities/user';
 import type { FileResponse } from '../entities/file';
 import { uploadArticleAttachmentFile } from '../entities/file';
-import { isAdmin, isAuthenticated } from '../stores/auth';
+import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();
 const router = useRouter();
 const slug = computed(() => String(route.params.slug ?? ''));
+const authStore = useAuthStore();
+const { isAdmin, isAuthenticated } = storeToRefs(authStore);
 
 const board = ref<BoardDetailResponse | null>(null);
 const profile = ref<UserProfileResponse | null>(null);

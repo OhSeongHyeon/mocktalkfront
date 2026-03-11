@@ -1,10 +1,9 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
-import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
-import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { getBoardBySlug } from '../entities/board';
 import type { BoardDetailResponse, BoardMemberStatus } from '../entities/board';
@@ -16,15 +15,17 @@ import {
   updateBoardAdminArticleNotice,
 } from '../features/admin/board';
 import type { BoardAdminArticleItemResponse, BoardAdminCommentItemResponse } from '../features/admin/board';
-import { isAdmin } from '../stores/auth';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import { useAuthStore } from '../stores/auth';
+import PageContainer from '../shared/ui/PageContainer.vue';
+import AppShell from '../widgets/layout/AppShell.vue';
 
 type ContentType = 'ARTICLE' | 'COMMENT';
 type ReportedFilter = 'ALL' | 'REPORTED' | 'UNREPORTED';
 type NoticeFilter = 'ALL' | 'NOTICE' | 'NORMAL';
 
 const route = useRoute();
-const isMobileMenuOpen = ref(false);
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 
@@ -41,20 +42,6 @@ const isSubmitting = ref(false);
 const page = ref(0);
 const size = ref(10);
 const totalPages = ref(0);
-
-const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-
-const toggleMenu = () => {
-  if (isMobileView()) {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
 
 const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus === 'OWNER' || memberStatus === 'MODERATOR';
 
@@ -223,229 +210,225 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl space-y-6">
-          <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="contents" />
+  <AppShell>
+    <PageContainer width="wide">
+      <div class="space-y-6">
+        <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="contents" />
 
-          <div v-if="boardError" class="ui-state ui-state-danger">
-            {{ boardError }}
-          </div>
-
-          <div v-if="board && hasPermission" class="space-y-6">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">콘텐츠 관리</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">게시글과 댓글을 관리합니다.</p>
-              </div>
-              <div
-                class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
-                <button
-                  type="button"
-                  class="rounded-full px-4 py-2 transition"
-                  :class="contentType === 'ARTICLE' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500'"
-                  @click="switchContentType('ARTICLE')"
-                >
-                  게시글
-                </button>
-                <button
-                  type="button"
-                  class="rounded-full px-4 py-2 transition"
-                  :class="contentType === 'COMMENT' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500'"
-                  @click="switchContentType('COMMENT')"
-                >
-                  댓글
-                </button>
-              </div>
-            </div>
-
-            <div class="ui-panel p-4">
-              <div class="flex flex-wrap items-center gap-3">
-                <select
-                  v-model="reportedFilter"
-                  class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                >
-                  <option value="ALL">전체</option>
-                  <option value="REPORTED">신고 있음</option>
-                  <option value="UNREPORTED">신고 없음</option>
-                </select>
-                <select
-                  v-if="contentType === 'ARTICLE'"
-                  v-model="noticeFilter"
-                  class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                >
-                  <option value="ALL">전체</option>
-                  <option value="NOTICE">공지</option>
-                  <option value="NORMAL">일반</option>
-                </select>
-                <input
-                  v-model="authorId"
-                  type="number"
-                  class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                  placeholder="작성자 ID"
-                />
-                <button
-                  type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-                  @click="applyFilters"
-                >
-                  적용
-                </button>
-              </div>
-            </div>
-
-            <div v-if="listError" class="ui-state ui-state-danger">
-              {{ listError }}
-            </div>
-
-            <section class="ui-panel p-4">
-              <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">목록</h2>
-                <span class="text-xs text-slate-400"> {{ contentType === 'ARTICLE' ? articles.length : comments.length }}건 </span>
-              </div>
-
-              <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-                불러오는 중...
-              </div>
-
-              <div v-else class="mt-4 flex flex-col gap-3">
-                <template v-if="contentType === 'ARTICLE'">
-                  <div
-                    v-for="article in articles"
-                    :key="article.id"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
-                  >
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                          <span>#{{ article.id }}</span>
-                          <span class="text-xs text-slate-400">{{ article.authorName }}</span>
-                        </div>
-                        <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ article.title }}</p>
-                        <p class="mt-1 text-xs text-slate-400">작성 {{ formatDate(article.createdAt) }} · 삭제 {{ formatDate(article.deletedAt) }}</p>
-                      </div>
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span
-                          v-if="article.notice"
-                          class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-200"
-                        >
-                          공지
-                        </span>
-                        <span
-                          v-if="article.reported"
-                          class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
-                        >
-                          신고
-                        </span>
-                        <span
-                          v-if="article.deletedAt"
-                          class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                        >
-                          삭제됨
-                        </span>
-                      </div>
-                    </div>
-                    <div class="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
-                        :disabled="isSubmitting"
-                        @click="toggleNotice(article)"
-                      >
-                        {{ article.notice ? '공지 해제' : '공지 설정' }}
-                      </button>
-                      <button
-                        type="button"
-                        class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
-                        :disabled="isSubmitting"
-                        @click="deleteArticle(article)"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </div>
-                </template>
-
-                <template v-if="contentType === 'COMMENT'">
-                  <div
-                    v-for="comment in comments"
-                    :key="comment.id"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
-                  >
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                          <span>#{{ comment.id }}</span>
-                          <span class="text-xs text-slate-400">{{ comment.authorName }}</span>
-                        </div>
-                        <p class="mt-1 text-xs text-slate-400">게시글: {{ comment.articleTitle }} (#{{ comment.articleId }})</p>
-                        <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ comment.content }}</p>
-                        <p class="mt-1 text-xs text-slate-400">작성 {{ formatDate(comment.createdAt) }} · 삭제 {{ formatDate(comment.deletedAt) }}</p>
-                      </div>
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span
-                          v-if="comment.reported"
-                          class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
-                        >
-                          신고
-                        </span>
-                        <span
-                          v-if="comment.deletedAt"
-                          class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                        >
-                          삭제됨
-                        </span>
-                      </div>
-                    </div>
-                    <div class="mt-3 flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
-                        :disabled="isSubmitting"
-                        @click="deleteComment(comment)"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </div>
-                </template>
-
-                <div v-if="contentType === 'ARTICLE' && articles.length === 0" class="ui-state ui-state-empty px-4 py-10">
-                  조건에 해당하는 게시글이 없습니다.
-                </div>
-                <div v-if="contentType === 'COMMENT' && comments.length === 0" class="ui-state ui-state-empty px-4 py-10">
-                  조건에 해당하는 댓글이 없습니다.
-                </div>
-              </div>
-
-              <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
-                <button
-                  type="button"
-                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                  :disabled="page === 0"
-                  @click="movePage(-1)"
-                >
-                  이전
-                </button>
-                <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-                <button
-                  type="button"
-                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                  :disabled="page + 1 >= totalPages"
-                  @click="movePage(1)"
-                >
-                  다음
-                </button>
-              </div>
-            </section>
-          </div>
+        <div v-if="boardError" class="ui-state ui-state-danger">
+          {{ boardError }}
         </div>
-      </main>
-    </div>
-  </div>
+
+        <div v-if="board && hasPermission" class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">콘텐츠 관리</h1>
+              <p class="text-sm text-slate-500 dark:text-slate-400">게시글과 댓글을 관리합니다.</p>
+            </div>
+            <div
+              class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+            >
+              <button
+                type="button"
+                class="rounded-full px-4 py-2 transition"
+                :class="contentType === 'ARTICLE' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500'"
+                @click="switchContentType('ARTICLE')"
+              >
+                게시글
+              </button>
+              <button
+                type="button"
+                class="rounded-full px-4 py-2 transition"
+                :class="contentType === 'COMMENT' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500'"
+                @click="switchContentType('COMMENT')"
+              >
+                댓글
+              </button>
+            </div>
+          </div>
+
+          <div class="ui-panel p-4">
+            <div class="flex flex-wrap items-center gap-3">
+              <select
+                v-model="reportedFilter"
+                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              >
+                <option value="ALL">전체</option>
+                <option value="REPORTED">신고 있음</option>
+                <option value="UNREPORTED">신고 없음</option>
+              </select>
+              <select
+                v-if="contentType === 'ARTICLE'"
+                v-model="noticeFilter"
+                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              >
+                <option value="ALL">전체</option>
+                <option value="NOTICE">공지</option>
+                <option value="NORMAL">일반</option>
+              </select>
+              <input
+                v-model="authorId"
+                type="number"
+                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                placeholder="작성자 ID"
+              />
+              <button
+                type="button"
+                class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+                @click="applyFilters"
+              >
+                적용
+              </button>
+            </div>
+          </div>
+
+          <div v-if="listError" class="ui-state ui-state-danger">
+            {{ listError }}
+          </div>
+
+          <section class="ui-panel p-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">목록</h2>
+              <span class="text-xs text-slate-400"> {{ contentType === 'ARTICLE' ? articles.length : comments.length }}건 </span>
+            </div>
+
+            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
+              <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+              불러오는 중...
+            </div>
+
+            <div v-else class="mt-4 flex flex-col gap-3">
+              <template v-if="contentType === 'ARTICLE'">
+                <div
+                  v-for="article in articles"
+                  :key="article.id"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        <span>#{{ article.id }}</span>
+                        <span class="text-xs text-slate-400">{{ article.authorName }}</span>
+                      </div>
+                      <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ article.title }}</p>
+                      <p class="mt-1 text-xs text-slate-400">작성 {{ formatDate(article.createdAt) }} · 삭제 {{ formatDate(article.deletedAt) }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span
+                        v-if="article.notice"
+                        class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-200"
+                      >
+                        공지
+                      </span>
+                      <span
+                        v-if="article.reported"
+                        class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
+                      >
+                        신고
+                      </span>
+                      <span
+                        v-if="article.deletedAt"
+                        class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                      >
+                        삭제됨
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                      :disabled="isSubmitting"
+                      @click="toggleNotice(article)"
+                    >
+                      {{ article.notice ? '공지 해제' : '공지 설정' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
+                      :disabled="isSubmitting"
+                      @click="deleteArticle(article)"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              </template>
+
+              <template v-if="contentType === 'COMMENT'">
+                <div
+                  v-for="comment in comments"
+                  :key="comment.id"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        <span>#{{ comment.id }}</span>
+                        <span class="text-xs text-slate-400">{{ comment.authorName }}</span>
+                      </div>
+                      <p class="mt-1 text-xs text-slate-400">게시글: {{ comment.articleTitle }} (#{{ comment.articleId }})</p>
+                      <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ comment.content }}</p>
+                      <p class="mt-1 text-xs text-slate-400">작성 {{ formatDate(comment.createdAt) }} · 삭제 {{ formatDate(comment.deletedAt) }}</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span
+                        v-if="comment.reported"
+                        class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
+                      >
+                        신고
+                      </span>
+                      <span
+                        v-if="comment.deletedAt"
+                        class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                      >
+                        삭제됨
+                      </span>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
+                      :disabled="isSubmitting"
+                      @click="deleteComment(comment)"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              </template>
+
+              <div v-if="contentType === 'ARTICLE' && articles.length === 0" class="ui-state ui-state-empty px-4 py-10">
+                조건에 해당하는 게시글이 없습니다.
+              </div>
+              <div v-if="contentType === 'COMMENT' && comments.length === 0" class="ui-state ui-state-empty px-4 py-10">
+                조건에 해당하는 댓글이 없습니다.
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+              <button
+                type="button"
+                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                :disabled="page === 0"
+                @click="movePage(-1)"
+              >
+                이전
+              </button>
+              <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+              <button
+                type="button"
+                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                :disabled="page + 1 >= totalPages"
+                @click="movePage(1)"
+              >
+                다음
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </PageContainer>
+  </AppShell>
 </template>

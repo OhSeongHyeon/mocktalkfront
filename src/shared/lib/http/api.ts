@@ -1,4 +1,4 @@
-import { clearAccessToken, getAccessToken, setAccessToken } from '../../../stores/auth';
+import { useAuthStore } from '../../../stores/auth';
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = rawBaseUrl && rawBaseUrl.trim().length > 0 ? rawBaseUrl.trim() : '/api';
@@ -139,7 +139,8 @@ const tryRefreshAccessToken = async () => {
     if (!data?.accessToken || typeof data.expiresInSec !== 'number') {
       return false;
     }
-    setAccessToken(data.accessToken, data.expiresInSec);
+    const authStore = useAuthStore();
+    authStore.setAccessToken(data.accessToken, data.expiresInSec);
     return true;
   } catch {
     return false;
@@ -164,7 +165,8 @@ const fetchWithAuth = async (path: string, init: RequestInit = {}, options: Fetc
   const retry = options.retry ?? true;
   const acceptedStatuses = options.acceptedStatuses ?? [];
   const headers = new Headers(init.headers ?? {});
-  const accessToken = getAccessToken();
+  const authStore = useAuthStore();
+  const accessToken = authStore.getAccessToken();
   if (accessToken && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
@@ -184,7 +186,7 @@ const fetchWithAuth = async (path: string, init: RequestInit = {}, options: Fetc
           acceptedStatuses,
         });
       }
-      clearAccessToken();
+      authStore.clearAccessToken();
       globalThis.dispatchEvent(new CustomEvent('auth:logout'));
     }
     const details = await readErrorBody(response);

@@ -88,18 +88,13 @@ const formatDate = (value: string) => {
       <span>선택 {{ selectedIds.length }}개</span>
     </div>
 
-    <div
-      v-if="items.length === 0"
-      class="mt-4 rounded-2xl border border-dashed border-slate-200 px-6 py-10 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
-    >
-      북마크한 게시글이 없습니다.
-    </div>
+    <div v-if="items.length === 0" class="ui-state ui-state-empty mt-4 px-6 py-10">북마크한 게시글이 없습니다.</div>
 
     <div v-else class="mt-4 space-y-3">
       <article
         v-for="item in items"
         :key="item.id"
-        class="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white px-5 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:border-slate-800 dark:bg-slate-950"
+        class="ui-sub-panel flex flex-col gap-2 px-5 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm"
       >
         <div class="flex items-start gap-3">
           <input

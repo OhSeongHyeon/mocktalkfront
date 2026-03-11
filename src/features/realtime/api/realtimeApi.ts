@@ -1,5 +1,5 @@
-import { API_BASE_URL } from '../../../shared/lib/http/api';
-import { getAccessToken, setAccessToken } from '../../../stores/auth';
+import { API_BASE_URL, request } from '../../../shared/lib/http/api';
+import { useAuthStore } from '../../../stores/auth';
 
 export type RealtimeEventType = 'CONNECTED' | 'HEARTBEAT' | 'COMMENT_CHANGED' | 'REACTION_CHANGED';
 export type NotificationRealtimeEventType = 'CONNECTED' | 'HEARTBEAT' | 'UNREAD_COUNT_CHANGED';
@@ -43,14 +43,24 @@ export interface NotificationRealtimeSubscription {
   close: () => void;
 }
 
+interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+}
+
+export interface NotificationRealtimeTicketResponse {
+  ticket: string;
+  expiresInSec: number;
+}
+
 const buildRealtimeUrl = (boardId: number) => {
   const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
   return `${base}/realtime/boards/${boardId}/stream`;
 };
 
-const buildNotificationRealtimeUrl = (accessToken: string) => {
+const buildNotificationRealtimeUrl = (ticket: string) => {
   const base = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
-  const params = new URLSearchParams({ accessToken });
+  const params = new URLSearchParams({ ticket });
   return `${base}/realtime/notifications/stream?${params.toString()}`;
 };
 
@@ -121,6 +131,15 @@ const parseNotificationEnvelope = (raw: string) => {
   }
 };
 
+const unwrap = <T>(envelope: ApiEnvelope<T>) => envelope.data;
+
+const issueNotificationRealtimeTicket = async () => {
+  const response = await request<ApiEnvelope<NotificationRealtimeTicketResponse>>('/realtime/notifications/ticket', {
+    method: 'POST',
+  });
+  return unwrap(response);
+};
+
 const computeReconnectDelayMs = (attempt: number) => {
   const cappedAttempt = Math.min(attempt, 5);
   const baseDelay = 1000 * 2 ** cappedAttempt;
@@ -145,7 +164,8 @@ const tryRefreshAccessTokenForRealtime = async () => {
     if (!data.accessToken || typeof data.expiresInSec !== 'number') {
       return false;
     }
-    setAccessToken(data.accessToken, data.expiresInSec);
+    const authStore = useAuthStore();
+    authStore.setAccessToken(data.accessToken, data.expiresInSec);
     return true;
   } catch {
     return false;
@@ -182,18 +202,37 @@ const subscribeNotificationRealtime = (handlers: NotificationRealtimeHandlers = 
     }, resolvedDelay);
   };
 
-  const connect = () => {
+  const connect = async () => {
     if (closed) {
       return;
     }
 
-    const accessToken = getAccessToken();
-    if (!accessToken) {
+    const authStore = useAuthStore();
+    if (!authStore.getAccessToken()) {
+      const refreshed = await tryRefreshAccessTokenForRealtime();
+      if (!refreshed) {
+        scheduleReconnect();
+        return;
+      }
+      if (!authStore.getAccessToken()) {
+        scheduleReconnect();
+        return;
+      }
+    }
+
+    let ticketResponse: NotificationRealtimeTicketResponse;
+    try {
+      ticketResponse = await issueNotificationRealtimeTicket();
+    } catch {
       scheduleReconnect();
       return;
     }
 
-    source = new EventSource(buildNotificationRealtimeUrl(accessToken), {
+    if (closed) {
+      return;
+    }
+
+    source = new EventSource(buildNotificationRealtimeUrl(ticketResponse.ticket), {
       withCredentials: true,
     });
 
@@ -220,22 +259,15 @@ const subscribeNotificationRealtime = (handlers: NotificationRealtimeHandlers = 
       }
     });
 
-    source.onerror = async (event) => {
+    source.onerror = (event) => {
       handlers.onError?.(event);
       source?.close();
       source = null;
-
-      const refreshed = await tryRefreshAccessTokenForRealtime();
-      if (refreshed) {
-        reconnectAttempt = 0;
-        scheduleReconnect(300);
-        return;
-      }
-      scheduleReconnect();
+      scheduleReconnect(300);
     };
   };
 
-  connect();
+  void connect();
 
   return {
     close: () => {
@@ -247,4 +279,4 @@ const subscribeNotificationRealtime = (handlers: NotificationRealtimeHandlers = 
   };
 };
 
-export { subscribeBoardRealtime, subscribeNotificationRealtime };
+export { issueNotificationRealtimeTicket, subscribeBoardRealtime, subscribeNotificationRealtime };

@@ -1,10 +1,9 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
-import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
-import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../entities/board/lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../entities/board/lib/boardVisibility';
@@ -14,11 +13,13 @@ import { getBoardCategories } from '../entities/board';
 import { getBoardBySlug } from '../entities/board';
 import type { BoardDetailResponse, BoardMemberStatus, BoardResponse } from '../entities/board';
 import { deleteBoardAdminImage, updateBoardSettings, uploadBoardAdminImage } from '../features/admin/board';
-import { isAdmin } from '../stores/auth';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import { useAuthStore } from '../stores/auth';
+import PageContainer from '../shared/ui/PageContainer.vue';
+import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
-const isMobileMenuOpen = ref(false);
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 const formError = ref('');
@@ -42,20 +43,6 @@ const form = reactive({
   articleWritePolicy: 'ALL_AUTHENTICATED' as BoardArticleWritePolicy,
 });
 const visibilityOptions = computed(() => resolveBoardVisibilityOptions(isAdmin.value, form.visibility));
-
-const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-
-const toggleMenu = () => {
-  if (isMobileView()) {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
 
 const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus === 'OWNER' || memberStatus === 'MODERATOR';
 
@@ -223,208 +210,202 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl space-y-6">
-          <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="settings" />
+  <AppShell>
+    <PageContainer width="wide">
+      <div class="space-y-6">
+        <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="settings" />
 
-          <div v-if="boardError" class="ui-state ui-state-danger">
-            {{ boardError }}
+        <div v-if="boardError" class="ui-state ui-state-danger">
+          {{ boardError }}
+        </div>
+
+        <div v-if="board && hasPermission" class="space-y-6">
+          <div>
+            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 설정</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">게시판의 기본 정보와 대표 이미지를 관리합니다.</p>
           </div>
 
-          <div v-if="board && hasPermission" class="space-y-6">
-            <div>
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 설정</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">게시판의 기본 정보와 대표 이미지를 관리합니다.</p>
+          <section class="ui-panel p-6">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">기본 정보</h2>
+              <span class="text-xs text-slate-400">게시판 ID {{ board.id }}</span>
             </div>
 
-            <section class="ui-panel p-6">
-              <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">기본 정보</h2>
-                <span class="text-xs text-slate-400">게시판 ID {{ board.id }}</span>
+            <form class="mt-6 grid gap-4 md:grid-cols-2" @submit.prevent="submitSettings">
+              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                게시판명
+                <input
+                  v-model="form.boardName"
+                  type="text"
+                  maxlength="255"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  placeholder="게시판 이름을 입력하세요"
+                />
+              </label>
+
+              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                공개 범위
+                <select
+                  v-model="form.visibility"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                >
+                  <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </label>
+
+              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                게시글 작성 권한
+                <select
+                  v-model="form.articleWritePolicy"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                >
+                  <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+              </label>
+
+              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
+                게시판 설명
+                <textarea
+                  v-model="form.description"
+                  rows="4"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                  placeholder="게시판 소개를 입력하세요"
+                ></textarea>
+              </label>
+
+              <div v-if="formError" class="ui-state ui-state-danger md:col-span-2">
+                {{ formError }}
+              </div>
+              <div
+                v-if="formSuccess"
+                class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200 md:col-span-2"
+              >
+                {{ formSuccess }}
               </div>
 
-              <form class="mt-6 grid gap-4 md:grid-cols-2" @submit.prevent="submitSettings">
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                  게시판명
-                  <input
-                    v-model="form.boardName"
-                    type="text"
-                    maxlength="255"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="게시판 이름을 입력하세요"
-                  />
-                </label>
-
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                  공개 범위
-                  <select
-                    v-model="form.visibility"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  >
-                    <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
-                      {{ option.label }}
-                    </option>
-                  </select>
-                </label>
-
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                  게시글 작성 권한
-                  <select
-                    v-model="form.articleWritePolicy"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  >
-                    <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
-                      {{ option.label }}
-                    </option>
-                  </select>
-                </label>
-
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
-                  게시판 설명
-                  <textarea
-                    v-model="form.description"
-                    rows="4"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="게시판 소개를 입력하세요"
-                  ></textarea>
-                </label>
-
-                <div v-if="formError" class="ui-state ui-state-danger md:col-span-2">
-                  {{ formError }}
-                </div>
-                <div
-                  v-if="formSuccess"
-                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200 md:col-span-2"
+              <div class="flex flex-wrap items-center gap-3 md:col-span-2">
+                <button
+                  type="submit"
+                  class="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+                  :disabled="isSaving"
                 >
-                  {{ formSuccess }}
-                </div>
+                  {{ isSaving ? '저장 중...' : '설정 저장' }}
+                </button>
+              </div>
+            </form>
+          </section>
 
-                <div class="flex flex-wrap items-center gap-3 md:col-span-2">
-                  <button
-                    type="submit"
-                    class="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                    :disabled="isSaving"
+          <section class="ui-panel p-6">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대표 이미지</h2>
+              <span class="text-xs text-slate-400">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
+            </div>
+
+            <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]">
+              <div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                <div class="relative overflow-hidden rounded-2xl bg-slate-100">
+                  <img v-if="previewImageUrl" :src="previewImageUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
+                  <div v-else class="flex h-48 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-4">
+                <p class="text-sm text-slate-600 dark:text-slate-300">
+                  대표 이미지는 게시판 카드와 상단 헤더에 노출됩니다. 이미지를 교체하면 이전 이미지는 삭제됩니다.
+                </p>
+
+                <div class="flex flex-wrap gap-2">
+                  <label
+                    class="cursor-pointer rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:text-slate-200"
+                    :for="`board-admin-image-${fileInputKey}`"
                   >
-                    {{ isSaving ? '저장 중...' : '설정 저장' }}
+                    이미지 선택
+                  </label>
+                  <input
+                    :id="`board-admin-image-${fileInputKey}`"
+                    :key="fileInputKey"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleImageChange"
+                  />
+                  <button
+                    type="button"
+                    class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+                    :disabled="!imageFile || isUploading"
+                    @click="uploadImage"
+                  >
+                    {{ isUploading ? '업로드 중...' : '업로드' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                    :disabled="!imageFile"
+                    @click="clearSelectedImage"
+                  >
+                    선택 취소
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-full border border-rose-200 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50 dark:border-rose-900/60 dark:text-rose-200"
+                    :disabled="!board.boardImage || isRemoving"
+                    @click="removeImage"
+                  >
+                    {{ isRemoving ? '삭제 중...' : '이미지 삭제' }}
                   </button>
                 </div>
-              </form>
-            </section>
 
-            <section class="ui-panel p-6">
-              <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대표 이미지</h2>
-                <span class="text-xs text-slate-400">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
-              </div>
-
-              <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]">
-                <div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                  <div class="relative overflow-hidden rounded-2xl bg-slate-100">
-                    <img v-if="previewImageUrl" :src="previewImageUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
-                    <div v-else class="flex h-48 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
-                  </div>
+                <div v-if="imageError" class="ui-state ui-state-danger">
+                  {{ imageError }}
                 </div>
-
-                <div class="flex flex-col gap-4">
-                  <p class="text-sm text-slate-600 dark:text-slate-300">
-                    대표 이미지는 게시판 카드와 상단 헤더에 노출됩니다. 이미지를 교체하면 이전 이미지는 삭제됩니다.
-                  </p>
-
-                  <div class="flex flex-wrap gap-2">
-                    <label
-                      class="cursor-pointer rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:text-slate-200"
-                      :for="`board-admin-image-${fileInputKey}`"
-                    >
-                      이미지 선택
-                    </label>
-                    <input
-                      :id="`board-admin-image-${fileInputKey}`"
-                      :key="fileInputKey"
-                      type="file"
-                      accept="image/*"
-                      class="hidden"
-                      @change="handleImageChange"
-                    />
-                    <button
-                      type="button"
-                      class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                      :disabled="!imageFile || isUploading"
-                      @click="uploadImage"
-                    >
-                      {{ isUploading ? '업로드 중...' : '업로드' }}
-                    </button>
-                    <button
-                      type="button"
-                      class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
-                      :disabled="!imageFile"
-                      @click="clearSelectedImage"
-                    >
-                      선택 취소
-                    </button>
-                    <button
-                      type="button"
-                      class="rounded-full border border-rose-200 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50 dark:border-rose-900/60 dark:text-rose-200"
-                      :disabled="!board.boardImage || isRemoving"
-                      @click="removeImage"
-                    >
-                      {{ isRemoving ? '삭제 중...' : '이미지 삭제' }}
-                    </button>
-                  </div>
-
-                  <div v-if="imageError" class="ui-state ui-state-danger">
-                    {{ imageError }}
-                  </div>
-                  <div
-                    v-if="imageSuccess"
-                    class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
-                  >
-                    {{ imageSuccess }}
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="ui-panel p-6">
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">카테고리 관리</h2>
-                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
-                </div>
-                <RouterLink
-                  :to="`/b/${board.slug}/admin/categories`"
-                  class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900"
+                <div
+                  v-if="imageSuccess"
+                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
                 >
-                  카테고리 관리로 이동
-                </RouterLink>
-              </div>
-
-              <div v-if="isCategoryLoading" class="mt-4 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
-              <div v-else-if="categoryError" class="ui-state ui-state-danger mt-4">
-                {{ categoryError }}
-              </div>
-              <div v-else-if="categories.length === 0" class="ui-state ui-state-empty mt-4">등록된 카테고리가 없습니다.</div>
-              <div v-else class="mt-4">
-                <div class="flex flex-wrap gap-2">
-                  <span
-                    v-for="category in categories.slice(0, 10)"
-                    :key="category.id"
-                    class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                  >
-                    {{ category.categoryName }}
-                  </span>
+                  {{ imageSuccess }}
                 </div>
-                <p v-if="categories.length > 10" class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  외 {{ categories.length - 10 }}개 카테고리
-                </p>
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
+
+          <section class="ui-panel p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">카테고리 관리</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
+              </div>
+              <RouterLink
+                :to="`/b/${board.slug}/admin/categories`"
+                class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900"
+              >
+                카테고리 관리로 이동
+              </RouterLink>
+            </div>
+
+            <div v-if="isCategoryLoading" class="mt-4 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+            <div v-else-if="categoryError" class="ui-state ui-state-danger mt-4">
+              {{ categoryError }}
+            </div>
+            <div v-else-if="categories.length === 0" class="ui-state ui-state-empty mt-4">등록된 카테고리가 없습니다.</div>
+            <div v-else class="mt-4">
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="category in categories.slice(0, 10)"
+                  :key="category.id"
+                  class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                >
+                  {{ category.categoryName }}
+                </span>
+              </div>
+              <p v-if="categories.length > 10" class="mt-2 text-xs text-slate-500 dark:text-slate-400">외 {{ categories.length - 10 }}개 카테고리</p>
+            </div>
+          </section>
         </div>
-      </main>
-    </div>
-  </div>
+      </div>
+    </PageContainer>
+  </AppShell>
 </template>

@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
-import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
-import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
-import { isAdmin, isManagerOrAdmin } from '../stores/auth';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import { useAuthStore } from '../stores/auth';
+import PageContainer from '../shared/ui/PageContainer.vue';
+import AppShell from '../widgets/layout/AppShell.vue';
 
-const isMobileMenuOpen = ref(false);
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
+const authStore = useAuthStore();
+const { isAdmin, isManagerOrAdmin } = storeToRefs(authStore);
 
 const adminTools = computed(() => {
   const base = [
@@ -62,13 +59,6 @@ const adminTools = computed(() => {
   ];
 });
 
-const toggleMenu = () => {
-  if (typeof window !== 'undefined' && window.innerWidth < 768) {
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
 const resolveCardClass = (tone: string) => {
   if (tone === 'emerald') {
     return 'border-emerald-200/70 bg-emerald-50/70 dark:border-emerald-900/60 dark:bg-emerald-950/20';
@@ -90,70 +80,66 @@ const resolveCardClass = (tone: string) => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl">
-          <section class="ui-panel p-6 sm:p-8">
-            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-red-400 dark:text-red-300">Backoffice</p>
-            <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h1 class="text-3xl font-semibold text-slate-900 dark:text-slate-100">운영 작업 공간</h1>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                  서비스 탐색 메뉴와 분리된 관리자 전용 진입 화면입니다. 작업 성격에 맞는 도구만 선택해서 이동합니다.
-                </p>
-              </div>
-              <RouterLink
-                to="/"
-                class="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
-              >
-                서비스 홈으로 이동
-              </RouterLink>
+  <AppShell>
+    <PageContainer width="wide">
+      <div>
+        <section class="ui-panel p-6 sm:p-8">
+          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-red-400 dark:text-red-300">Backoffice</p>
+          <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-semibold text-slate-900 dark:text-slate-100">운영 작업 공간</h1>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                서비스 탐색 메뉴와 분리된 관리자 전용 진입 화면입니다. 작업 성격에 맞는 도구만 선택해서 이동합니다.
+              </p>
             </div>
-          </section>
+            <RouterLink
+              to="/"
+              class="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+            >
+              서비스 홈으로 이동
+            </RouterLink>
+          </div>
+        </section>
 
-          <section class="mt-6">
-            <div class="flex items-center justify-between gap-4">
-              <div>
-                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">관리 도구</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  {{ isAdmin ? '시스템 관리자 권한으로 모든 백오피스 도구를 사용할 수 있습니다.' : '운영 권한 범위 내 도구만 노출합니다.' }}
-                </p>
-              </div>
-              <span
-                v-if="isManagerOrAdmin"
-                class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
-              >
-                {{ isAdmin ? 'ADMIN' : 'MANAGER' }}
-              </span>
+        <section class="mt-6">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">관리 도구</h2>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                {{ isAdmin ? '시스템 관리자 권한으로 모든 백오피스 도구를 사용할 수 있습니다.' : '운영 권한 범위 내 도구만 노출합니다.' }}
+              </p>
             </div>
+            <span
+              v-if="isManagerOrAdmin"
+              class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+            >
+              {{ isAdmin ? 'ADMIN' : 'MANAGER' }}
+            </span>
+          </div>
 
-            <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <RouterLink
-                v-for="tool in adminTools"
-                :key="tool.path"
-                :to="tool.path"
-                class="group rounded-3xl border p-5 transition hover:-translate-y-0.5 hover:shadow-md"
-                :class="resolveCardClass(tool.tone)"
-              >
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ tool.title }}</h3>
-                    <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ tool.description }}</p>
-                  </div>
-                  <span
-                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-lg font-semibold text-slate-700 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/70 dark:text-slate-200"
-                  >
-                    →
-                  </span>
+          <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <RouterLink
+              v-for="tool in adminTools"
+              :key="tool.path"
+              :to="tool.path"
+              class="group rounded-3xl border p-5 transition hover:-translate-y-0.5 hover:shadow-md"
+              :class="resolveCardClass(tool.tone)"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ tool.title }}</h3>
+                  <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ tool.description }}</p>
                 </div>
-              </RouterLink>
-            </div>
-          </section>
-        </div>
-      </main>
-    </div>
-  </div>
+                <span
+                  class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-lg font-semibold text-slate-700 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/70 dark:text-slate-200"
+                >
+                  →
+                </span>
+              </div>
+            </RouterLink>
+          </div>
+        </section>
+      </div>
+    </PageContainer>
+  </AppShell>
 </template>
