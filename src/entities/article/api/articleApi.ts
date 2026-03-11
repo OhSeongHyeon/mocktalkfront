@@ -1,5 +1,5 @@
 import { request } from '../../../shared/lib/http/api';
-import type { ArticleSummaryResponse, PageResponse } from '../../board/api/boardApi';
+import type { ArticleSummaryResponse, PageResponse, SliceResponse } from '../../board/api/boardApi';
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -99,6 +99,21 @@ export interface ArticleBookmarkStatusResponse {
 
 export interface ArticleBookmarkItemResponse extends ArticleSummaryResponse {
   boardSlug: string;
+}
+
+export interface ArticleRecentItemResponse {
+  id: number;
+  boardId: number;
+  boardSlug: string;
+  boardName: string;
+  userId: number;
+  authorName: string;
+  title: string;
+  previewText: string;
+  commentCount: number;
+  likeCount: number;
+  hit: number;
+  createdAt: string;
 }
 
 export interface ArticleCreateRequest {
@@ -214,6 +229,11 @@ const getArticleBookmarks = async (page: number, size: number) => {
   return unwrap(response);
 };
 
+const getRecentArticles = async (page: number, size: number) => {
+  const response = await request<ApiEnvelope<SliceResponse<ArticleRecentItemResponse>>>(`/articles/recent?page=${page}&size=${size}`);
+  return unwrap(response);
+};
+
 const deleteArticleBookmarks = async (articleIds: number[]) => {
   const response = await request<ApiEnvelope<void>>('/articles/bookmarks/delete', {
     method: 'POST',
@@ -241,6 +261,7 @@ export {
   getArticleBookmarks,
   getArticleDetail,
   getArticleEditorDetail,
+  getRecentArticles,
   previewArticleContent,
   toggleArticleReaction,
   unbookmarkArticle,
