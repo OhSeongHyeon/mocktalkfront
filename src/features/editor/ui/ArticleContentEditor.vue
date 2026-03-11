@@ -13,6 +13,8 @@ import { renderMermaidDiagrams } from '../../../shared/lib/mermaid';
 import { sanitizeHtml } from '../../../shared/lib/sanitize';
 import BaseModal from '../../../shared/ui/BaseModal.vue';
 import { hasMarkdownConversionRisk } from '../lib/articleContent';
+import { parseMarkdownImport } from '../lib/markdownImport';
+import type { MarkdownImportResult } from '../lib/markdownImport';
 import { useUploadQueue } from '../lib/useUploadQueue';
 import type { UploadKind } from '../lib/useUploadQueue';
 
@@ -20,15 +22,23 @@ interface ArticleContentEditorProps {
   modelValue: string;
   contentFormat: ArticleContentFormat;
   placeholder?: string;
+  boardSlug?: string;
+  availableVisibilities?: string[];
+  allowBoardSlugImport?: boolean;
 }
 
 type EditorViewMode = 'markdown' | 'wysiwyg';
 type MarkdownPreviewMode = 'write' | 'split' | 'preview';
+type MarkdownImportFeedbackTone = 'success' | 'warning';
 
 const props = defineProps<ArticleContentEditorProps>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void;
   (event: 'update:contentFormat', value: ArticleContentFormat): void;
+  (
+    event: 'apply-import-metadata',
+    payload: { title?: string; visibility?: string; boardSlug?: string; categoryName?: string; tags: string[]; summary?: string },
+  ): void;
 }>();
 
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
@@ -56,10 +66,11 @@ const isMarkdownDropActive = ref(false);
 const isMarkdownSwitchConfirmOpen = ref(false);
 const pendingMarkdownSource = ref('');
 const isMarkdownImportConfirmOpen = ref(false);
-const pendingImportedMarkdown = ref('');
+const pendingImportedMarkdown = ref<MarkdownImportResult | null>(null);
 const isDesktop = ref(true);
 const markdownScrollTop = ref(0);
 const markdownEditorHeight = ref(MARKDOWN_EDITOR_MIN_HEIGHT_PX);
+const markdownImportFeedback = ref<{ tone: MarkdownImportFeedbackTone; messages: string[] } | null>(null);
 
 let previewTimerId: ReturnType<typeof window.setTimeout> | null = null;
 let previewRequestSequence = 0;
@@ -372,6 +383,7 @@ const addCodeBlock = () => wrapSelection('```text\n', '\n```', '코드');
 const addLink = () => wrapSelection('[', '](https://example.com)', '링크 텍스트');
 const addTable = () => insertBlock('\n\n| 항목 | 값 |\n| --- | --- |\n| 예시 | 내용 |\n\n');
 const addMermaidBlock = () => wrapSelection('```mermaid\n', '\n```', 'graph TD\n  A[시작] --> B[다음]');
+const addYouTubeEmbed = () => wrapSelection('!youtube[', ']', 'https://youtu.be/dQw4w9WgXcQ');
 const addBold = () => wrapSelection('**', '**', '굵은 텍스트');
 const addItalic = () => wrapSelection('*', '*', '기울임 텍스트');
 
@@ -496,11 +508,14 @@ const onMarkdownDragLeave = () => {
   isMarkdownDropActive.value = false;
 };
 
-const applyImportedMarkdown = (value: string) => {
-  pendingImportedMarkdown.value = '';
+const applyImportedMarkdown = (result: MarkdownImportResult) => {
+  pendingImportedMarkdown.value = null;
   isMarkdownImportConfirmOpen.value = false;
-  updateMarkdownSource(value);
-  scheduleMarkdownPreview(value);
+  emit('update:contentFormat', 'MARKDOWN');
+  emit('apply-import-metadata', resolveImportMetadataPayload(result));
+  updateMarkdownSource(result.contentSource);
+  scheduleMarkdownPreview(result.contentSource);
+  markdownImportFeedback.value = resolveImportFeedback(result);
 };
 
 const onMarkdownImportPicked = async (event: Event) => {
@@ -510,17 +525,84 @@ const onMarkdownImportPicked = async (event: Event) => {
     return;
   }
 
-  const importedText = (await file.text()).replace(/^\uFEFF/, '');
+  const importedResult = parseMarkdownImport(await file.text(), file.name);
   if (markdownSource.value.trim().length > 0) {
-    pendingImportedMarkdown.value = importedText;
+    pendingImportedMarkdown.value = importedResult;
     isMarkdownImportConfirmOpen.value = true;
   } else {
-    applyImportedMarkdown(importedText);
+    applyImportedMarkdown(importedResult);
   }
 
   if (target) {
     target.value = '';
   }
+};
+
+const resolveImportMetadataPayload = (result: MarkdownImportResult) => {
+  const payload: { title?: string; visibility?: string; boardSlug?: string; categoryName?: string; tags: string[]; summary?: string } = {
+    tags: result.metadata.tags,
+  };
+  if (result.metadata.title) {
+    payload.title = result.metadata.title;
+  }
+
+  const nextVisibility = result.metadata.visibility?.trim().toUpperCase();
+  if (nextVisibility) {
+    payload.visibility = nextVisibility;
+  }
+  if (result.metadata.boardSlug) {
+    payload.boardSlug = result.metadata.boardSlug;
+  }
+  if (result.metadata.categoryName) {
+    payload.categoryName = result.metadata.categoryName;
+  }
+  if (result.metadata.summary) {
+    payload.summary = result.metadata.summary;
+  }
+  return payload;
+};
+
+const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownImportFeedbackTone; messages: string[] } => {
+  const messages: string[] = ['Markdown 파일을 불러왔습니다.'];
+  const warnings = [...result.warnings];
+
+  if (result.metadata.title) {
+    messages.push('제목을 자동 반영했습니다.');
+  }
+
+  const nextVisibility = result.metadata.visibility?.trim().toUpperCase();
+  const allowedVisibilities = props.availableVisibilities?.map((value) => value.trim().toUpperCase()) ?? [];
+  if (nextVisibility) {
+    const canDeferVisibility = Boolean(
+      props.allowBoardSlugImport && result.metadata.boardSlug && props.boardSlug && result.metadata.boardSlug !== props.boardSlug,
+    );
+    if (canDeferVisibility || allowedVisibilities.length === 0 || allowedVisibilities.includes(nextVisibility)) {
+      messages.push('공개 범위를 자동 반영했습니다.');
+    } else {
+      warnings.push(`frontmatter의 visibility(${nextVisibility})는 현재 글에서 사용할 수 없어 적용하지 않았습니다.`);
+    }
+  }
+
+  if (result.metadata.boardSlug && props.boardSlug && result.metadata.boardSlug !== props.boardSlug) {
+    if (props.allowBoardSlugImport) {
+      messages.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})를 반영해 게시판을 조정합니다.`);
+    } else {
+      warnings.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})는 현재 게시판(${props.boardSlug})과 달라 적용하지 않았습니다.`);
+    }
+  }
+
+  if (result.metadata.tags.length > 0 || result.metadata.summary) {
+    warnings.push('태그와 요약은 frontmatter 원본에 보존되며 별도 UI에는 아직 반영되지 않습니다.');
+  }
+
+  if (result.unsupportedFields.length > 0) {
+    warnings.push(`지원하지 않는 frontmatter 필드(${result.unsupportedFields.join(', ')})도 원본에 그대로 보존됩니다.`);
+  }
+
+  return {
+    tone: warnings.length > 0 ? 'warning' : 'success',
+    messages: warnings.length > 0 ? [...messages, ...warnings] : messages,
+  };
 };
 
 const tabClass = (active: boolean) =>
@@ -684,6 +766,7 @@ onBeforeUnmount(() => {
           <button type="button" :class="actionButtonClass" @click="addCodeBlock">코드</button>
           <button type="button" :class="actionButtonClass" @click="addTable">표</button>
           <button type="button" :class="actionButtonClass" @click="addMermaidBlock">Mermaid</button>
+          <button type="button" :class="actionButtonClass" @click="addYouTubeEmbed">유튜브</button>
           <button type="button" :class="actionButtonClass" @click="openMarkdownImagePicker">이미지 업로드</button>
           <button type="button" :class="actionButtonClass" @click="openMarkdownVideoPicker">영상 업로드</button>
           <button type="button" :class="actionButtonClass" @click="openMarkdownImportPicker">MD 불러오기</button>
@@ -698,6 +781,20 @@ onBeforeUnmount(() => {
     <template v-else>
       <div class="space-y-3 px-4 py-4">
         <div
+          v-if="markdownImportFeedback"
+          class="rounded-2xl border px-4 py-3 text-xs font-medium"
+          :class="
+            markdownImportFeedback.tone === 'warning'
+              ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200'
+          "
+        >
+          <ul class="space-y-1">
+            <li v-for="message in markdownImportFeedback.messages" :key="message">{{ message }}</li>
+          </ul>
+        </div>
+
+        <div
           :class="markdownPanelClass"
           @dragenter.prevent="onMarkdownDragOver"
           @dragover.prevent="onMarkdownDragOver"
@@ -707,6 +804,18 @@ onBeforeUnmount(() => {
           <div class="mb-3 flex items-center justify-between gap-3 text-xs font-semibold text-slate-500 dark:text-slate-300">
             <span>Markdown으로 작성하고, 오른쪽에서 실제 렌더 결과를 확인합니다.</span>
             <span class="text-[11px]">이미지/영상 드래그 앤 드롭 가능</span>
+          </div>
+          <div
+            class="mb-3 rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400"
+          >
+            유튜브 임베드 문법:
+            <code class="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >!youtube[dQw4w9WgXcQ]</code
+            >
+            또는
+            <code class="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >!youtube[https://youtu.be/dQw4w9WgXcQ]</code
+            >
           </div>
 
           <div class="gap-4" :class="isMarkdownSplitMode ? 'grid lg:grid-cols-2 lg:items-stretch' : 'block'">
@@ -745,6 +854,7 @@ onBeforeUnmount(() => {
                 <div class="ui-markdown-editor-status">
                   <span>표, Mermaid, 코드블록은 실제 게시글과 같은 서버 렌더 규칙을 사용합니다.</span>
                   <span class="hidden sm:inline">Mermaid 지원: `graph/flowchart`, `sequenceDiagram`, `erDiagram`</span>
+                  <span class="hidden xl:inline">유튜브 지원: `!youtube[URL 또는 VIDEO_ID]`</span>
                 </div>
               </div>
             </div>
@@ -882,7 +992,8 @@ onBeforeUnmount(() => {
             <button
               type="button"
               class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600"
-              @click="applyImportedMarkdown(pendingImportedMarkdown)"
+              :disabled="!pendingImportedMarkdown"
+              @click="pendingImportedMarkdown ? applyImportedMarkdown(pendingImportedMarkdown) : undefined"
             >
               덮어쓰기
             </button>

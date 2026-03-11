@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
-import { isAdmin } from '../../stores/auth';
+import { isAdmin, isManagerOrAdmin } from '../../stores/auth';
 import iconBookmark from '../../assets/icons/icon-bookmark.svg';
 import iconChat from '../../assets/icons/icon-chat.svg';
 import iconCommunity from '../../assets/icons/icon-community.svg';
@@ -36,7 +36,13 @@ type SideMenuItem = {
   active?: boolean;
 };
 
-const baseSections = [
+type RawSideMenuItem = Omit<SideMenuItem, 'implemented' | 'active'>;
+type RawSideMenuSection = {
+  title: string;
+  items: RawSideMenuItem[];
+};
+
+const serviceSections: RawSideMenuSection[] = [
   {
     title: '메인',
     items: [
@@ -93,6 +99,9 @@ const isActive = (path?: string) => {
   if (path === '/') {
     return route.path === '/';
   }
+  if (path === '/admin') {
+    return route.path === '/admin';
+  }
   if (path === '/boards') {
     return route.path === '/boards';
   }
@@ -100,6 +109,8 @@ const isActive = (path?: string) => {
 };
 
 const isCompact = computed(() => props.collapsed && !props.mobileOpen);
+const isBackofficeRoute = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'));
+const menuTitle = computed(() => (isBackofficeRoute.value ? '백오피스' : '메뉴'));
 
 const closeMobileMenu = () => {
   emit('close');
@@ -114,9 +125,33 @@ const handleMenuClick = (item: SideMenuItem) => {
   }
 };
 
-const sections = computed(() =>
-  [
-    ...baseSections,
+const decorateSections = (rawSections: RawSideMenuSection[]) =>
+  rawSections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({
+      ...item,
+      implemented: Boolean(item.path),
+      active: isActive(item.path),
+    })),
+  }));
+
+const backofficeSections = computed(() => {
+  const sections: RawSideMenuSection[] = [
+    {
+      title: '이동',
+      items: [
+        { name: '서비스 홈', icon: 'home', path: '/' },
+        { name: '백오피스 홈', icon: 'shield', path: '/admin' },
+      ],
+    },
+    ...(isManagerOrAdmin.value
+      ? [
+          {
+            title: '운영',
+            items: [{ name: '게시글 임포트', icon: 'community', path: '/admin/article-imports' }],
+          },
+        ]
+      : []),
     ...(isAdmin.value
       ? [
           {
@@ -131,26 +166,40 @@ const sections = computed(() =>
           },
         ]
       : []),
-  ].map((section) => ({
-    ...section,
-    items: section.items.map((item) => ({
-      ...item,
-      implemented: Boolean(item.path),
-      active: isActive(item.path),
-    })),
-  })),
-);
+  ];
+
+  return decorateSections(sections);
+});
+
+const sections = computed(() => {
+  if (isBackofficeRoute.value) {
+    return backofficeSections.value;
+  }
+
+  const rawSections: RawSideMenuSection[] = [
+    ...serviceSections,
+    ...(isManagerOrAdmin.value
+      ? [
+          {
+            title: '워크스페이스',
+            items: [{ name: '백오피스', icon: 'shield', path: '/admin' }],
+          },
+        ]
+      : []),
+  ];
+  return decorateSections(rawSections);
+});
 </script>
 
 <template>
   <div v-if="props.mobileOpen" class="fixed inset-0 z-40 bg-slate-900/40 md:hidden" aria-hidden="true" @click="closeMobileMenu"></div>
   <aside
-    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-[color:var(--surface-glass)] p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 md:sticky md:top-0 md:h-full md:translate-x-0"
+    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] min-h-0 w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-[color:var(--surface-glass)] p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 md:static md:top-auto md:h-auto md:translate-x-0 md:self-stretch"
     :class="[props.mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0', isCompact ? 'md:w-20 md:items-center' : 'md:w-64']"
   >
-    <div v-if="!isCompact" class="px-3 pt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">메뉴</div>
+    <div v-if="!isCompact" class="px-3 pt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ menuTitle }}</div>
 
-    <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto" aria-label="사이드 메뉴">
+    <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain" aria-label="사이드 메뉴">
       <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
         <p v-if="!isCompact" class="px-3 pt-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
           {{ section.title }}

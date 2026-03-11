@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 
 import ArticleContentEditor from '../../features/editor/ui/ArticleContentEditor.vue';
+import type { MarkdownImportMetadata } from '../../features/editor/lib/markdownImport';
 import type { ArticleContentFormat } from '../../entities/article';
 import { ATTACHMENT_ALLOWED_EXTENSION_LABEL, ATTACHMENT_FILE_ACCEPT } from '../../entities/file/lib/attachmentPolicy';
 import type { BoardCategoryResponse } from '../../entities/board';
@@ -17,6 +18,8 @@ interface ArticleUpsertFormProps {
   contentSource: string;
   contentFormat: ArticleContentFormat;
   visibility: string;
+  boardSlug?: string;
+  allowBoardSlugImport?: boolean;
   selectedCategoryId: number | null;
   categories: BoardCategoryResponse[];
   visibilityOptions: VisibilityOption[];
@@ -43,6 +46,7 @@ const emit = defineEmits<{
   (event: 'update:selectedCategoryId', value: number | null): void;
   (event: 'addAttachments', files: File[]): void;
   (event: 'removeAttachment', fileId: number): void;
+  (event: 'apply-import-metadata', payload: MarkdownImportMetadata): void;
   (event: 'submit'): void;
   (event: 'cancel'): void;
 }>();
@@ -113,6 +117,10 @@ const onAttachmentPicked = (event: Event) => {
 const removeAttachment = (fileId: number) => {
   emit('removeAttachment', fileId);
 };
+
+const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
+  emit('apply-import-metadata', metadata);
+};
 </script>
 
 <template>
@@ -167,7 +175,15 @@ const removeAttachment = (fileId: number) => {
     </section>
 
     <section>
-      <ArticleContentEditor v-model="contentSourceModel" v-model:content-format="contentFormatModel" placeholder="본문을 입력하세요." />
+      <ArticleContentEditor
+        v-model="contentSourceModel"
+        v-model:content-format="contentFormatModel"
+        :board-slug="boardSlug"
+        :available-visibilities="visibilityOptions.map((option) => option.value)"
+        :allow-board-slug-import="allowBoardSlugImport"
+        placeholder="본문을 입력하세요."
+        @apply-import-metadata="applyImportedMetadata"
+      />
     </section>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">

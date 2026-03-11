@@ -8,6 +8,8 @@ import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
+import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
+import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleEditorDetailResponse, ArticleUpdateRequest } from '../entities/article';
 import { getArticleEditorDetail, updateArticle } from '../entities/article';
@@ -55,6 +57,12 @@ const isBoardAdmin = computed(() => {
   return role === 'OWNER' || role === 'MODERATOR';
 });
 const canManageCategories = computed(() => isAdmin.value || isBoardAdmin.value);
+const selectedCategoryName = computed(() => {
+  if (selectedCategoryId.value == null) {
+    return undefined;
+  }
+  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName;
+});
 
 const visibilityOptions = computed(() => {
   const base = [
@@ -86,6 +94,29 @@ const isInvalid = computed(() => {
   }
   return false;
 });
+
+const applyImportedCategory = (nextCategoryName?: string | null) => {
+  if (!nextCategoryName) {
+    return;
+  }
+  const normalizedCategoryName = nextCategoryName.trim().toLowerCase();
+  const matchedCategory = categories.value.find((category) => category.categoryName.trim().toLowerCase() === normalizedCategoryName);
+  if (!matchedCategory) {
+    selectedCategoryId.value = null;
+    return;
+  }
+  selectedCategoryId.value = matchedCategory.id;
+};
+
+const applyAllowedVisibility = (nextVisibility?: string | null) => {
+  if (!nextVisibility) {
+    return;
+  }
+  if (!visibilityOptions.value.some((option) => option.value === nextVisibility)) {
+    return;
+  }
+  visibility.value = nextVisibility;
+};
 
 const loadCategories = async (boardId: number) => {
   if (!Number.isFinite(boardId) || boardId <= 0) {
@@ -185,11 +216,21 @@ const submit = async () => {
   errorMessage.value = '';
   attachmentErrorMessage.value = '';
   const fileIds = Array.from(new Set([...extractFileIdsFromContent(contentSource.value), ...attachmentFiles.value.map((file) => file.id)]));
+  const normalizedTitle = title.value.trim();
+  const normalizedContentSource =
+    contentFormat.value === 'MARKDOWN'
+      ? mergeManagedMarkdownFrontmatter(contentSource.value, {
+          title: normalizedTitle,
+          boardSlug: article.value.board.slug,
+          visibility: visibility.value,
+          categoryName: selectedCategoryName.value,
+        })
+      : contentSource.value;
   const payload: ArticleUpdateRequest = {
     categoryId: selectedCategoryId.value,
     visibility: visibility.value,
-    title: title.value.trim(),
-    contentSource: contentSource.value,
+    title: normalizedTitle,
+    contentSource: normalizedContentSource,
     contentFormat: contentFormat.value,
     notice: article.value.notice,
     fileIds,
@@ -250,6 +291,14 @@ const removeAttachment = (fileId: number) => {
   attachmentFiles.value = attachmentFiles.value.filter((file) => file.id !== fileId);
 };
 
+const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
+  if (metadata.title) {
+    title.value = metadata.title;
+  }
+  applyAllowedVisibility(metadata.visibility);
+  applyImportedCategory(metadata.categoryName);
+};
+
 onMounted(async () => {
   await loadArticle();
   await loadProfile();
@@ -279,6 +328,8 @@ watch(
       v-model:content-format="contentFormat"
       v-model:visibility="visibility"
       v-model:selected-category-id="selectedCategoryId"
+      :board-slug="article?.board?.slug"
+      :allow-board-slug-import="false"
       :categories="categories"
       :visibility-options="visibilityOptions"
       :is-category-loading="isCategoryLoading"
@@ -296,6 +347,7 @@ watch(
       "
       @add-attachments="addAttachments"
       @remove-attachment="removeAttachment"
+      @apply-import-metadata="applyImportedMetadata"
       @submit="submit"
       @cancel="cancel"
     />
