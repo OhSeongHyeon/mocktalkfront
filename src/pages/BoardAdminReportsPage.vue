@@ -3,20 +3,18 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
-import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
-import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { getBoardBySlug } from '../entities/board';
 import type { BoardDetailResponse, BoardMemberStatus } from '../entities/board';
 import { getBoardReport, getBoardReports, processBoardReport } from '../features/admin/board';
 import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import PageContainer from '../shared/ui/PageContainer.vue';
+import AppShell from '../widgets/layout/AppShell.vue';
 
 type StatusFilter = ReportStatus | 'ALL';
 
 const route = useRoute();
-const isMobileMenuOpen = ref(false);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 
@@ -36,20 +34,6 @@ const processStatus = ref<ReportStatus>('PENDING');
 const processNote = ref('');
 
 const statusOptions: StatusFilter[] = ['ALL', 'PENDING', 'IN_REVIEW', 'RESOLVED', 'REJECTED'];
-
-const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-
-const toggleMenu = () => {
-  if (isMobileView()) {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
 
 const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus === 'OWNER' || memberStatus === 'MODERATOR';
 
@@ -203,201 +187,197 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl space-y-6">
-          <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="reports" />
+  <AppShell>
+    <PageContainer width="wide">
+      <div class="space-y-6">
+        <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="reports" />
 
-          <div v-if="boardError" class="ui-state ui-state-danger">
-            {{ boardError }}
+        <div v-if="boardError" class="ui-state ui-state-danger">
+          {{ boardError }}
+        </div>
+
+        <div v-if="board && hasPermission" class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 신고 관리</h1>
+              <p class="text-sm text-slate-500 dark:text-slate-400">해당 게시판의 신고를 처리합니다.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">상태</label>
+              <select
+                v-model="statusFilter"
+                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              >
+                <option v-for="option in statusOptions" :key="option" :value="option">
+                  {{ option === 'ALL' ? '전체' : statusLabel(option) }}
+                </option>
+              </select>
+            </div>
           </div>
 
-          <div v-if="board && hasPermission" class="space-y-6">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 신고 관리</h1>
-                <p class="text-sm text-slate-500 dark:text-slate-400">해당 게시판의 신고를 처리합니다.</p>
+          <div v-if="listError" class="ui-state ui-state-danger">
+            {{ listError }}
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+            <section class="ui-panel p-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 목록</h2>
+                <span class="text-xs text-slate-400">총 {{ reports.length }}건</span>
               </div>
-              <div class="flex items-center gap-3">
-                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">상태</label>
-                <select
-                  v-model="statusFilter"
-                  class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+
+              <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                불러오는 중...
+              </div>
+
+              <div v-else class="mt-4 flex flex-col gap-3">
+                <button
+                  v-for="item in reports"
+                  :key="item.id"
+                  type="button"
+                  class="rounded-2xl border px-4 py-3 text-left transition"
+                  :class="[
+                    item.id === selectedId
+                      ? 'border-slate-300 bg-slate-50 shadow-sm dark:border-slate-600 dark:bg-slate-900'
+                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/50',
+                  ]"
+                  @click="selectReport(item.id)"
                 >
-                  <option v-for="option in statusOptions" :key="option" :value="option">
-                    {{ option === 'ALL' ? '전체' : statusLabel(option) }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <div v-if="listError" class="ui-state ui-state-danger">
-              {{ listError }}
-            </div>
-
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-              <section class="ui-panel p-4">
-                <div class="flex items-center justify-between">
-                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 목록</h2>
-                  <span class="text-xs text-slate-400">총 {{ reports.length }}건</span>
-                </div>
-
-                <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                  <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-                  불러오는 중...
-                </div>
-
-                <div v-else class="mt-4 flex flex-col gap-3">
-                  <button
-                    v-for="item in reports"
-                    :key="item.id"
-                    type="button"
-                    class="rounded-2xl border px-4 py-3 text-left transition"
-                    :class="[
-                      item.id === selectedId
-                        ? 'border-slate-300 bg-slate-50 shadow-sm dark:border-slate-600 dark:bg-slate-900'
-                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/50',
-                    ]"
-                    @click="selectReport(item.id)"
-                  >
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                          <span>#{{ item.id }}</span>
-                          <span class="text-xs text-slate-400">{{ item.targetType }} · {{ item.targetId }}</span>
-                        </div>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">신고자 {{ item.reporterUserId }} · 사유 {{ item.reasonCode }}</p>
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        <span>#{{ item.id }}</span>
+                        <span class="text-xs text-slate-400">{{ item.targetType }} · {{ item.targetId }}</span>
                       </div>
-                      <span :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
+                      <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">신고자 {{ item.reporterUserId }} · 사유 {{ item.reasonCode }}</p>
                     </div>
-                    <div class="mt-2 text-xs text-slate-400">접수 {{ formatDate(item.createdAt) }}</div>
-                  </button>
+                    <span :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
+                  </div>
+                  <div class="mt-2 text-xs text-slate-400">접수 {{ formatDate(item.createdAt) }}</div>
+                </button>
 
-                  <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 신고가 없습니다.</div>
+                <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 신고가 없습니다.</div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+                <button
+                  type="button"
+                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                  :disabled="page === 0"
+                  @click="movePage(-1)"
+                >
+                  이전
+                </button>
+                <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+                <button
+                  type="button"
+                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                  :disabled="page + 1 >= totalPages"
+                  @click="movePage(1)"
+                >
+                  다음
+                </button>
+              </div>
+            </section>
+
+            <section class="ui-panel p-5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Detail</p>
+                  <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">신고 상세</h2>
+                </div>
+                <div v-if="selectedReport" :class="statusBadgeClass(selectedReport.status)">
+                  {{ statusLabel(selectedReport.status) }}
+                </div>
+              </div>
+
+              <div v-if="detailError" class="ui-state ui-state-danger mt-4">
+                {{ detailError }}
+              </div>
+
+              <div v-if="isLoadingDetail" class="mt-6 text-sm text-slate-500">상세 정보를 불러오는 중...</div>
+
+              <div v-else-if="selectedReport" class="mt-6 space-y-6">
+                <div
+                  class="grid gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
+                >
+                  <div class="flex flex-wrap justify-between gap-3">
+                    <span>신고 번호</span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100">#{{ selectedReport.id }}</span>
+                  </div>
+                  <div class="flex flex-wrap justify-between gap-3">
+                    <span>대상</span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100">
+                      {{ selectedReport.targetType }} · {{ selectedReport.targetId }}
+                    </span>
+                  </div>
+                  <div class="flex flex-wrap justify-between gap-3">
+                    <span>사유</span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ selectedReport.reasonCode }}</span>
+                  </div>
+                  <div class="flex flex-wrap justify-between gap-3">
+                    <span>신고자 / 대상자</span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100">
+                      {{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}
+                    </span>
+                  </div>
                 </div>
 
-                <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+                <div>
+                  <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 상세</h3>
+                  <p
+                    class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
+                  >
+                    {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
+                  </p>
+                </div>
+
+                <div v-if="selectedReportSnapshot">
+                  <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대상 스냅샷</h3>
+                  <pre
+                    class="mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
+                    >{{ selectedReportSnapshot }}</pre
+                  >
+                </div>
+
+                <div class="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
+                  <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <span>접수 {{ formatDate(selectedReport.createdAt) }}</span>
+                    <span>처리 {{ formatDate(selectedReport.processedAt) }}</span>
+                  </div>
+                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 상태</label>
+                  <select
+                    v-model="processStatus"
+                    class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  >
+                    <option v-for="option in statusOptions.filter((item) => item !== 'ALL')" :key="option" :value="option">
+                      {{ statusLabel(option) }}
+                    </option>
+                  </select>
+                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 메모</label>
+                  <textarea
+                    v-model="processNote"
+                    rows="4"
+                    class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                    placeholder="처리 결과와 사유를 간단히 기록하세요."
+                  ></textarea>
                   <button
                     type="button"
-                    class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                    :disabled="page === 0"
-                    @click="movePage(-1)"
+                    class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="isProcessing"
+                    @click="handleProcess"
                   >
-                    이전
-                  </button>
-                  <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-                  <button
-                    type="button"
-                    class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                    :disabled="page + 1 >= totalPages"
-                    @click="movePage(1)"
-                  >
-                    다음
+                    {{ isProcessing ? '처리 중...' : '처리 저장' }}
                   </button>
                 </div>
-              </section>
+              </div>
 
-              <section class="ui-panel p-5">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Detail</p>
-                    <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">신고 상세</h2>
-                  </div>
-                  <div v-if="selectedReport" :class="statusBadgeClass(selectedReport.status)">
-                    {{ statusLabel(selectedReport.status) }}
-                  </div>
-                </div>
-
-                <div v-if="detailError" class="ui-state ui-state-danger mt-4">
-                  {{ detailError }}
-                </div>
-
-                <div v-if="isLoadingDetail" class="mt-6 text-sm text-slate-500">상세 정보를 불러오는 중...</div>
-
-                <div v-else-if="selectedReport" class="mt-6 space-y-6">
-                  <div
-                    class="grid gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-                  >
-                    <div class="flex flex-wrap justify-between gap-3">
-                      <span>신고 번호</span>
-                      <span class="font-semibold text-slate-900 dark:text-slate-100">#{{ selectedReport.id }}</span>
-                    </div>
-                    <div class="flex flex-wrap justify-between gap-3">
-                      <span>대상</span>
-                      <span class="font-semibold text-slate-900 dark:text-slate-100">
-                        {{ selectedReport.targetType }} · {{ selectedReport.targetId }}
-                      </span>
-                    </div>
-                    <div class="flex flex-wrap justify-between gap-3">
-                      <span>사유</span>
-                      <span class="font-semibold text-slate-900 dark:text-slate-100">{{ selectedReport.reasonCode }}</span>
-                    </div>
-                    <div class="flex flex-wrap justify-between gap-3">
-                      <span>신고자 / 대상자</span>
-                      <span class="font-semibold text-slate-900 dark:text-slate-100">
-                        {{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 상세</h3>
-                    <p
-                      class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-                    >
-                      {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
-                    </p>
-                  </div>
-
-                  <div v-if="selectedReportSnapshot">
-                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대상 스냅샷</h3>
-                    <pre
-                      class="mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
-                      >{{ selectedReportSnapshot }}</pre
-                    >
-                  </div>
-
-                  <div class="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                    <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-                      <span>접수 {{ formatDate(selectedReport.createdAt) }}</span>
-                      <span>처리 {{ formatDate(selectedReport.processedAt) }}</span>
-                    </div>
-                    <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 상태</label>
-                    <select
-                      v-model="processStatus"
-                      class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    >
-                      <option v-for="option in statusOptions.filter((item) => item !== 'ALL')" :key="option" :value="option">
-                        {{ statusLabel(option) }}
-                      </option>
-                    </select>
-                    <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 메모</label>
-                    <textarea
-                      v-model="processNote"
-                      rows="4"
-                      class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                      placeholder="처리 결과와 사유를 간단히 기록하세요."
-                    ></textarea>
-                    <button
-                      type="button"
-                      class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="isProcessing"
-                      @click="handleProcess"
-                    >
-                      {{ isProcessing ? '처리 중...' : '처리 저장' }}
-                    </button>
-                  </div>
-                </div>
-
-                <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">좌측에서 신고를 선택하세요.</div>
-              </section>
-            </div>
+              <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">좌측에서 신고를 선택하세요.</div>
+            </section>
           </div>
         </div>
-      </main>
-    </div>
-  </div>
+      </div>
+    </PageContainer>
+  </AppShell>
 </template>

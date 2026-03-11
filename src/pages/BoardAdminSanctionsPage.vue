@@ -4,18 +4,16 @@ import { useRoute } from 'vue-router';
 
 import BaseModal from '../shared/ui/BaseModal.vue';
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
-import SideMenuBar from '../widgets/layout/SideMenuBar.vue';
-import TopMenuBar from '../widgets/layout/TopMenuBar.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { getBoardBySlug } from '../entities/board';
 import type { BoardDetailResponse, BoardMemberStatus } from '../entities/board';
 import { createBoardSanction, getBoardSanctions, revokeBoardSanction } from '../features/admin/board';
 import type { SanctionResponse, SanctionType } from '../features/admin/board';
 import { isAdmin } from '../stores/auth';
-import { menuCollapsed, setMenuCollapsed } from '../stores/layout';
+import PageContainer from '../shared/ui/PageContainer.vue';
+import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
-const isMobileMenuOpen = ref(false);
 const board = ref<BoardDetailResponse | null>(null);
 const boardError = ref('');
 
@@ -36,20 +34,6 @@ const form = ref({
   endsAt: '',
   reportId: '',
 });
-
-const isMobileView = () => (typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-
-const toggleMenu = () => {
-  if (isMobileView()) {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-    return;
-  }
-  setMenuCollapsed(!menuCollapsed.value);
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
 
 const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus === 'OWNER' || memberStatus === 'MODERATOR';
 
@@ -200,164 +184,160 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex h-screen flex-col overflow-hidden text-slate-900 dark:text-slate-100">
-    <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 w-full flex-1 overflow-hidden">
-      <SideMenuBar :collapsed="menuCollapsed" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <main class="min-h-0 flex-1 overflow-y-auto px-4 pb-12 pt-6 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-6xl space-y-6">
-          <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="sanctions" />
+  <AppShell>
+    <PageContainer width="wide">
+      <div class="space-y-6">
+        <BoardAdminNav v-if="board && hasPermission" :slug="board.slug" :board-name="boardName" active="sanctions" />
 
-          <div v-if="boardError" class="ui-state ui-state-danger">
-            {{ boardError }}
+        <div v-if="boardError" class="ui-state ui-state-danger">
+          {{ boardError }}
+        </div>
+
+        <div v-if="board && hasPermission" class="space-y-6">
+          <div>
+            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 제재 관리</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400">해당 게시판의 제재 등록 및 해제를 관리합니다.</p>
           </div>
 
-          <div v-if="board && hasPermission" class="space-y-6">
-            <div>
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 제재 관리</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">해당 게시판의 제재 등록 및 해제를 관리합니다.</p>
-            </div>
+          <div v-if="listError" class="ui-state ui-state-danger">
+            {{ listError }}
+          </div>
 
-            <div v-if="listError" class="ui-state ui-state-danger">
-              {{ listError }}
-            </div>
+          <div class="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <section class="ui-panel p-4">
+              <div class="flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">제재 목록</h2>
+                <span class="text-xs text-slate-400">총 {{ sanctions.length }}건</span>
+              </div>
 
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <section class="ui-panel p-4">
-                <div class="flex items-center justify-between">
-                  <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">제재 목록</h2>
-                  <span class="text-xs text-slate-400">총 {{ sanctions.length }}건</span>
-                </div>
+              <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
+                <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+                불러오는 중...
+              </div>
 
-                <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                  <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-                  불러오는 중...
-                </div>
-
-                <div v-else class="mt-4 flex flex-col gap-3">
-                  <div
-                    v-for="sanction in sanctions"
-                    :key="sanction.id"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
-                  >
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                          <span>#{{ sanction.id }}</span>
-                          <span class="text-xs text-slate-400">{{ sanction.sanctionType }} · BOARD</span>
-                        </div>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">대상 {{ sanction.userId }} · {{ boardName }}</p>
+              <div v-else class="mt-4 flex flex-col gap-3">
+                <div
+                  v-for="sanction in sanctions"
+                  :key="sanction.id"
+                  class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        <span>#{{ sanction.id }}</span>
+                        <span class="text-xs text-slate-400">{{ sanction.sanctionType }} · BOARD</span>
                       </div>
-                      <span :class="statusBadgeClass(sanction)">{{ resolveStatusLabel(sanction) }}</span>
+                      <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">대상 {{ sanction.userId }} · {{ boardName }}</p>
                     </div>
-                    <div class="mt-2 text-xs text-slate-400">시작 {{ formatDate(sanction.startsAt) }} · 종료 {{ formatDate(sanction.endsAt) }}</div>
-                    <div class="mt-3 flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
-                        :disabled="!canRevoke(sanction)"
-                        @click="openRevokeModal(sanction)"
-                      >
-                        해제
-                      </button>
-                    </div>
+                    <span :class="statusBadgeClass(sanction)">{{ resolveStatusLabel(sanction) }}</span>
                   </div>
-
-                  <div v-if="sanctions.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 제재가 없습니다.</div>
-                </div>
-
-                <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
-                  <button
-                    type="button"
-                    class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                    :disabled="page === 0"
-                    @click="movePage(-1)"
-                  >
-                    이전
-                  </button>
-                  <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-                  <button
-                    type="button"
-                    class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                    :disabled="page + 1 >= totalPages"
-                    @click="movePage(1)"
-                  >
-                    다음
-                  </button>
-                </div>
-              </section>
-
-              <section class="ui-panel p-5">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Create</p>
-                    <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">제재 등록</h2>
+                  <div class="mt-2 text-xs text-slate-400">시작 {{ formatDate(sanction.startsAt) }} · 종료 {{ formatDate(sanction.endsAt) }}</div>
+                  <div class="mt-3 flex items-center gap-2">
+                    <button
+                      type="button"
+                      class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                      :disabled="!canRevoke(sanction)"
+                      @click="openRevokeModal(sanction)"
+                    >
+                      해제
+                    </button>
                   </div>
                 </div>
 
-                <div class="mt-6 flex flex-col gap-4">
-                  <div
-                    class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-                  >
-                    범위: BOARD · {{ boardName }}
-                  </div>
+                <div v-if="sanctions.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 제재가 없습니다.</div>
+              </div>
 
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">대상 회원번호</label>
-                  <input
-                    v-model="form.userId"
-                    type="number"
-                    class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    placeholder="예: 7"
-                  />
+              <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+                <button
+                  type="button"
+                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                  :disabled="page === 0"
+                  @click="movePage(-1)"
+                >
+                  이전
+                </button>
+                <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+                <button
+                  type="button"
+                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                  :disabled="page + 1 >= totalPages"
+                  @click="movePage(1)"
+                >
+                  다음
+                </button>
+              </div>
+            </section>
 
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">제재 유형</label>
-                  <select
-                    v-model="form.sanctionType"
-                    class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                  >
-                    <option value="MUTE">MUTE</option>
-                    <option value="SUSPEND">SUSPEND</option>
-                    <option value="BAN">BAN</option>
-                  </select>
-
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">제재 사유</label>
-                  <textarea
-                    v-model="form.reason"
-                    rows="4"
-                    class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    placeholder="사유를 입력하세요."
-                  ></textarea>
-
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">종료 일시</label>
-                  <input
-                    v-model="form.endsAt"
-                    type="datetime-local"
-                    class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                  />
-
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">연계 신고 번호</label>
-                  <input
-                    v-model="form.reportId"
-                    type="number"
-                    class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    placeholder="선택"
-                  />
-
-                  <button
-                    type="button"
-                    class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="isSubmitting"
-                    @click="submitSanction"
-                  >
-                    {{ isSubmitting ? '등록 중...' : '제재 등록' }}
-                  </button>
+            <section class="ui-panel p-5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Create</p>
+                  <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">제재 등록</h2>
                 </div>
-              </section>
-            </div>
+              </div>
+
+              <div class="mt-6 flex flex-col gap-4">
+                <div
+                  class="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
+                >
+                  범위: BOARD · {{ boardName }}
+                </div>
+
+                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">대상 회원번호</label>
+                <input
+                  v-model="form.userId"
+                  type="number"
+                  class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  placeholder="예: 7"
+                />
+
+                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">제재 유형</label>
+                <select
+                  v-model="form.sanctionType"
+                  class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                >
+                  <option value="MUTE">MUTE</option>
+                  <option value="SUSPEND">SUSPEND</option>
+                  <option value="BAN">BAN</option>
+                </select>
+
+                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">제재 사유</label>
+                <textarea
+                  v-model="form.reason"
+                  rows="4"
+                  class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  placeholder="사유를 입력하세요."
+                ></textarea>
+
+                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">종료 일시</label>
+                <input
+                  v-model="form.endsAt"
+                  type="datetime-local"
+                  class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                />
+
+                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">연계 신고 번호</label>
+                <input
+                  v-model="form.reportId"
+                  type="number"
+                  class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  placeholder="선택"
+                />
+
+                <button
+                  type="button"
+                  class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="isSubmitting"
+                  @click="submitSanction"
+                >
+                  {{ isSubmitting ? '등록 중...' : '제재 등록' }}
+                </button>
+              </div>
+            </section>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </PageContainer>
 
     <BaseModal :open="Boolean(revokeTarget)" overlay-class="bg-slate-900/50" aria-label="제재 해제" @close="closeRevokeModal">
       <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">제재 해제</h3>
@@ -386,5 +366,5 @@ onMounted(async () => {
         </button>
       </div>
     </BaseModal>
-  </div>
+  </AppShell>
 </template>
