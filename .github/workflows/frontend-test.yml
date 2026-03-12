@@ -1,0 +1,50 @@
+name: Frontend Test
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - src/**
+      - public/**
+      - package.json
+      - package-lock.json
+      - vite.config.ts
+      - vitest.config.ts
+      - tsconfig.json
+      - tsconfig.app.json
+      - tsconfig.node.json
+      - eslint.config.js
+      - .prettierrc
+      - .github/workflows/frontend-test.yml
+      - .github/workflows/build-frontend-image.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 22 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 프론트 테스트 실행
+        run: npm run test
+
+      - name: 프론트 빌드 실행
+        run: npm run build
