@@ -58,7 +58,7 @@ coverage/
 
 # Custom
 .env
-.env.development
+# .env.development
 .env.production
 AGENTS.md
 GEMINI.md
