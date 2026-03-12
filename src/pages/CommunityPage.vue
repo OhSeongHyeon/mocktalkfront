@@ -95,7 +95,7 @@ onBeforeUnmount(() => {
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
       <div class="space-y-6">
-        <PageHeader class="animate-rise" eyebrow="탐색" title="공개 커뮤니티" description="관심 주제의 게시판을 찾고 지금 바로 대화에 참여해보세요.">
+        <PageHeader class="animate-rise" eyebrow="탐색" title="커뮤니티" description="">
           <template #meta>
             <span
               class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"
