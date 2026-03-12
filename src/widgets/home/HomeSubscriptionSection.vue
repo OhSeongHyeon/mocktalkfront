@@ -3,9 +3,9 @@ import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
 import { getBoardSubscribes, type BoardSubscribeItemResponse } from '../../entities/board';
+import FileImage from '../../entities/file/ui/FileImage.vue';
 import { useAuthStore } from '../../stores/auth';
 import { ApiError } from '../../shared/lib/http/api';
-import { resolveImageUrl } from '../../shared/lib/files';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
 import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
 
@@ -17,8 +17,6 @@ const authStore = useAuthStore();
 const { isAuthenticated } = storeToRefs(authStore);
 
 const showEmptyState = computed(() => !isLoading.value && !listError.value && subscribes.value.length === 0);
-
-const resolveBoardImage = (board: BoardSubscribeItemResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
 
 const resolveDescription = (description: string | null) => {
   const trimmed = description?.trim();
@@ -98,9 +96,10 @@ watch(
         class="ui-sub-panel group block overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:hover:border-slate-700"
       >
         <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-          <img
-            v-if="resolveBoardImage(board)"
-            :src="resolveBoardImage(board) ?? undefined"
+          <FileImage
+            v-if="board.boardImage"
+            :file="board.boardImage"
+            variant="thumb"
             :alt="board.boardName"
             class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />

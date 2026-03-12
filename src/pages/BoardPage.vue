@@ -7,7 +7,6 @@ import BoardArticlePanel from '../widgets/board/BoardArticlePanel.vue';
 import BoardHeaderCard from '../widgets/board/BoardHeaderCard.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/board/lib/boardWritePolicy';
-import { resolveImageUrl } from '../shared/lib/files';
 import type { BoardDetailResponse } from '../entities/board';
 import { cancelBoardJoin, getBoardBySlug, requestBoardJoin, subscribeBoard, unsubscribeBoard } from '../entities/board';
 import { useAuthStore } from '../stores/auth';
@@ -32,7 +31,6 @@ const actionError = ref('');
 const isSubscribing = ref(false);
 const isJoining = ref(false);
 
-const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 const ownerDisplayName = computed(() => board.value?.ownerDisplayName ?? '정보 없음');
 const visibilityLabel = computed(() => {
   switch (board.value?.visibility) {
@@ -208,7 +206,7 @@ watch(
         <BoardHeaderCard
           :title="board?.boardName ?? '커뮤니티'"
           :description="board?.description ?? '설명이 없습니다.'"
-          :image-url="boardImageUrl"
+          :image-file="board?.boardImage ?? null"
           :link-to="board ? `/b/${board.slug}` : undefined"
         >
           <template #meta>

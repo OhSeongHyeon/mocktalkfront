@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 import { ApiError } from '../shared/lib/http/api';
-import { resolveImageUrl } from '../shared/lib/files';
+import FileImage from '../entities/file/ui/FileImage.vue';
 import {
   createAdminBoard,
   deleteAdminBoard,
@@ -127,9 +127,6 @@ const resolveBoardErrorMessage = (error: unknown, fallback: string) => {
   }
   return fallback;
 };
-
-const currentEditImageUrl = computed(() => resolveImageUrl(selectedBoard.value?.boardImage ?? null, 'medium'));
-const editPreviewImageUrl = computed(() => editPreviewUrl.value ?? currentEditImageUrl.value);
 
 const clearPreviewUrl = (target: 'create' | 'edit') => {
   if (target === 'create') {
@@ -506,9 +503,10 @@ onBeforeUnmount(() => {
               >
                 <div class="flex flex-wrap items-center gap-3">
                   <div class="h-12 w-12 overflow-hidden rounded-2xl bg-slate-100">
-                    <img
-                      v-if="resolveImageUrl(item.boardImage ?? null, 'thumb')"
-                      :src="resolveImageUrl(item.boardImage ?? null, 'thumb') ?? undefined"
+                    <FileImage
+                      v-if="item.boardImage"
+                      :file="item.boardImage"
+                      variant="thumb"
                       alt="게시판 대표 이미지"
                       class="h-full w-full object-cover"
                     />
@@ -733,7 +731,14 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="mt-3 grid gap-3">
                     <div class="overflow-hidden rounded-2xl bg-slate-100">
-                      <img v-if="editPreviewImageUrl" :src="editPreviewImageUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
+                      <img v-if="editPreviewUrl" :src="editPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
+                      <FileImage
+                        v-else-if="selectedBoard?.boardImage"
+                        :file="selectedBoard.boardImage"
+                        variant="medium"
+                        alt="대표 이미지 미리보기"
+                        class="h-40 w-full object-cover"
+                      />
                       <div v-else class="flex h-40 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
