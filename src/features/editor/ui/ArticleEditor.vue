@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import '../../../shared/styles/ui-content.css';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
@@ -49,11 +50,12 @@ import { CODE_LANGUAGE_OPTIONS, FONT_FAMILY_OPTIONS, FONT_SIZE_OPTIONS, YOUTUBE_
 import type { YoutubeSizeValue } from '../lib/toolbarOptions';
 import { useUploadQueue } from '../lib/useUploadQueue';
 import type { UploadKind } from '../lib/useUploadQueue';
-import { uploadEditorFileTask } from '../../../entities/file';
+import { hydrateProtectedFileViewUrls, uploadEditorFileTask } from '../../../entities/file';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../../../shared/lib/files';
 import BaseModal from '../../../shared/ui/BaseModal.vue';
 import ArticleEditorToolbarMobile from './ArticleEditorToolbarMobile.vue';
 import ArticleEditorToolbarDesktop from './ArticleEditorToolbarDesktop.vue';
+import { useAuthStore } from '../../../stores/auth';
 
 interface ArticleEditorProps {
   modelValue: string;
@@ -68,6 +70,8 @@ const props = defineProps<ArticleEditorProps>();
 const emit = defineEmits<{
   (event: 'update:modelValue', value: string): void;
 }>();
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 const SUCCESS_UPLOAD_AUTO_REMOVE_DELAY_MS = 1000;
@@ -76,6 +80,13 @@ const DEFAULT_IMAGE_SCALE_PERCENT = 100;
 const IMAGE_SCALE_MIN_PERCENT = 1;
 const IMAGE_SCALE_MAX_PERCENT = 100;
 const lowlight = createLowlight(common);
+
+const hydrateEditorMedia = async (instance: Editor | null | undefined) => {
+  if (!instance?.view?.dom) {
+    return;
+  }
+  await hydrateProtectedFileViewUrls(instance.view.dom, isAuthenticated.value);
+};
 
 const errorMessage = ref<string | null>(null);
 const imageInputRef = ref<HTMLInputElement | null>(null);
@@ -342,6 +353,7 @@ const editor = useEditor({
     const html = instance.getHTML();
     htmlSource.value = html;
     emit('update:modelValue', html);
+    void hydrateEditorMedia(instance);
   },
   onSelectionUpdate({ editor: instance }) {
     syncSelectionState(instance);
@@ -349,6 +361,7 @@ const editor = useEditor({
   onCreate({ editor: instance }) {
     htmlSource.value = instance.getHTML();
     syncSelectionState(instance);
+    void hydrateEditorMedia(instance);
   },
 });
 
@@ -407,7 +420,15 @@ watch(
     const current = editor.value.getHTML();
     if (value !== current) {
       editor.value.commands.setContent(value, false);
+      void hydrateEditorMedia(editor.value);
     }
+  },
+);
+
+watch(
+  () => isAuthenticated.value,
+  () => {
+    void hydrateEditorMedia(editor.value);
   },
 );
 

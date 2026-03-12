@@ -18,7 +18,7 @@ import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction
 import type { UserProfileResponse } from '../entities/user';
 import { getMyProfile } from '../entities/user';
 import { ApiError } from '../shared/lib/http/api';
-import { resolveImageUrl } from '../shared/lib/files';
+import { resolveProtectedFileViewUrlsInHtml } from '../entities/file';
 import { recordHistoryItem } from '../shared/lib/history';
 import { renderMermaidDiagrams } from '../shared/lib/mermaid';
 import { sanitizeHtml } from '../shared/lib/sanitize';
@@ -88,8 +88,6 @@ interface CommentDeltaPayload {
   comment?: CommentTreeResponse;
 }
 
-const boardImageUrl = computed(() => resolveImageUrl(article.value?.board?.boardImage ?? null, 'medium'));
-
 const formatDateTime = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -122,10 +120,15 @@ const formatFileSize = (size: number) => {
 
 const attachments = computed(() => article.value?.attachments ?? []);
 const sanitizedContent = computed(() => (article.value?.content ? sanitizeHtml(article.value.content) : ''));
+const renderedContent = ref('');
 
 const renderArticleMermaid = async () => {
   await nextTick();
   await renderMermaidDiagrams(articleContentRef.value);
+};
+
+const refreshRenderedContent = async () => {
+  renderedContent.value = await resolveProtectedFileViewUrlsInHtml(sanitizedContent.value, isAuthenticated.value);
 };
 
 const boardLink = computed(() => {
@@ -254,6 +257,7 @@ const loadArticle = async () => {
         boardSlug: article.value.board?.slug ?? String(route.params.slug ?? ''),
         boardName: article.value.board?.boardName ?? null,
       });
+      await refreshRenderedContent();
       void renderArticleMermaid();
     }
   } catch (error) {
@@ -916,7 +920,16 @@ onMounted(async () => {
 
 watch(
   () => sanitizedContent.value,
-  () => {
+  async () => {
+    await refreshRenderedContent();
+    void renderArticleMermaid();
+  },
+);
+
+watch(
+  () => isAuthenticated.value,
+  async () => {
+    await refreshRenderedContent();
     void renderArticleMermaid();
   },
 );
@@ -973,7 +986,7 @@ onUnmounted(() => {
         <BoardHeaderCard
           :title="article?.board?.boardName ?? '커뮤니티'"
           :description="article?.board?.description ?? '설명이 없습니다.'"
-          :image-url="boardImageUrl"
+          :image-file="article?.board?.boardImage ?? null"
           :link-to="article?.board?.slug ? boardLinkWithFilter : undefined"
         >
           <template #actions>
@@ -1063,7 +1076,7 @@ onUnmounted(() => {
                 로그인 후 반응/북마크가 가능합니다.
               </span>
             </div>
-            <div v-if="article?.content" ref="articleContentRef" class="ui-content mt-6 max-w-none" v-html="sanitizedContent"></div>
+            <div v-if="article?.content" ref="articleContentRef" class="ui-content mt-6 max-w-none" v-html="renderedContent"></div>
             <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
           </article>
 

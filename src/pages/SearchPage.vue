@@ -3,9 +3,9 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { search, type SearchResponse, type SearchType } from '../features/search';
+import FileImage from '../entities/file/ui/FileImage.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import { ApiError } from '../shared/lib/http/api';
-import { resolveImageUrl } from '../shared/lib/files';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import SectionHeader from '../shared/ui/SectionHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
@@ -362,9 +362,10 @@ watch(
               >
                 <div class="flex items-center gap-3">
                   <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
-                    <img
-                      v-if="resolveImageUrl(board.boardImage ?? null, 'thumb')"
-                      :src="resolveImageUrl(board.boardImage ?? null, 'thumb') ?? undefined"
+                    <FileImage
+                      v-if="board.boardImage"
+                      :file="board.boardImage"
+                      variant="thumb"
                       :alt="board.boardName"
                       class="h-full w-full object-cover"
                     />
@@ -483,9 +484,10 @@ watch(
               >
                 <div class="flex items-center gap-3">
                   <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
-                    <img
-                      v-if="resolveImageUrl(board.boardImage ?? null, 'thumb')"
-                      :src="resolveImageUrl(board.boardImage ?? null, 'thumb') ?? undefined"
+                    <FileImage
+                      v-if="board.boardImage"
+                      :file="board.boardImage"
+                      variant="thumb"
                       :alt="board.boardName"
                       class="h-full w-full object-cover"
                     />
