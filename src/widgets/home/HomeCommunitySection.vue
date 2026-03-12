@@ -2,8 +2,8 @@
 import { onMounted, ref } from 'vue';
 
 import { getBoards, type BoardResponse } from '../../entities/board';
+import FileImage from '../../entities/file/ui/FileImage.vue';
 import { ApiError } from '../../shared/lib/http/api';
-import { resolveImageUrl } from '../../shared/lib/files';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
 import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
 
@@ -13,8 +13,6 @@ const listError = ref('');
 const targetCount = 15;
 const pageSize = 15;
 const excludedSlugs = new Set(['notice', 'inquiry']);
-
-const resolveBoardImage = (board: BoardResponse) => resolveImageUrl(board.boardImage ?? null, 'thumb');
 
 const resolveDescription = (description: string | null) => {
   const trimmed = description?.trim();
@@ -91,9 +89,10 @@ onMounted(() => {
         class="ui-sub-panel group flex h-full flex-col px-4 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:hover:border-slate-700"
       >
         <div class="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-900">
-          <img
-            v-if="resolveBoardImage(board)"
-            :src="resolveBoardImage(board) ?? undefined"
+          <FileImage
+            v-if="board.boardImage"
+            :file="board.boardImage"
+            variant="thumb"
             :alt="board.boardName"
             class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />

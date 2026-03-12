@@ -4,10 +4,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'v
 import { RouterLink, useRoute } from 'vue-router';
 
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
+import FileImage from '../entities/file/ui/FileImage.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../entities/board/lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../entities/board/lib/boardVisibility';
-import { resolveImageUrl } from '../shared/lib/files';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
 import { getBoardBySlug } from '../entities/board';
@@ -50,9 +50,6 @@ const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMe
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
 const boardName = computed(() => board.value?.boardName ?? '게시판');
-
-const currentImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
-const previewImageUrl = computed(() => previewUrl.value ?? currentImageUrl.value);
 
 const resetImageInput = () => {
   fileInputKey.value += 1;
@@ -308,7 +305,14 @@ onBeforeUnmount(() => {
             <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]">
               <div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
                 <div class="relative overflow-hidden rounded-2xl bg-slate-100">
-                  <img v-if="previewImageUrl" :src="previewImageUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
+                  <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
+                  <FileImage
+                    v-else-if="board?.boardImage"
+                    :file="board.boardImage"
+                    variant="medium"
+                    alt="대표 이미지 미리보기"
+                    class="h-48 w-full object-cover"
+                  />
                   <div v-else class="flex h-48 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
                 </div>
               </div>

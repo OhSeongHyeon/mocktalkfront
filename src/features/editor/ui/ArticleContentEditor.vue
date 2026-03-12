@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import '../../../shared/styles/mermaid.css';
 import '../../../shared/styles/ui-content.css';
 import './article-content-editor.css';
 
 import type { ArticleContentFormat } from '../../../entities/article';
+import { resolveProtectedFileViewUrlsInHtml, uploadEditorFileTask } from '../../../entities/file';
 import { previewArticleContent } from '../../../entities/article';
-import { uploadEditorFileTask } from '../../../entities/file';
 import { ApiError } from '../../../shared/lib/http/api';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../../../shared/lib/files';
 import { renderMermaidDiagrams } from '../../../shared/lib/mermaid';
@@ -17,6 +18,7 @@ import { parseMarkdownImport } from '../lib/markdownImport';
 import type { MarkdownImportResult } from '../lib/markdownImport';
 import { useUploadQueue } from '../lib/useUploadQueue';
 import type { UploadKind } from '../lib/useUploadQueue';
+import { useAuthStore } from '../../../stores/auth';
 
 interface ArticleContentEditorProps {
   modelValue: string;
@@ -40,6 +42,8 @@ const emit = defineEmits<{
     payload: { title?: string; visibility?: string; boardSlug?: string; categoryName?: string; tags: string[]; summary?: string },
   ): void;
 }>();
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
 
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
@@ -53,6 +57,7 @@ const markdownPreviewMode = ref<MarkdownPreviewMode>('split');
 const markdownSource = ref(props.contentFormat === 'MARKDOWN' ? props.modelValue : '');
 const htmlSource = ref(props.contentFormat === 'HTML' ? props.modelValue : '');
 const previewHtml = ref('');
+const previewSanitizedHtml = ref('');
 const previewErrorMessage = ref('');
 const isPreviewLoading = ref(false);
 const isModeSwitching = ref(false);
@@ -187,8 +192,10 @@ const resizeMarkdownEditor = () => {
   });
 };
 
-const applyPreviewHtml = (html: string) => {
-  previewHtml.value = sanitizeHtml(html);
+const applyPreviewHtml = async (html: string) => {
+  const sanitized = sanitizeHtml(html);
+  previewSanitizedHtml.value = sanitized;
+  previewHtml.value = await resolveProtectedFileViewUrlsInHtml(sanitized, isAuthenticated.value);
 };
 
 const renderPreviewMermaid = async () => {
@@ -202,6 +209,7 @@ const requestMarkdownPreview = async (source: string) => {
 
   if (!trimmedSource) {
     previewHtml.value = '';
+    previewSanitizedHtml.value = '';
     previewErrorMessage.value = '';
     isPreviewLoading.value = false;
     return;
@@ -218,7 +226,7 @@ const requestMarkdownPreview = async (source: string) => {
     if (requestId !== previewRequestSequence) {
       return;
     }
-    applyPreviewHtml(response.content);
+    await applyPreviewHtml(response.content);
   } catch (error) {
     if (requestId !== previewRequestSequence) {
       return;
@@ -686,6 +694,14 @@ watch(
 watch(
   () => previewHtml.value,
   () => {
+    void renderPreviewMermaid();
+  },
+);
+
+watch(
+  () => isAuthenticated.value,
+  async () => {
+    previewHtml.value = await resolveProtectedFileViewUrlsInHtml(previewSanitizedHtml.value, isAuthenticated.value);
     void renderPreviewMermaid();
   },
 );

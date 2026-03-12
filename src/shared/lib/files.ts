@@ -15,13 +15,13 @@ const normalizeBaseUrl = (value: string | undefined) => {
 
 const FILE_BASE_URL = normalizeBaseUrl(rawBaseUrl);
 
-type FileLike = {
+export type FileLike = {
   id?: number | null;
   storageKey?: string | null;
   mimeType?: string | null;
 };
 
-type FileVariant = 'thumb' | 'medium' | 'large' | 'original' | 'original_size';
+export type FileVariant = 'thumb' | 'medium' | 'large' | 'original' | 'original_size';
 
 const resolveFileUrl = (storageKey?: string | null) => {
   if (!storageKey) {

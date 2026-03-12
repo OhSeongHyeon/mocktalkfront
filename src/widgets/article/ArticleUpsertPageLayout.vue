@@ -2,11 +2,13 @@
 import BoardHeaderCard from '../board/BoardHeaderCard.vue';
 import PageContainer from '../../shared/ui/PageContainer.vue';
 import AppShell from '../layout/AppShell.vue';
+import type { FileLike } from '../../shared/lib/files';
 
 interface ArticleUpsertPageLayoutProps {
   boardTitle: string;
   boardDescription?: string | null;
   boardImageUrl?: string | null;
+  boardImageFile?: FileLike | null;
   boardLinkTo?: string;
   errorMessage?: string;
   isLoading: boolean;
@@ -24,6 +26,7 @@ const props = defineProps<ArticleUpsertPageLayoutProps>();
           :title="boardTitle"
           :description="boardDescription ?? '설명이 없습니다.'"
           :image-url="boardImageUrl"
+          :image-file="boardImageFile"
           :link-to="boardLinkTo"
         />
 

@@ -11,7 +11,6 @@ import { canWriteArticle, resolveWriteUnavailableReason } from '../entities/boar
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
 import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
-import { resolveImageUrl } from '../shared/lib/files';
 import type { ArticleContentFormat, ArticleCreateRequest } from '../entities/article';
 import { createArticle } from '../entities/article';
 import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
@@ -52,8 +51,6 @@ const isLoading = ref(false);
 const isSubmitting = ref(false);
 const pendingImportedVisibility = ref<string | null>(null);
 const pendingImportedCategoryName = ref<string | null>(null);
-
-const boardImageUrl = computed(() => resolveImageUrl(board.value?.boardImage ?? null, 'medium'));
 
 const isBoardAdmin = computed(() => {
   const role = board.value?.memberStatus;
@@ -327,7 +324,7 @@ watch(
   <ArticleUpsertPageLayout
     :board-title="board?.boardName ?? '커뮤니티'"
     :board-description="board?.description ?? '설명이 없습니다.'"
-    :board-image-url="boardImageUrl"
+    :board-image-file="board?.boardImage ?? null"
     :board-link-to="board ? `/b/${board.slug}` : undefined"
     :error-message="errorMessage"
     :is-loading="isLoading"
