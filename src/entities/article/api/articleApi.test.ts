@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { request } from '../../../shared/lib/http/api';
-import { getRecentArticles } from './articleApi';
+import { getRecentArticles, getRecommendedArticles, getTrendingArticles } from './articleApi';
 
 vi.mock('../../../shared/lib/http/api', () => ({
   request: vi.fn(),
@@ -56,5 +56,78 @@ describe('entities/article/api/articleApi contract', () => {
       hit: 9,
     });
     expect(response.hasNext).toBe(true);
+  });
+
+  it('getTrendingArticles는 홈 트렌딩 글 목록을 반환한다', async () => {
+    // given
+    requestMock.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          articleId: 301,
+          boardId: 7,
+          boardSlug: 'free',
+          userId: 22,
+          authorName: '작성자',
+          title: '인기 글',
+          hit: 19,
+          commentCount: 8,
+          likeCount: 12,
+          dislikeCount: 1,
+          trendScore: 21.5,
+          createdAt: '2026-03-11T01:00:00.000Z',
+        },
+      ],
+    });
+
+    // when
+    const response = await getTrendingArticles('DAY', 9);
+
+    // then
+    expect(requestMock).toHaveBeenCalledWith('/articles/trending?window=DAY&limit=9');
+    expect(response[0]).toMatchObject({
+      boardSlug: 'free',
+      title: '인기 글',
+      likeCount: 12,
+      trendScore: 21.5,
+    });
+  });
+
+  it('getRecommendedArticles는 홈 추천 글 목록을 반환한다', async () => {
+    // given
+    requestMock.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          articleId: 401,
+          boardId: 7,
+          boardSlug: 'free',
+          boardName: '자유게시판',
+          userId: 22,
+          authorName: '작성자',
+          title: '추천 글',
+          hit: 23,
+          commentCount: 6,
+          likeCount: 11,
+          dislikeCount: 1,
+          recommendationScore: 14.5,
+          recommendationReason: '북마크한 글과 비슷한 게시판 기반',
+          personalized: true,
+          createdAt: '2026-03-11T01:00:00.000Z',
+        },
+      ],
+    });
+
+    // when
+    const response = await getRecommendedArticles(9);
+
+    // then
+    expect(requestMock).toHaveBeenCalledWith('/articles/recommended?limit=9');
+    expect(response[0]).toMatchObject({
+      boardSlug: 'free',
+      boardName: '자유게시판',
+      recommendationReason: '북마크한 글과 비슷한 게시판 기반',
+      personalized: true,
+    });
   });
 });
