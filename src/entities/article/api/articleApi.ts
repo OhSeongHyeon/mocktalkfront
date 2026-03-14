@@ -116,6 +116,23 @@ export interface ArticleRecentItemResponse {
   createdAt: string;
 }
 
+export type ArticleTrendingWindow = 'DAY' | 'WEEK';
+
+export interface ArticleTrendingItemResponse {
+  articleId: number;
+  boardId: number;
+  boardSlug: string;
+  userId: number;
+  authorName: string;
+  title: string;
+  hit: number;
+  commentCount: number;
+  likeCount: number;
+  dislikeCount: number;
+  trendScore: number;
+  createdAt: string;
+}
+
 export interface ArticleCreateRequest {
   boardId: number;
   userId: number;
@@ -234,6 +251,11 @@ const getRecentArticles = async (page: number, size: number) => {
   return unwrap(response);
 };
 
+const getTrendingArticles = async (window: ArticleTrendingWindow, limit: number) => {
+  const response = await request<ApiEnvelope<ArticleTrendingItemResponse[]>>(`/articles/trending?window=${window}&limit=${limit}`);
+  return unwrap(response);
+};
+
 const deleteArticleBookmarks = async (articleIds: number[]) => {
   const response = await request<ApiEnvelope<void>>('/articles/bookmarks/delete', {
     method: 'POST',
@@ -262,6 +284,7 @@ export {
   getArticleDetail,
   getArticleEditorDetail,
   getRecentArticles,
+  getTrendingArticles,
   previewArticleContent,
   toggleArticleReaction,
   unbookmarkArticle,
