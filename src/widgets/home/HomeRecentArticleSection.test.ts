@@ -1,8 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ArticleRecentItemResponse, ArticleTrendingItemResponse } from '../../entities/article';
-import { getRecentArticles, getTrendingArticles } from '../../entities/article';
+import type { ArticleRecentItemResponse, ArticleRecommendedItemResponse, ArticleTrendingItemResponse } from '../../entities/article';
+import { getRecentArticles, getRecommendedArticles, getTrendingArticles } from '../../entities/article';
 import HomeRecentArticleSection from './HomeRecentArticleSection.vue';
 
 vi.mock('../../entities/article', async () => {
@@ -10,11 +10,13 @@ vi.mock('../../entities/article', async () => {
   return {
     ...actual,
     getRecentArticles: vi.fn(),
+    getRecommendedArticles: vi.fn(),
     getTrendingArticles: vi.fn(),
   };
 });
 
 const getRecentArticlesMock = vi.mocked(getRecentArticles);
+const getRecommendedArticlesMock = vi.mocked(getRecommendedArticles);
 const getTrendingArticlesMock = vi.mocked(getTrendingArticles);
 
 const createArticle = (id: number): ArticleRecentItemResponse => ({
@@ -47,9 +49,28 @@ const createTrendingArticle = (id: number): ArticleTrendingItemResponse => ({
   createdAt: '2026-03-11T00:00:00.000Z',
 });
 
+const createRecommendedArticle = (id: number): ArticleRecommendedItemResponse => ({
+  articleId: id,
+  boardId: 40,
+  boardSlug: 'free',
+  boardName: '자유게시판',
+  userId: 20,
+  authorName: `추천작성자${id}`,
+  title: `추천 게시글 ${id}`,
+  hit: id + 8,
+  commentCount: id + 3,
+  likeCount: id + 5,
+  dislikeCount: 0,
+  recommendationScore: id + 13.5,
+  recommendationReason: '북마크한 글과 비슷한 게시판 기반',
+  personalized: true,
+  createdAt: '2026-03-11T00:00:00.000Z',
+});
+
 describe('widgets/home/HomeRecentArticleSection', () => {
   beforeEach(() => {
     getRecentArticlesMock.mockReset();
+    getRecommendedArticlesMock.mockReset();
     getTrendingArticlesMock.mockReset();
   });
 
@@ -71,6 +92,7 @@ describe('widgets/home/HomeRecentArticleSection', () => {
         hasPrevious: true,
       });
     getTrendingArticlesMock.mockResolvedValue([]);
+    getRecommendedArticlesMock.mockResolvedValue([]);
 
     const wrapper = mount(HomeRecentArticleSection, {
       global: {
@@ -107,6 +129,7 @@ describe('widgets/home/HomeRecentArticleSection', () => {
       hasPrevious: false,
     });
     getTrendingArticlesMock.mockResolvedValue([createTrendingArticle(11), createTrendingArticle(12)]);
+    getRecommendedArticlesMock.mockResolvedValue([]);
 
     const wrapper = mount(HomeRecentArticleSection, {
       global: {
@@ -118,6 +141,10 @@ describe('widgets/home/HomeRecentArticleSection', () => {
           ArticleTrendingCard: {
             props: ['article'],
             template: '<div class="trending-card">{{ article.title }}</div>',
+          },
+          ArticleRecommendedCard: {
+            props: ['article'],
+            template: '<div class="recommended-card">{{ article.title }}</div>',
           },
         },
       },
@@ -133,5 +160,48 @@ describe('widgets/home/HomeRecentArticleSection', () => {
     expect(getTrendingArticlesMock).toHaveBeenCalledWith('DAY', 9);
     expect(wrapper.findAll('.trending-card')).toHaveLength(2);
     expect(wrapper.text()).toContain('트렌딩 게시글 11');
+  });
+
+  it('추천 탭을 누르면 추천 글을 불러와 렌더링한다', async () => {
+    // given
+    getRecentArticlesMock.mockResolvedValue({
+      items: [createArticle(1)],
+      page: 0,
+      size: 15,
+      hasNext: false,
+      hasPrevious: false,
+    });
+    getTrendingArticlesMock.mockResolvedValue([]);
+    getRecommendedArticlesMock.mockResolvedValue([createRecommendedArticle(21), createRecommendedArticle(22)]);
+
+    const wrapper = mount(HomeRecentArticleSection, {
+      global: {
+        stubs: {
+          ArticleFeedCard: {
+            props: ['article'],
+            template: '<div class="feed-card">{{ article.title }}</div>',
+          },
+          ArticleTrendingCard: {
+            props: ['article'],
+            template: '<div class="trending-card">{{ article.title }}</div>',
+          },
+          ArticleRecommendedCard: {
+            props: ['article'],
+            template: '<div class="recommended-card">{{ article.title }}</div>',
+          },
+        },
+      },
+    });
+
+    await flushPromises();
+
+    // when
+    await wrapper.get('[data-testid="home-article-tab-recommended"]').trigger('click');
+    await flushPromises();
+
+    // then
+    expect(getRecommendedArticlesMock).toHaveBeenCalledWith(9);
+    expect(wrapper.findAll('.recommended-card')).toHaveLength(2);
+    expect(wrapper.text()).toContain('추천 게시글 21');
   });
 });
