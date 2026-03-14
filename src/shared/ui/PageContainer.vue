@@ -28,6 +28,9 @@ const widthClass = computed(() => {
   if (resolvedWidth.value === 'narrow') {
     return 'max-w-4xl';
   }
+  if (resolvedWidth.value === 'comfortable') {
+    return 'max-w-7xl';
+  }
   if (resolvedWidth.value === 'wide') {
     return 'max-w-screen-2xl';
   }
