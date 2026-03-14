@@ -133,6 +133,24 @@ export interface ArticleTrendingItemResponse {
   createdAt: string;
 }
 
+export interface ArticleRecommendedItemResponse {
+  articleId: number;
+  boardId: number;
+  boardSlug: string;
+  boardName: string;
+  userId: number;
+  authorName: string;
+  title: string;
+  hit: number;
+  commentCount: number;
+  likeCount: number;
+  dislikeCount: number;
+  recommendationScore: number;
+  recommendationReason: string;
+  personalized: boolean;
+  createdAt: string;
+}
+
 export interface ArticleCreateRequest {
   boardId: number;
   userId: number;
@@ -256,6 +274,11 @@ const getTrendingArticles = async (window: ArticleTrendingWindow, limit: number)
   return unwrap(response);
 };
 
+const getRecommendedArticles = async (limit: number) => {
+  const response = await request<ApiEnvelope<ArticleRecommendedItemResponse[]>>(`/articles/recommended?limit=${limit}`);
+  return unwrap(response);
+};
+
 const deleteArticleBookmarks = async (articleIds: number[]) => {
   const response = await request<ApiEnvelope<void>>('/articles/bookmarks/delete', {
     method: 'POST',
@@ -284,6 +307,7 @@ export {
   getArticleDetail,
   getArticleEditorDetail,
   getRecentArticles,
+  getRecommendedArticles,
   getTrendingArticles,
   previewArticleContent,
   toggleArticleReaction,
