@@ -18,6 +18,8 @@ const ArticleEditPage = () => import('../../pages/ArticleEditPage.vue');
 const ArticleBookmarkPage = () => import('../../pages/ArticleBookmarkPage.vue');
 const HistoryPage = () => import('../../pages/HistoryPage.vue');
 const SearchPage = () => import('../../pages/SearchPage.vue');
+const ContentHubPage = () => import('../../pages/ContentHubPage.vue');
+const ContentMarketPage = () => import('../../pages/ContentMarketPage.vue');
 const AdminBackofficePage = () => import('../../pages/AdminBackofficePage.vue');
 const AdminReportsPage = () => import('../../pages/AdminReportsPage.vue');
 const AdminSanctionsPage = () => import('../../pages/AdminSanctionsPage.vue');
@@ -39,6 +41,8 @@ const router = createRouter({
     { path: '/settings', name: 'settings', component: SettingsPage },
     { path: '/boards', name: 'boards', component: CommunityPage },
     { path: '/search', name: 'search', component: SearchPage },
+    { path: '/contents', name: 'contents', component: ContentHubPage },
+    { path: '/contents/market', name: 'content-market', component: ContentMarketPage },
     { path: '/boards/subscribes', name: 'board-subscribes', component: BoardSubscribePage, meta: { requiresAuth: true } },
     { path: '/bookmarks', name: 'bookmarks', component: ArticleBookmarkPage, meta: { requiresAuth: true } },
     { path: '/history', name: 'history', component: HistoryPage, meta: { requiresAuth: true } },
