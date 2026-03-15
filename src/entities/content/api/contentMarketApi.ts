@@ -8,7 +8,7 @@ export interface ApiEnvelope<T> {
 
 export type MarketGroup = 'FX' | 'METAL';
 export type MarketInstrumentCode = 'USD_KRW' | 'EUR_KRW' | 'JPY_KRW' | 'XAU_USD' | 'XAU_KRW';
-export type MarketSeriesPeriod = 'YEAR' | 'MONTH' | 'WEEK' | 'CUSTOM';
+export type MarketSeriesPeriod = 'TEN_YEAR' | 'FIVE_YEAR' | 'THREE_YEAR' | 'YEAR' | 'HALF_YEAR' | 'QUARTER' | 'MONTH' | 'WEEK' | 'CUSTOM';
 
 export interface MarketOverviewItemResponse {
   instrumentCode: MarketInstrumentCode;

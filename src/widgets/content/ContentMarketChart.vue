@@ -27,9 +27,12 @@ const props = withDefaults(
 );
 
 const chartRef = ref<HTMLDivElement | null>(null);
+const isDark = ref(false);
 let chartInstance: echarts.ECharts | null = null;
+let themeObserver: MutationObserver | null = null;
 
-const palette = ['#0f172a', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6'];
+const lightPalette = ['#0f172a', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6'];
+const darkPalette = ['#e2e8f0', '#38bdf8', '#fbbf24', '#f87171', '#a78bfa'];
 
 const normalizedSeries = computed<MarketChartSeries[]>(() => {
   if (props.series.length > 0) {
@@ -39,13 +42,28 @@ const normalizedSeries = computed<MarketChartSeries[]>(() => {
     {
       name: props.title,
       points: props.points,
-      color: palette[0],
+      color: lightPalette[0],
     },
   ];
 });
 
 const chartHeightClass = computed(() => (props.compact ? 'h-[220px] w-full' : 'h-[360px] w-full'));
 const isMultiSeries = computed(() => normalizedSeries.value.length > 1);
+
+const syncThemeState = () => {
+  isDark.value = globalThis.document?.documentElement.classList.contains('dark') ?? false;
+};
+
+const resolveSeriesColor = (color: string | undefined, index: number) => {
+  const palette = isDark.value ? darkPalette : lightPalette;
+  if (!color) {
+    return palette[index % palette.length];
+  }
+  if (isDark.value && color === lightPalette[0]) {
+    return darkPalette[0];
+  }
+  return color;
+};
 
 const renderChart = () => {
   if (!chartInstance) {
@@ -57,10 +75,10 @@ const renderChart = () => {
       animation: false,
       tooltip: {
         trigger: 'axis',
-        backgroundColor: 'rgba(15, 23, 42, 0.92)',
+        backgroundColor: isDark.value ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.96)',
         borderWidth: 0,
         textStyle: {
-          color: '#f8fafc',
+          color: isDark.value ? '#f8fafc' : '#0f172a',
         },
       },
       legend: isMultiSeries.value
@@ -68,7 +86,7 @@ const renderChart = () => {
             top: 0,
             left: 12,
             textStyle: {
-              color: '#64748b',
+              color: isDark.value ? '#cbd5e1' : '#64748b',
               fontSize: props.compact ? 11 : 12,
             },
           }
@@ -84,11 +102,11 @@ const renderChart = () => {
         type: 'time',
         axisLine: {
           lineStyle: {
-            color: '#cbd5e1',
+            color: isDark.value ? '#475569' : '#cbd5e1',
           },
         },
         axisLabel: {
-          color: '#64748b',
+          color: isDark.value ? '#94a3b8' : '#64748b',
           fontSize: props.compact ? 11 : 12,
           formatter: (value: number) => {
             const date = new Date(value);
@@ -104,17 +122,17 @@ const renderChart = () => {
         },
         splitLine: {
           lineStyle: {
-            color: 'rgba(148, 163, 184, 0.2)',
+            color: isDark.value ? 'rgba(71, 85, 105, 0.35)' : 'rgba(148, 163, 184, 0.2)',
           },
         },
         axisLabel: {
-          color: '#64748b',
+          color: isDark.value ? '#94a3b8' : '#64748b',
           fontSize: props.compact ? 11 : 12,
           formatter: (value: number) => new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(value),
         },
       },
       series: normalizedSeries.value.map((series, index) => {
-        const color = series.color ?? palette[index % palette.length];
+        const color = resolveSeriesColor(series.color, index);
         return {
           name: series.name,
           type: 'line',
@@ -128,15 +146,15 @@ const renderChart = () => {
           },
           itemStyle: {
             color,
-            borderColor: '#ffffff',
+            borderColor: isDark.value ? '#020617' : '#ffffff',
             borderWidth: 2,
           },
           areaStyle: isMultiSeries.value
             ? undefined
             : {
                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                  { offset: 0, color: 'rgba(245, 158, 11, 0.24)' },
-                  { offset: 1, color: 'rgba(245, 158, 11, 0.02)' },
+                  { offset: 0, color: isDark.value ? 'rgba(56, 189, 248, 0.22)' : 'rgba(245, 158, 11, 0.24)' },
+                  { offset: 1, color: isDark.value ? 'rgba(56, 189, 248, 0.03)' : 'rgba(245, 158, 11, 0.02)' },
                 ]),
               },
         };
@@ -154,17 +172,28 @@ onMounted(() => {
   if (!chartRef.value) {
     return;
   }
+  syncThemeState();
   chartInstance = echarts.init(chartRef.value);
   renderChart();
+  themeObserver = new MutationObserver(() => {
+    syncThemeState();
+    renderChart();
+  });
+  themeObserver.observe(globalThis.document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
   window.addEventListener('resize', handleResize);
 });
 
-watch([normalizedSeries, () => props.title, () => props.unitLabel, () => props.compact], () => {
+watch([normalizedSeries, () => props.title, () => props.unitLabel, () => props.compact, isDark], () => {
   renderChart();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize);
+  themeObserver?.disconnect();
+  themeObserver = null;
   chartInstance?.dispose();
   chartInstance = null;
 });
