@@ -54,6 +54,31 @@ const syncThemeState = () => {
   isDark.value = globalThis.document?.documentElement.classList.contains('dark') ?? false;
 };
 
+const resolveShowSymbol = (pointCount: number) => {
+  const threshold = isMultiSeries.value ? 45 : props.compact ? 60 : 120;
+  return pointCount <= threshold;
+};
+
+const resolveSampling = (pointCount: number) => {
+  if (pointCount > 365) {
+    return 'lttb';
+  }
+  if (pointCount > 180) {
+    return 'minmax';
+  }
+  return undefined;
+};
+
+const resolveProgressive = (pointCount: number) => {
+  if (pointCount > 1000) {
+    return 400;
+  }
+  if (pointCount > 400) {
+    return 200;
+  }
+  return 0;
+};
+
 const resolveSeriesColor = (color: string | undefined, index: number) => {
   const palette = isDark.value ? darkPalette : lightPalette;
   if (!color) {
@@ -73,10 +98,14 @@ const renderChart = () => {
   chartInstance.setOption(
     {
       animation: false,
+      animationThreshold: 2000,
       tooltip: {
         trigger: 'axis',
         backgroundColor: isDark.value ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.96)',
         borderWidth: 0,
+        axisPointer: {
+          animation: false,
+        },
         textStyle: {
           color: isDark.value ? '#f8fafc' : '#0f172a',
         },
@@ -133,13 +162,21 @@ const renderChart = () => {
       },
       series: normalizedSeries.value.map((series, index) => {
         const color = resolveSeriesColor(series.color, index);
+        const pointCount = series.points.length;
+        const showSymbol = resolveShowSymbol(pointCount);
         return {
           name: series.name,
           type: 'line',
           data: series.points.map((point) => [point.timestamp, point.value]),
           smooth: true,
+          showSymbol,
+          showAllSymbol: false,
           symbol: 'circle',
-          symbolSize: props.compact ? 5 : 7,
+          symbolSize: showSymbol ? (props.compact ? 5 : 7) : 0,
+          hoverAnimation: showSymbol,
+          sampling: resolveSampling(pointCount),
+          progressive: resolveProgressive(pointCount),
+          progressiveThreshold: 300,
           lineStyle: {
             width: props.compact ? 2 : 3,
             color,
