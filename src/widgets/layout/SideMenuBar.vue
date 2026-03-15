@@ -153,7 +153,11 @@ const backofficeSections = computed(() => {
       ? [
           {
             title: '운영',
-            items: [{ name: '게시글 임포트', icon: 'community', path: '/admin/article-imports' }],
+            items: [
+              { name: '게시글 임포트', icon: 'community', path: '/admin/article-imports' },
+              { name: '콘텐츠 시세', icon: 'pulse', path: '/admin/content-market' },
+              { name: '뉴스봇', icon: 'megaphone', path: '/admin/news-bot' },
+            ],
           },
         ]
       : []),
