@@ -26,6 +26,7 @@ const AdminSanctionsPage = () => import('../../pages/AdminSanctionsPage.vue');
 const AdminAuditLogsPage = () => import('../../pages/AdminAuditLogsPage.vue');
 const AdminArticleImportsPage = () => import('../../pages/AdminArticleImportsPage.vue');
 const AdminContentMarketPage = () => import('../../pages/AdminContentMarketPage.vue');
+const AdminNewsBotPage = () => import('../../pages/AdminNewsBotPage.vue');
 const AdminUsersPage = () => import('../../pages/AdminUsersPage.vue');
 const AdminBoardsPage = () => import('../../pages/AdminBoardsPage.vue');
 const BoardAdminCategoriesPage = () => import('../../pages/BoardAdminCategoriesPage.vue');
@@ -63,6 +64,12 @@ const router = createRouter({
       path: '/admin/content-market',
       name: 'admin-content-market',
       component: AdminContentMarketPage,
+      meta: { requiresAuth: true, requiresManagerOrAdmin: true },
+    },
+    {
+      path: '/admin/news-bot',
+      name: 'admin-news-bot',
+      component: AdminNewsBotPage,
       meta: { requiresAuth: true, requiresManagerOrAdmin: true },
     },
     { path: '/boards/create', name: 'board-create', component: BoardCreatePage, meta: { requiresAuth: true } },

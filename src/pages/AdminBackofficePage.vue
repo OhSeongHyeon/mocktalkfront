@@ -24,6 +24,12 @@ const adminTools = computed(() => {
       path: '/admin/content-market',
       tone: 'sky',
     },
+    {
+      title: '뉴스봇 운영',
+      description: '외부 공개 API/RSS를 주기적으로 수집해 게시판 새소식을 자동 발행합니다.',
+      path: '/admin/news-bot',
+      tone: 'violet',
+    },
   ];
 
   if (!isAdmin.value) {
