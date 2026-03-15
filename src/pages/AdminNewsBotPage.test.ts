@@ -116,4 +116,54 @@ describe('pages/AdminNewsBotPage', () => {
     // then
     expect(wrapper.find('input[name="timezone"]').exists()).toBe(true);
   });
+
+  it('필수 입력 없이 저장하면 공통 필드와 소스 필드를 하이라이트한다', async () => {
+    // given
+    const wrapper = await mountPage();
+
+    // when
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+
+    // then
+    expect(newsBotApiMocks.createAdminNewsBotJob).not.toHaveBeenCalled();
+    expect(wrapper.find('input[name="jobName"]').attributes('data-invalid')).toBe('true');
+    expect(wrapper.find('input[name="targetBoardSlug"]').attributes('data-invalid')).toBe('true');
+    expect(wrapper.find('input[name="devTag"]').attributes('data-invalid')).toBe('true');
+    expect(wrapper.text()).toContain('잡 이름을 입력해주세요.');
+  });
+
+  it('GitHub Releases 필수 입력이 비면 owner와 repo를 함께 하이라이트한다', async () => {
+    // given
+    const wrapper = await mountPage();
+    await wrapper.find('input[name="jobName"]').setValue('스프링부트 릴리즈');
+    await wrapper.find('input[name="targetBoardSlug"]').setValue('spring-news');
+    await wrapper.find('select[name="sourceType"]').setValue('GITHUB_RELEASES');
+
+    // when
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+
+    // then
+    expect(newsBotApiMocks.createAdminNewsBotJob).not.toHaveBeenCalled();
+    expect(wrapper.find('input[name="githubOwner"]').attributes('data-invalid')).toBe('true');
+    expect(wrapper.find('input[name="githubRepo"]').attributes('data-invalid')).toBe('true');
+  });
+
+  it('게시판 자동 생성이 켜진 상태에서 이름이 비면 게시판 이름 필드를 하이라이트한다', async () => {
+    // given
+    const wrapper = await mountPage();
+    await wrapper.find('input[name="jobName"]').setValue('스프링 공식 블로그');
+    await wrapper.find('input[name="targetBoardSlug"]').setValue('spring-news');
+    await wrapper.find('input[name="autoCreateBoard"]').setValue(true);
+    await wrapper.find('input[name="devTag"]').setValue('spring');
+
+    // when
+    await wrapper.find('form').trigger('submit.prevent');
+    await flushPromises();
+
+    // then
+    expect(newsBotApiMocks.createAdminNewsBotJob).not.toHaveBeenCalled();
+    expect(wrapper.find('input[name="targetBoardName"]').attributes('data-invalid')).toBe('true');
+  });
 });

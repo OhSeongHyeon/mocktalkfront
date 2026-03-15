@@ -43,6 +43,8 @@ type NewsBotFormState = {
   timezone: string;
 };
 
+type RequiredFieldName = 'jobName' | 'devTag' | 'devUsername' | 'githubOwner' | 'githubRepo' | 'rssFeedUrl' | 'targetBoardSlug' | 'targetBoardName';
+
 type SourceExecutionPolicy = {
   defaultInterval: number;
   defaultFetchLimit: number;
@@ -94,6 +96,16 @@ const actionSuccessMessage = ref('');
 const lastRunResult = ref<AdminNewsBotJobRunResponse | null>(null);
 const showAdvancedExecutionSettings = ref(false);
 const isSyncingForm = ref(false);
+const fieldErrors = reactive<Record<RequiredFieldName, string | null>>({
+  jobName: null,
+  devTag: null,
+  devUsername: null,
+  githubOwner: null,
+  githubRepo: null,
+  rssFeedUrl: null,
+  targetBoardSlug: null,
+  targetBoardName: null,
+});
 
 const form = reactive<NewsBotFormState>({
   jobName: '',
@@ -203,6 +215,39 @@ const resolveErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
+const clearFieldError = (fieldName: RequiredFieldName) => {
+  fieldErrors[fieldName] = null;
+};
+
+const clearAllFieldErrors = () => {
+  Object.keys(fieldErrors).forEach((fieldName) => {
+    fieldErrors[fieldName as RequiredFieldName] = null;
+  });
+};
+
+const clearFieldErrorIfFilled = (fieldName: RequiredFieldName, value: string) => {
+  if (!fieldErrors[fieldName]) {
+    return;
+  }
+  if (value.trim()) {
+    clearFieldError(fieldName);
+  }
+};
+
+const resolveFieldLabelClass = (fieldName: RequiredFieldName) =>
+  fieldErrors[fieldName] ? 'text-rose-600 dark:text-rose-300' : 'text-slate-700 dark:text-slate-200';
+
+const resolveFieldInputClass = (fieldName: RequiredFieldName) =>
+  fieldErrors[fieldName]
+    ? 'rounded-2xl border border-rose-400 bg-rose-50/70 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-rose-500 dark:border-rose-500 dark:bg-rose-950/20 dark:text-slate-100'
+    : 'rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+
+const focusField = async (fieldName: RequiredFieldName) => {
+  await nextTick();
+  const target = document.querySelector<HTMLInputElement>(`[name="${fieldName}"]`);
+  target?.focus();
+};
+
 const buildSourceConfig = (): Record<string, unknown> => {
   if (form.sourceType === 'HACKER_NEWS') {
     return { storyType: form.hackerNewsStoryType };
@@ -225,28 +270,40 @@ const buildSourceConfig = (): Record<string, unknown> => {
 };
 
 const validateForm = () => {
+  clearAllFieldErrors();
+  let firstInvalidField: RequiredFieldName | null = null;
+  const markError = (fieldName: RequiredFieldName, message: string) => {
+    fieldErrors[fieldName] = message;
+    if (!firstInvalidField) {
+      firstInvalidField = fieldName;
+    }
+  };
+
   if (!form.jobName.trim()) {
-    return '잡 이름을 입력해주세요.';
+    markError('jobName', '잡 이름을 입력해주세요.');
   }
   if (!form.targetBoardSlug.trim()) {
-    return '대상 게시판 slug를 입력해주세요.';
+    markError('targetBoardSlug', '대상 게시판 slug를 입력해주세요.');
   }
   if (form.autoCreateBoard && !form.targetBoardName.trim()) {
-    return '게시판 자동 생성을 사용하려면 대상 게시판 이름이 필요합니다.';
+    markError('targetBoardName', '게시판 자동 생성을 사용하려면 대상 게시판 이름이 필요합니다.');
   }
   if (form.sourceType === 'DEV_TO' && form.devSourceMode === 'TAG' && !form.devTag.trim()) {
-    return 'DEV API를 태그 기준으로 사용할 때는 tag를 입력해야 합니다.';
+    markError('devTag', 'DEV API를 태그 기준으로 사용할 때는 tag를 입력해야 합니다.');
   }
   if (form.sourceType === 'DEV_TO' && form.devSourceMode === 'USERNAME' && !form.devUsername.trim()) {
-    return 'DEV API를 작성자 기준으로 사용할 때는 username을 입력해야 합니다.';
+    markError('devUsername', 'DEV API를 작성자 기준으로 사용할 때는 username을 입력해야 합니다.');
   }
-  if (form.sourceType === 'GITHUB_RELEASES' && (!form.githubOwner.trim() || !form.githubRepo.trim())) {
-    return 'GitHub Releases는 owner와 repo가 모두 필요합니다.';
+  if (form.sourceType === 'GITHUB_RELEASES' && !form.githubOwner.trim()) {
+    markError('githubOwner', 'GitHub Releases를 사용하려면 owner를 입력해야 합니다.');
+  }
+  if (form.sourceType === 'GITHUB_RELEASES' && !form.githubRepo.trim()) {
+    markError('githubRepo', 'GitHub Releases를 사용하려면 repo를 입력해야 합니다.');
   }
   if (form.sourceType === 'RSS' && !form.rssFeedUrl.trim()) {
-    return 'RSS/Atom 피드 URL을 입력해주세요.';
+    markError('rssFeedUrl', 'RSS/Atom 피드 URL을 입력해주세요.');
   }
-  return null;
+  return firstInvalidField;
 };
 
 const toPayload = (): AdminNewsBotJobUpsertRequest => ({
@@ -264,6 +321,7 @@ const toPayload = (): AdminNewsBotJobUpsertRequest => ({
 });
 
 const resetForm = () => {
+  clearAllFieldErrors();
   runWithFormSync(() => {
     form.jobName = '';
     form.sourceType = 'DEV_TO';
@@ -281,6 +339,7 @@ const resetForm = () => {
 };
 
 const applyJobToForm = (job: AdminNewsBotJobResponse) => {
+  clearAllFieldErrors();
   const sourceConfig = job.sourceConfig;
   const devTag = (sourceConfig.tag as string | undefined) ?? '';
   const devUsername = (sourceConfig.username as string | undefined) ?? '';
@@ -337,9 +396,10 @@ const selectJob = (job: AdminNewsBotJobResponse) => {
 const submitForm = async () => {
   actionErrorMessage.value = '';
   actionSuccessMessage.value = '';
-  const validationMessage = validateForm();
-  if (validationMessage) {
-    actionErrorMessage.value = validationMessage;
+  const firstInvalidField = validateForm();
+  if (firstInvalidField) {
+    actionErrorMessage.value = fieldErrors[firstInvalidField] ?? '필수 입력값을 확인해주세요.';
+    await focusField(firstInvalidField);
     return;
   }
 
@@ -355,6 +415,7 @@ const submitForm = async () => {
       resetForm();
     }
     await loadJobs();
+    clearAllFieldErrors();
   } catch (error) {
     actionErrorMessage.value = resolveErrorMessage(error, '뉴스봇 잡 저장에 실패했습니다.');
   } finally {
@@ -401,6 +462,11 @@ watch(
       return;
     }
     clearSourceSpecificFields();
+    clearFieldError('devTag');
+    clearFieldError('devUsername');
+    clearFieldError('githubOwner');
+    clearFieldError('githubRepo');
+    clearFieldError('rssFeedUrl');
     applyExecutionPolicy(nextSourceType);
     form.timezone = DEFAULT_TIMEZONE;
     showAdvancedExecutionSettings.value = false;
@@ -413,6 +479,8 @@ watch(
     if (isSyncingForm.value || form.sourceType !== 'DEV_TO') {
       return;
     }
+    clearFieldError('devTag');
+    clearFieldError('devUsername');
     if (mode === 'TAG') {
       form.devUsername = '';
       return;
@@ -429,6 +497,7 @@ watch(
     }
     if (!enabled) {
       form.targetBoardName = '';
+      clearFieldError('targetBoardName');
     }
   },
 );
@@ -566,16 +635,22 @@ watch(
                     </p>
                   </div>
                   <div class="mt-4 grid gap-4">
-                    <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('jobName')]">
                       잡 이름
                       <input
                         v-model="form.jobName"
                         name="jobName"
                         type="text"
                         maxlength="120"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('jobName')"
+                        :aria-invalid="Boolean(fieldErrors.jobName)"
+                        :data-invalid="fieldErrors.jobName ? 'true' : 'false'"
                         placeholder="예: 스프링 부트 릴리즈"
+                        @input="clearFieldErrorIfFilled('jobName', form.jobName)"
                       />
+                      <span v-if="fieldErrors.jobName" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.jobName }}
+                      </span>
                     </label>
                     <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                       외부 소스
@@ -647,61 +722,91 @@ watch(
                       </div>
                     </fieldset>
 
-                    <label v-if="isDevTagMode" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label v-if="isDevTagMode" :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('devTag')]">
                       tag
                       <input
                         v-model="form.devTag"
                         name="devTag"
                         type="text"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('devTag')"
+                        :aria-invalid="Boolean(fieldErrors.devTag)"
+                        :data-invalid="fieldErrors.devTag ? 'true' : 'false'"
                         placeholder="예: backend"
+                        @input="clearFieldErrorIfFilled('devTag', form.devTag)"
                       />
+                      <span v-if="fieldErrors.devTag" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.devTag }}
+                      </span>
                     </label>
-                    <label v-else class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label v-else :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('devUsername')]">
                       username
                       <input
                         v-model="form.devUsername"
                         name="devUsername"
                         type="text"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('devUsername')"
+                        :aria-invalid="Boolean(fieldErrors.devUsername)"
+                        :data-invalid="fieldErrors.devUsername ? 'true' : 'false'"
                         placeholder="예: ben"
+                        @input="clearFieldErrorIfFilled('devUsername', form.devUsername)"
                       />
+                      <span v-if="fieldErrors.devUsername" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.devUsername }}
+                      </span>
                     </label>
                   </div>
 
                   <div v-if="form.sourceType === 'GITHUB_RELEASES'" class="mt-4 grid gap-4 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('githubOwner')]">
                       owner
                       <input
                         v-model="form.githubOwner"
                         name="githubOwner"
                         type="text"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('githubOwner')"
+                        :aria-invalid="Boolean(fieldErrors.githubOwner)"
+                        :data-invalid="fieldErrors.githubOwner ? 'true' : 'false'"
                         placeholder="예: spring-projects"
+                        @input="clearFieldErrorIfFilled('githubOwner', form.githubOwner)"
                       />
+                      <span v-if="fieldErrors.githubOwner" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.githubOwner }}
+                      </span>
                     </label>
-                    <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('githubRepo')]">
                       repo
                       <input
                         v-model="form.githubRepo"
                         name="githubRepo"
                         type="text"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('githubRepo')"
+                        :aria-invalid="Boolean(fieldErrors.githubRepo)"
+                        :data-invalid="fieldErrors.githubRepo ? 'true' : 'false'"
                         placeholder="예: spring-boot"
+                        @input="clearFieldErrorIfFilled('githubRepo', form.githubRepo)"
                       />
+                      <span v-if="fieldErrors.githubRepo" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.githubRepo }}
+                      </span>
                     </label>
                   </div>
 
                   <div v-if="form.sourceType === 'RSS'" class="mt-4 grid gap-4">
-                    <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('rssFeedUrl')]">
                       feedUrl
                       <input
                         v-model="form.rssFeedUrl"
                         name="rssFeedUrl"
                         type="url"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('rssFeedUrl')"
+                        :aria-invalid="Boolean(fieldErrors.rssFeedUrl)"
+                        :data-invalid="fieldErrors.rssFeedUrl ? 'true' : 'false'"
                         placeholder="예: https://spring.io/blog.atom"
+                        @input="clearFieldErrorIfFilled('rssFeedUrl', form.rssFeedUrl)"
                       />
+                      <span v-if="fieldErrors.rssFeedUrl" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.rssFeedUrl }}
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -714,27 +819,42 @@ watch(
                     </p>
                   </div>
                   <div class="mt-4 grid gap-4">
-                    <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('targetBoardSlug')]">
                       대상 게시판 slug
                       <input
                         v-model="form.targetBoardSlug"
                         name="targetBoardSlug"
                         type="text"
                         maxlength="80"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('targetBoardSlug')"
+                        :aria-invalid="Boolean(fieldErrors.targetBoardSlug)"
+                        :data-invalid="fieldErrors.targetBoardSlug ? 'true' : 'false'"
                         placeholder="예: spring-news"
+                        @input="clearFieldErrorIfFilled('targetBoardSlug', form.targetBoardSlug)"
                       />
+                      <span v-if="fieldErrors.targetBoardSlug" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.targetBoardSlug }}
+                      </span>
                     </label>
-                    <label v-if="showTargetBoardNameField" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <label
+                      v-if="showTargetBoardNameField"
+                      :class="['flex flex-col gap-2 text-sm font-medium', resolveFieldLabelClass('targetBoardName')]"
+                    >
                       자동 생성용 게시판 이름
                       <input
                         v-model="form.targetBoardName"
                         name="targetBoardName"
                         type="text"
                         maxlength="255"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        :class="resolveFieldInputClass('targetBoardName')"
+                        :aria-invalid="Boolean(fieldErrors.targetBoardName)"
+                        :data-invalid="fieldErrors.targetBoardName ? 'true' : 'false'"
                         placeholder="예: 스프링 새소식"
+                        @input="clearFieldErrorIfFilled('targetBoardName', form.targetBoardName)"
                       />
+                      <span v-if="fieldErrors.targetBoardName" class="text-xs font-medium text-rose-600 dark:text-rose-300">
+                        {{ fieldErrors.targetBoardName }}
+                      </span>
                     </label>
                     <p
                       v-else
