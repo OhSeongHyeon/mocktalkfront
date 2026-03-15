@@ -4,23 +4,48 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import type { MarketSeriesPointResponse } from '../../entities/content';
 
-const props = defineProps<{
-  title: string;
-  unitLabel: string;
+type MarketChartSeries = {
+  name: string;
   points: MarketSeriesPointResponse[];
-}>();
+  color?: string;
+};
+
+const props = withDefaults(
+  defineProps<{
+    title: string;
+    unitLabel?: string;
+    points?: MarketSeriesPointResponse[];
+    series?: MarketChartSeries[];
+    compact?: boolean;
+  }>(),
+  {
+    unitLabel: '',
+    points: () => [],
+    series: () => [],
+    compact: false,
+  },
+);
 
 const chartRef = ref<HTMLDivElement | null>(null);
 let chartInstance: echarts.ECharts | null = null;
 
-const labels = computed(() =>
-  props.points.map((point) => {
-    const date = new Date(point.timestamp);
-    return `${date.getMonth() + 1}/${date.getDate()}`;
-  }),
-);
+const palette = ['#0f172a', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-const values = computed(() => props.points.map((point) => point.value));
+const normalizedSeries = computed<MarketChartSeries[]>(() => {
+  if (props.series.length > 0) {
+    return props.series;
+  }
+  return [
+    {
+      name: props.title,
+      points: props.points,
+      color: palette[0],
+    },
+  ];
+});
+
+const chartHeightClass = computed(() => (props.compact ? 'h-[220px] w-full' : 'h-[360px] w-full'));
+const isMultiSeries = computed(() => normalizedSeries.value.length > 1);
 
 const renderChart = () => {
   if (!chartInstance) {
@@ -37,19 +62,26 @@ const renderChart = () => {
         textStyle: {
           color: '#f8fafc',
         },
-        valueFormatter: (value: number) => `${new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 }).format(value)} ${props.unitLabel}`,
       },
+      legend: isMultiSeries.value
+        ? {
+            top: 0,
+            left: 12,
+            textStyle: {
+              color: '#64748b',
+              fontSize: props.compact ? 11 : 12,
+            },
+          }
+        : undefined,
       grid: {
         left: 18,
         right: 18,
-        top: 24,
+        top: isMultiSeries.value ? (props.compact ? 42 : 54) : props.compact ? 18 : 24,
         bottom: 18,
         containLabel: true,
       },
       xAxis: {
-        type: 'category',
-        data: labels.value,
-        boundaryGap: false,
+        type: 'time',
         axisLine: {
           lineStyle: {
             color: '#cbd5e1',
@@ -57,6 +89,11 @@ const renderChart = () => {
         },
         axisLabel: {
           color: '#64748b',
+          fontSize: props.compact ? 11 : 12,
+          formatter: (value: number) => {
+            const date = new Date(value);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+          },
         },
       },
       yAxis: {
@@ -72,34 +109,38 @@ const renderChart = () => {
         },
         axisLabel: {
           color: '#64748b',
+          fontSize: props.compact ? 11 : 12,
           formatter: (value: number) => new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 }).format(value),
         },
       },
-      series: [
-        {
-          name: props.title,
+      series: normalizedSeries.value.map((series, index) => {
+        const color = series.color ?? palette[index % palette.length];
+        return {
+          name: series.name,
           type: 'line',
-          data: values.value,
+          data: series.points.map((point) => [point.timestamp, point.value]),
           smooth: true,
           symbol: 'circle',
-          symbolSize: 7,
+          symbolSize: props.compact ? 5 : 7,
           lineStyle: {
-            width: 3,
-            color: '#0f172a',
+            width: props.compact ? 2 : 3,
+            color,
           },
           itemStyle: {
-            color: '#f59e0b',
-            borderColor: '#fff7ed',
+            color,
+            borderColor: '#ffffff',
             borderWidth: 2,
           },
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: 'rgba(245, 158, 11, 0.24)' },
-              { offset: 1, color: 'rgba(245, 158, 11, 0.02)' },
-            ]),
-          },
-        },
-      ],
+          areaStyle: isMultiSeries.value
+            ? undefined
+            : {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: 'rgba(245, 158, 11, 0.24)' },
+                  { offset: 1, color: 'rgba(245, 158, 11, 0.02)' },
+                ]),
+              },
+        };
+      }),
     },
     true,
   );
@@ -118,7 +159,7 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
 });
 
-watch([labels, values, () => props.title, () => props.unitLabel], () => {
+watch([normalizedSeries, () => props.title, () => props.unitLabel, () => props.compact], () => {
   renderChart();
 });
 
@@ -130,5 +171,5 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="chartRef" class="h-[360px] w-full"></div>
+  <div ref="chartRef" :class="chartHeightClass"></div>
 </template>

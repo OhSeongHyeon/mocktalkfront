@@ -8,7 +8,7 @@ export interface ApiEnvelope<T> {
 
 export type MarketGroup = 'FX' | 'METAL';
 export type MarketInstrumentCode = 'USD_KRW' | 'EUR_KRW' | 'JPY_KRW' | 'XAU_USD' | 'XAU_KRW';
-export type MarketSeriesPeriod = 'WEEK' | 'MONTH';
+export type MarketSeriesPeriod = 'YEAR' | 'MONTH' | 'WEEK' | 'CUSTOM';
 
 export interface MarketOverviewItemResponse {
   instrumentCode: MarketInstrumentCode;
@@ -50,8 +50,18 @@ const getMarketOverview = async () => {
   return unwrap(response);
 };
 
-const getMarketSeries = async (instrument: MarketInstrumentCode, period: MarketSeriesPeriod) => {
-  const response = await request<ApiEnvelope<MarketSeriesResponse>>(`/contents/market/series?instrument=${instrument}&period=${period}`);
+const getMarketSeries = async (instrument: MarketInstrumentCode, period: MarketSeriesPeriod, startDate?: string, endDate?: string) => {
+  const params = new URLSearchParams({
+    instrument,
+    period,
+  });
+
+  if (startDate && endDate) {
+    params.set('startDate', startDate);
+    params.set('endDate', endDate);
+  }
+
+  const response = await request<ApiEnvelope<MarketSeriesResponse>>(`/contents/market/series?${params.toString()}`);
   return unwrap(response);
 };
 

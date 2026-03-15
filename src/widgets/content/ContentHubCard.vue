@@ -12,9 +12,9 @@ const props = defineProps<{
 
 const accentClass = computed(() => {
   if (props.accent === 'amber') {
-    return 'border-amber-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.2),_transparent_55%),linear-gradient(180deg,_rgba(255,251,235,0.92),_rgba(255,255,255,0.96))] dark:border-amber-900/50 dark:bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.22),_transparent_55%),linear-gradient(180deg,_rgba(20,16,10,0.92),_rgba(15,23,42,0.96))]';
+    return 'border-amber-200/70 bg-amber-50/80 dark:border-amber-900/50 dark:bg-amber-950/20';
   }
-  return 'border-cyan-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(34,211,238,0.18),_transparent_55%),linear-gradient(180deg,_rgba(236,254,255,0.92),_rgba(255,255,255,0.96))] dark:border-cyan-900/50 dark:bg-[radial-gradient(circle_at_top_right,_rgba(6,182,212,0.2),_transparent_55%),linear-gradient(180deg,_rgba(8,18,24,0.92),_rgba(15,23,42,0.96))]';
+  return 'border-cyan-200/70 bg-cyan-50/80 dark:border-cyan-900/50 dark:bg-cyan-950/20';
 });
 </script>
 

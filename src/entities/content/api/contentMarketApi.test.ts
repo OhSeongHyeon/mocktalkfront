@@ -74,4 +74,30 @@ describe('entities/content/api/contentMarketApi contract', () => {
     expect(requestMock).toHaveBeenCalledWith('/contents/market/series?instrument=XAU_USD&period=WEEK');
     expect(response.points[1]).toMatchObject({ value: 3012.12 });
   });
+
+  it('getMarketSeries는 직접 선택 기간 파라미터를 함께 전달할 수 있다', async () => {
+    // given
+    requestMock.mockResolvedValue({
+      success: true,
+      data: {
+        instrumentCode: 'USD_KRW',
+        displayName: 'USD/KRW',
+        marketGroup: 'FX',
+        unitLabel: '원',
+        period: 'CUSTOM',
+        lastObservedAt: '2026-03-15T03:05:00.000Z',
+        points: [
+          { timestamp: '2026-03-01T03:05:00.000Z', value: 1448.1 },
+          { timestamp: '2026-03-15T03:05:00.000Z', value: 1450.12 },
+        ],
+      },
+    });
+
+    // when
+    const response = await getMarketSeries('USD_KRW', 'CUSTOM', '2026-03-01', '2026-03-15');
+
+    // then
+    expect(requestMock).toHaveBeenCalledWith('/contents/market/series?instrument=USD_KRW&period=CUSTOM&startDate=2026-03-01&endDate=2026-03-15');
+    expect(response.period).toBe('CUSTOM');
+  });
 });
