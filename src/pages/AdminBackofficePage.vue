@@ -18,6 +18,12 @@ const adminTools = computed(() => {
       path: '/admin/article-imports',
       tone: 'emerald',
     },
+    {
+      title: '콘텐츠 시세 운영',
+      description: '환율/금 시세를 즉시 최신화하고 CSV/XLSX 파일로 과거 데이터를 반영합니다.',
+      path: '/admin/content-market',
+      tone: 'sky',
+    },
   ];
 
   if (!isAdmin.value) {

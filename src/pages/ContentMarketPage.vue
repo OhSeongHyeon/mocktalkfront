@@ -58,6 +58,31 @@ const selectedSeries = computed<MarketSeriesResponse | null>(() => {
   return seriesMap.value[selectedInstrument.value] ?? null;
 });
 
+const selectedSeriesStats = computed(() => {
+  const points = selectedSeries.value?.points ?? [];
+  if (points.length === 0) {
+    return null;
+  }
+
+  const values = points.map((point) => point.value).filter((value) => Number.isFinite(value));
+
+  if (values.length === 0) {
+    return null;
+  }
+
+  const sortedValues = [...values].sort((left, right) => left - right);
+  const sum = values.reduce((acc, current) => acc + current, 0);
+  const middleIndex = Math.floor(sortedValues.length / 2);
+  const medianValue = sortedValues.length % 2 === 0 ? (sortedValues[middleIndex - 1]! + sortedValues[middleIndex]!) / 2 : sortedValues[middleIndex]!;
+
+  return {
+    average: sum / values.length,
+    median: medianValue,
+    minimum: sortedValues[0]!,
+    maximum: sortedValues[sortedValues.length - 1]!,
+  };
+});
+
 const compactMarketItems = computed(() => overview.value?.items ?? []);
 
 const combinedChartSeries = computed<MarketChartSeries[]>(() => {
@@ -117,6 +142,15 @@ const selectedChangeLabel = computed(() => {
   const rate = item.changeRate === null ? '' : ` (${sign}${item.changeRate.toFixed(3)}%)`;
   return `${sign}${item.changeValue.toFixed(item.marketGroup === 'FX' ? 2 : 0)}${rate}`;
 });
+
+const formatStatValue = (value: number | null | undefined, marketGroup: MarketOverviewItemResponse['marketGroup']) => {
+  if (value === null || value === undefined || !Number.isFinite(value)) {
+    return '-';
+  }
+  return new Intl.NumberFormat('ko-KR', {
+    maximumFractionDigits: marketGroup === 'FX' ? 2 : 0,
+  }).format(value);
+};
 
 const resolveErrorMessage = (error: unknown, fallback: string) => (error instanceof ApiError ? error.message : fallback);
 
@@ -491,6 +525,33 @@ onBeforeUnmount(() => {
               class="rounded-[28px] border border-slate-200 bg-white/80 p-2 dark:border-slate-800 dark:bg-slate-950/60"
             >
               <ContentMarketChart :title="selectedSeries.displayName" :unit-label="selectedSeries.unitLabel" :points="selectedSeries.points" />
+            </div>
+
+            <div v-if="selectedSeriesStats" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 평균값</p>
+                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+                  {{ formatStatValue(selectedSeriesStats.average, selectedOverviewItem.marketGroup) }} {{ selectedOverviewItem.unitLabel }}
+                </p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 중위값</p>
+                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+                  {{ formatStatValue(selectedSeriesStats.median, selectedOverviewItem.marketGroup) }} {{ selectedOverviewItem.unitLabel }}
+                </p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 최저값</p>
+                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+                  {{ formatStatValue(selectedSeriesStats.minimum, selectedOverviewItem.marketGroup) }} {{ selectedOverviewItem.unitLabel }}
+                </p>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 최고값</p>
+                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+                  {{ formatStatValue(selectedSeriesStats.maximum, selectedOverviewItem.marketGroup) }} {{ selectedOverviewItem.unitLabel }}
+                </p>
+              </div>
             </div>
 
             <div v-else class="ui-state ui-state-empty px-5 py-10">선택한 기간의 시세 데이터가 아직 충분히 쌓이지 않았습니다.</div>
