@@ -34,6 +34,17 @@ describe('router guard characterization', () => {
     expect(router.currentRoute.value.path).toBe('/settings');
   });
 
+  it('비인증 사용자도 콘텐츠 허브 페이지에는 접근할 수 있다', async () => {
+    // given
+    useAuthStore().clearAccessToken();
+
+    // when
+    await router.push('/contents');
+
+    // then
+    expect(router.currentRoute.value.path).toBe('/contents');
+  });
+
   it('관리자 권한이 없는 사용자가 관리자 페이지에 접근하면 홈으로 이동한다', async () => {
     // given
     useAuthStore().setAccessToken(USER_TOKEN, 60);
@@ -65,5 +76,16 @@ describe('router guard characterization', () => {
 
     // then
     expect(router.currentRoute.value.path).toBe('/admin/article-imports');
+  });
+
+  it('매니저 권한 사용자는 콘텐츠 시세 운영 페이지에 접근할 수 있다', async () => {
+    // given
+    useAuthStore().setAccessToken(MANAGER_TOKEN, 60);
+
+    // when
+    await router.push('/admin/content-market');
+
+    // then
+    expect(router.currentRoute.value.path).toBe('/admin/content-market');
   });
 });

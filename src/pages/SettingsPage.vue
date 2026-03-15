@@ -24,13 +24,18 @@ type SideMenuOption = {
 const layoutOptions: LayoutOption[] = [
   {
     value: 'default',
-    label: '기본',
-    description: '기본 폭으로 콘텐츠 영역을 표시합니다.',
+    label: '좁게',
+    description: '데스크톱에서 1152px 폭으로 콘텐츠 영역을 집중감 있게 표시합니다.',
+  },
+  {
+    value: 'comfortable',
+    label: '중간',
+    description: '기본보다 조금 더 넓은 1280px 폭으로 콘텐츠 영역을 표시합니다.',
   },
   {
     value: 'wide',
     label: '넓게',
-    description: '목록형 화면과 본문형 화면을 기본보다 더 넓게 표시합니다.',
+    description: '신규 기본값입니다. 데스크톱에서 1536px 폭으로 콘텐츠 영역을 넉넉하게 표시합니다.',
   },
   {
     value: 'full',

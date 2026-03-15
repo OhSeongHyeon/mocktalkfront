@@ -4,7 +4,7 @@ import { ref, watch } from 'vue';
 const MENU_COLLAPSED_KEY = 'layout.menuCollapsed';
 const CONTENT_WIDTH_PRESET_KEY = 'layout.contentWidthPreset';
 const SIDE_MENU_DISPLAY_MODE_KEY = 'layout.sideMenuDisplayMode';
-const CONTENT_WIDTH_PRESETS = ['default', 'wide', 'full'] as const;
+const CONTENT_WIDTH_PRESETS = ['default', 'comfortable', 'wide', 'full'] as const;
 const SIDE_MENU_DISPLAY_MODES = ['collapse', 'hidden'] as const;
 
 type ContentWidthPreset = (typeof CONTENT_WIDTH_PRESETS)[number];
@@ -69,7 +69,7 @@ const writeSideMenuDisplayMode = (value: SideMenuDisplayMode) => {
 
 const useLayoutStore = defineStore('layout', () => {
   const menuCollapsed = ref(readBoolean(MENU_COLLAPSED_KEY, false));
-  const contentWidthPreset = ref<ContentWidthPreset>(readContentWidthPreset('default'));
+  const contentWidthPreset = ref<ContentWidthPreset>(readContentWidthPreset('wide'));
   const sideMenuDisplayMode = ref<SideMenuDisplayMode>(readSideMenuDisplayMode('collapse'));
 
   const setMenuCollapsed = (value: boolean) => {

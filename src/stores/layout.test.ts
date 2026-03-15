@@ -18,7 +18,7 @@ describe('stores/layout characterization', () => {
 
     // then
     expect(layoutStore.menuCollapsed).toBe(false);
-    expect(layoutStore.contentWidthPreset).toBe('default');
+    expect(layoutStore.contentWidthPreset).toBe('wide');
     expect(layoutStore.sideMenuDisplayMode).toBe('collapse');
   });
 
@@ -29,16 +29,16 @@ describe('stores/layout characterization', () => {
 
     // when
     layoutStore.setMenuCollapsed(true);
-    layoutStore.setContentWidthPreset('wide');
+    layoutStore.setContentWidthPreset('comfortable');
     layoutStore.setSideMenuDisplayMode('hidden');
     await nextTick();
 
     // then
     expect(layoutStore.menuCollapsed).toBe(true);
-    expect(layoutStore.contentWidthPreset).toBe('wide');
+    expect(layoutStore.contentWidthPreset).toBe('comfortable');
     expect(layoutStore.sideMenuDisplayMode).toBe('hidden');
     expect(window.localStorage.getItem('layout.menuCollapsed')).toBe('1');
-    expect(window.localStorage.getItem('layout.contentWidthPreset')).toBe('wide');
+    expect(window.localStorage.getItem('layout.contentWidthPreset')).toBe('comfortable');
     expect(window.localStorage.getItem('layout.sideMenuDisplayMode')).toBe('hidden');
   });
 
@@ -51,7 +51,7 @@ describe('stores/layout characterization', () => {
     const layoutStore = useLayoutStore();
 
     // then
-    expect(layoutStore.contentWidthPreset).toBe('default');
+    expect(layoutStore.contentWidthPreset).toBe('wide');
   });
 
   it('잘못된 사이드메뉴 저장값은 기본 동작으로 보정한다', async () => {

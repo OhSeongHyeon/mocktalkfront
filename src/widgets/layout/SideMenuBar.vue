@@ -60,7 +60,7 @@ const serviceSections: RawSideMenuSection[] = [
       { name: '공지사항', icon: 'megaphone', path: '/b/notice' },
       { name: '문의 게시판', icon: 'chat', path: '/b/inquiry' },
       { name: '커뮤니티', icon: 'community', path: '/boards' },
-      { name: '이미지 갤러리', icon: 'gallery' },
+      { name: '콘텐츠', icon: 'gallery', path: '/contents' },
     ],
   },
   {
