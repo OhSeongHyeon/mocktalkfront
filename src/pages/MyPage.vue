@@ -485,8 +485,8 @@ onBeforeUnmount(() => {
 <template>
   <AppShell>
     <PageContainer width="auto">
-      <div class="flex flex-col gap-6">
-        <PageHeader eyebrow="마이페이지" title="나의 프로필 관리" description="프로필 정보를 수정하고 내 활동을 확인하세요.">
+      <div class="flex flex-col gap-4">
+        <PageHeader eyebrow="마이페이지" title="나의 프로필 관리" description="프로필 정보를 수정하고 내가 남긴 활동을 같은 화면에서 확인합니다.">
           <template #actions>
             <div class="ui-tab-list">
               <button
@@ -504,10 +504,10 @@ onBeforeUnmount(() => {
           </template>
         </PageHeader>
 
-        <section v-if="mainTab === 'profile'" class="grid gap-6 lg:grid-cols-[1.1fr_1.3fr]">
-          <div class="ui-panel flex h-full flex-col gap-5 p-6">
+        <section v-if="mainTab === 'profile'" class="grid gap-4 lg:grid-cols-[1fr_1.35fr]">
+          <div class="ui-panel flex h-full flex-col gap-4 p-5">
             <div class="flex items-center gap-4">
-              <div class="h-20 w-20 overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-100 dark:border-slate-800/80 dark:bg-slate-900">
+              <div class="h-18 w-18 overflow-hidden rounded-[0.75rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
                 <img v-if="resolvedProfileImage" :src="resolvedProfileImage" alt="프로필 이미지" class="h-full w-full object-cover" />
                 <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400">없음</div>
               </div>
@@ -552,10 +552,10 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <div class="ui-sub-panel px-4 py-3 text-xs text-slate-500 dark:text-slate-400">프로필 이미지 업로드는 이미지 파일만 가능합니다.</div>
+            <div class="ui-sub-panel px-4 py-3 text-xs text-slate-500 dark:text-slate-400">프로필 이미지는 이미지 파일만 업로드할 수 있습니다.</div>
           </div>
 
-          <form class="ui-panel flex flex-col gap-4 p-6" @submit.prevent="handleSubmit">
+          <form class="ui-panel flex flex-col gap-4 p-5" @submit.prevent="handleSubmit">
             <div class="flex items-center justify-between">
               <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">프로필 수정</h2>
               <span v-if="isProfileLoading" class="text-xs text-slate-400">불러오는 중...</span>
@@ -567,7 +567,7 @@ onBeforeUnmount(() => {
                 id="mypage-login-id"
                 :value="profile?.loginId ?? ''"
                 type="text"
-                class="h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300"
+                class="ui-input bg-slate-50 text-slate-500 dark:bg-slate-950 dark:text-slate-400"
                 readonly
                 disabled
               />
@@ -662,7 +662,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div
-              class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-200/70 bg-red-50/60 px-4 py-3 text-xs text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200"
+              class="flex flex-wrap items-center justify-between gap-3 rounded-[0.55rem] border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200"
             >
               <div>계정 삭제는 되돌릴 수 없습니다. 신중히 진행해주세요.</div>
               <button
@@ -681,7 +681,7 @@ onBeforeUnmount(() => {
           </form>
         </section>
 
-        <section v-else class="ui-panel flex flex-col gap-4 p-6">
+        <section v-else class="ui-panel flex flex-col gap-4 p-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="ui-tab-list">
               <button type="button" class="ui-tab-button" :class="activeTab === 'articles' ? 'ui-tab-button-active' : ''" @click="setTab('articles')">
@@ -783,7 +783,7 @@ onBeforeUnmount(() => {
             {{ listError }}
           </p>
           <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">{{ activityEmptyMessage }}</div>
-          <div v-else class="grid gap-3">
+          <div v-else class="grid gap-2">
             <div v-for="item in currentList?.items" :key="item.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
               <button
                 v-if="activeTab === 'notifications'"

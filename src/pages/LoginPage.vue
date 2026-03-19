@@ -70,81 +70,59 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
-    <header class="mx-auto flex w-full max-w-[1280px] items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="flex items-center gap-3">
-        <span class="bg-brand-600 hidden h-10 w-10 items-center justify-center rounded-2xl text-sm font-black text-white sm:grid">MT</span>
-        <div>
-          <p class="text-[11px] font-bold tracking-[0.22em] text-slate-400 uppercase dark:text-slate-500">Community</p>
-          <p class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">MockTalk</p>
-        </div>
-      </RouterLink>
-      <RouterLink to="/" class="ui-button-ghost h-10 px-4 text-xs">홈으로</RouterLink>
+  <div class="flex min-h-screen flex-col bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <header class="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
+      <div class="mx-auto flex w-full max-w-[1280px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <RouterLink to="/" class="flex items-center gap-3">
+          <span class="bg-brand-600 hidden h-8 w-8 items-center justify-center rounded-[0.55rem] text-xs font-black text-white sm:grid">MT</span>
+          <div>
+            <p class="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Community</p>
+            <p class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">MockTalk</p>
+          </div>
+        </RouterLink>
+        <RouterLink to="/" class="ui-button-ghost h-9 px-3.5 text-xs">홈으로</RouterLink>
+      </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-[1280px] flex-1 items-start px-4 pt-6 pb-16 sm:px-6 lg:px-8">
-      <div class="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_460px]">
+    <main class="mx-auto flex w-full max-w-[1280px] flex-1 items-start px-4 py-6 sm:px-6 lg:px-8">
+      <div class="grid w-full gap-5 lg:grid-cols-[minmax(0,1.1fr)_420px]">
         <section class="ui-panel overflow-hidden">
-          <div class="grid gap-5 px-6 py-6 sm:px-7 lg:grid-cols-[minmax(0,1fr)_260px]">
-            <div class="space-y-4">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="ui-badge ui-badge-accent">로그인</span>
-                <span class="ui-badge ui-badge-muted">라이트 우선 입력 화면</span>
-              </div>
+          <div class="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">로그인</p>
+            <h1 class="mt-1 text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">커뮤니티로 돌아가기</h1>
+            <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">구독 게시판, 북마크, 알림, 활동 기록을 이어서 확인할 수 있습니다.</p>
+          </div>
 
-              <div class="space-y-3">
-                <h1 class="text-3xl font-black tracking-tight text-slate-900 sm:text-[2.4rem] dark:text-slate-100">
-                  자주 보는 흐름으로 바로 돌아갑니다.
-                </h1>
-                <p class="max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  구독 커뮤니티, 북마크, 알림, 활동 기록을 같은 정보 밀도형 레이아웃으로 이어서 확인할 수 있습니다. 소셜 로그인과 일반 로그인을 같은
-                  패널 안에서 빠르게 선택하세요.
-                </p>
-              </div>
-
-              <div class="grid gap-3 sm:grid-cols-3">
-                <div class="ui-data-panel p-4">
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Step 1</p>
-                  <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">로그인</p>
-                  <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">아이디/비밀번호 또는 소셜 로그인</p>
-                </div>
-                <div class="ui-data-panel p-4">
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Step 2</p>
-                  <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">피드 탐색</p>
-                  <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">구독 목록과 최근 글을 바로 확인</p>
-                </div>
-                <div class="ui-data-panel p-4">
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Step 3</p>
-                  <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">활동 관리</p>
-                  <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">알림, 북마크, 기록 정리</p>
-                </div>
-              </div>
+          <div class="grid gap-px bg-slate-200 md:grid-cols-2 dark:bg-slate-800">
+            <div class="bg-white px-5 py-4 dark:bg-slate-900">
+              <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">정책</p>
+              <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                <li>Access Token은 메모리 저장 정책을 따릅니다.</li>
+                <li>Refresh Token은 HttpOnly Cookie만 사용합니다.</li>
+                <li>회원 정보는 최소 항목만 유지합니다.</li>
+              </ul>
             </div>
-
-            <div class="ui-data-panel flex flex-col justify-between gap-4 p-5">
-              <div>
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Account Tips</p>
-                <ul class="mt-3 space-y-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  <li>Access Token은 메모리 저장 정책을 따릅니다.</li>
-                  <li>Refresh Token은 HttpOnly Cookie만 사용합니다.</li>
-                  <li>프로필 정보는 최소 항목만 유지합니다.</li>
-                </ul>
+            <div class="bg-white px-5 py-4 dark:bg-slate-900">
+              <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">빠른 이동</p>
+              <div class="mt-3 space-y-2">
+                <RouterLink to="/join" class="ui-button-ghost h-9 w-full justify-start px-3.5 text-xs">회원가입으로 이동</RouterLink>
+                <RouterLink to="/boards" class="ui-button-ghost h-9 w-full justify-start px-3.5 text-xs">게시판 둘러보기</RouterLink>
+                <RouterLink to="/search" class="ui-button-ghost h-9 w-full justify-start px-3.5 text-xs">통합 검색</RouterLink>
               </div>
-              <RouterLink to="/join" class="ui-button-ghost h-10 px-4 text-xs">회원가입으로 이동</RouterLink>
             </div>
           </div>
         </section>
 
         <section class="w-full">
-          <form class="ui-panel flex flex-col gap-6 p-6 sm:p-7" @submit.prevent="handleSubmit">
-            <div class="space-y-2">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Sign In</p>
-              <h2 class="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">계정 로그인</h2>
-              <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">마지막으로 보던 커뮤니티 흐름을 이어서 확인할 수 있습니다.</p>
+          <form class="ui-panel flex flex-col gap-5 p-5" @submit.prevent="handleSubmit">
+            <div class="space-y-1.5 border-b border-slate-200 pb-3 dark:border-slate-800">
+              <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">Sign In</p>
+              <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">계정 로그인</h2>
+              <p class="text-sm leading-6 text-slate-500 dark:text-slate-400">일반 로그인과 소셜 로그인을 같은 화면에서 바로 선택할 수 있습니다.</p>
             </div>
 
             <div class="flex flex-col gap-2">
-              <label for="login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
+              <label for="login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200">로그인 아이디</label>
               <input
                 id="login-id"
                 v-model="loginId"
@@ -158,7 +136,7 @@ const handleSubmit = async () => {
             </div>
 
             <div class="flex flex-col gap-2">
-              <label for="login-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
+              <label for="login-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200">비밀번호</label>
               <input
                 id="login-password"
                 v-model="password"
@@ -185,7 +163,7 @@ const handleSubmit = async () => {
               </a>
             </div>
 
-            <button type="submit" class="ui-button-accent h-11 text-sm disabled:cursor-not-allowed disabled:opacity-70" :disabled="!canSubmit">
+            <button type="submit" class="ui-button-accent h-10 text-sm disabled:cursor-not-allowed disabled:opacity-70" :disabled="!canSubmit">
               {{ isSubmitting ? '로그인 중...' : '로그인' }}
             </button>
 
@@ -195,13 +173,13 @@ const handleSubmit = async () => {
               <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
             </div>
 
-            <div class="flex flex-col gap-3">
+            <div class="grid gap-2">
               <a
                 :href="googleAuthUrl"
-                class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+                class="flex h-10 items-center justify-center gap-2 rounded-[0.55rem] border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-950"
               >
                 <span
-                  class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
                   aria-hidden="true"
                 >
                   <img :src="googleColorIcon" alt="" aria-hidden="true" class="h-4 w-4 dark:hidden" />
@@ -211,10 +189,10 @@ const handleSubmit = async () => {
               </a>
               <a
                 :href="githubAuthUrl"
-                class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+                class="flex h-10 items-center justify-center gap-2 rounded-[0.55rem] border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-950"
               >
                 <span
-                  class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
                   aria-hidden="true"
                 >
                   <img :src="githubIcon" alt="" aria-hidden="true" class="h-4 w-4 dark:invert" />
