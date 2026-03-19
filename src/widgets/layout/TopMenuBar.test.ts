@@ -95,7 +95,7 @@ describe('widgets/layout/TopMenuBar', () => {
     expect(router.currentRoute.value.query.type).toBe('ALL');
   });
 
-  it('테마 토글 버튼 클릭 시 다음 테마 모드를 적용한다', async () => {
+  it('화이트 계열에서 테마 토글 버튼 클릭 시 다크를 적용한다', async () => {
     // given
     const { wrapper } = await mountTopMenuBar('/');
 
@@ -104,6 +104,18 @@ describe('widgets/layout/TopMenuBar', () => {
 
     // then
     expect(applyThemeMock).toHaveBeenCalledWith('dark');
+  });
+
+  it('다크 계열에서 테마 토글 버튼 클릭 시 화이트를 적용한다', async () => {
+    // given
+    getThemeStateMock.mockReturnValue({ mode: 'dark', resolvedTheme: 'dark' });
+    const { wrapper } = await mountTopMenuBar('/');
+
+    // when
+    await wrapper.get('[data-testid="theme-toggle-button"]').trigger('click');
+
+    // then
+    expect(applyThemeMock).toHaveBeenCalledWith('light');
   });
 
   it('인증된 사용자로 마운트되면 알림 realtime을 시작하고 알림 메뉴를 열 때 목록을 불러온다', async () => {
