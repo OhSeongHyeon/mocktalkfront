@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
+import { applyTheme, getThemeState, subscribeThemeChange } from '../shared/lib/theme';
+import type { ResolvedTheme, ThemeMode } from '../shared/lib/theme';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import SectionHeader from '../shared/ui/SectionHeader.vue';
@@ -20,6 +22,30 @@ type SideMenuOption = {
   label: string;
   description: string;
 };
+
+type ThemeOption = {
+  value: ThemeMode;
+  label: string;
+  description: string;
+};
+
+const themeOptions: ThemeOption[] = [
+  {
+    value: 'system',
+    label: '시스템',
+    description: '운영체제 또는 브라우저의 컬러 스킴 설정을 그대로 따라갑니다.',
+  },
+  {
+    value: 'light',
+    label: '화이트',
+    description: '항상 밝은 테마로 고정합니다.',
+  },
+  {
+    value: 'dark',
+    label: '다크',
+    description: '항상 어두운 테마로 고정합니다.',
+  },
+];
 
 const layoutOptions: LayoutOption[] = [
   {
@@ -59,11 +85,16 @@ const sideMenuOptions: SideMenuOption[] = [
 const layoutStore = useLayoutStore();
 const { contentWidthPreset, sideMenuDisplayMode } = storeToRefs(layoutStore);
 const { setContentWidthPreset, setSideMenuDisplayMode } = layoutStore;
+const selectedThemeMode = ref<ThemeMode>(getThemeState().mode);
+const resolvedTheme = ref<ResolvedTheme>(getThemeState().resolvedTheme);
+let stopThemeChangeSubscription: (() => void) | null = null;
 
 const selectedOption = computed<LayoutOption>(() => layoutOptions.find((option) => option.value === contentWidthPreset.value) ?? layoutOptions[0]!);
 const selectedSideMenuOption = computed<SideMenuOption>(
   () => sideMenuOptions.find((option) => option.value === sideMenuDisplayMode.value) ?? sideMenuOptions[0]!,
 );
+const selectedThemeOption = computed<ThemeOption>(() => themeOptions.find((option) => option.value === selectedThemeMode.value) ?? themeOptions[0]!);
+const resolvedThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '다크' : '화이트'));
 
 const handleSelectPreset = (preset: ContentWidthPreset) => {
   setContentWidthPreset(preset);
@@ -72,6 +103,29 @@ const handleSelectPreset = (preset: ContentWidthPreset) => {
 const handleSelectSideMenuMode = (mode: SideMenuDisplayMode) => {
   setSideMenuDisplayMode(mode);
 };
+
+const handleSelectThemeMode = (mode: ThemeMode) => {
+  applyTheme(mode);
+};
+
+onMounted(() => {
+  const syncThemeState = () => {
+    const themeState = getThemeState();
+    selectedThemeMode.value = themeState.mode;
+    resolvedTheme.value = themeState.resolvedTheme;
+  };
+
+  syncThemeState();
+  stopThemeChangeSubscription = subscribeThemeChange((themeState) => {
+    selectedThemeMode.value = themeState.mode;
+    resolvedTheme.value = themeState.resolvedTheme;
+  });
+});
+
+onBeforeUnmount(() => {
+  stopThemeChangeSubscription?.();
+  stopThemeChangeSubscription = null;
+});
 </script>
 
 <template>
@@ -80,12 +134,51 @@ const handleSelectSideMenuMode = (mode: SideMenuDisplayMode) => {
       <div class="space-y-6">
         <PageHeader
           eyebrow="설정"
-          title="사이트 레이아웃"
-          description="데스크톱 화면에서 공통 레이아웃을 사용하는 메인 콘텐츠 영역의 폭을 조절합니다. 모바일에서는 화면 전체 폭을 그대로 사용합니다."
+          title="사이트 레이아웃과 테마"
+          description="테마 모드와 데스크톱 공통 레이아웃 동작을 브라우저 단위 개인 설정으로 저장합니다. 모바일에서는 화면 전체 폭을 그대로 사용합니다."
         />
 
         <section class="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(18rem,0.9fr)]">
           <div class="space-y-4">
+            <div class="ui-panel px-5 py-5 sm:px-6">
+              <SectionHeader title="테마 모드" description="시스템 설정을 따르거나 화이트, 다크 테마로 직접 고정할 수 있습니다." />
+
+              <div class="mt-5 grid gap-3">
+                <button
+                  v-for="option in themeOptions"
+                  :key="option.value"
+                  type="button"
+                  class="rounded-3xl border px-5 py-4 text-left transition"
+                  :class="
+                    selectedThemeMode === option.value
+                      ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
+                      : 'border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                  "
+                  :aria-pressed="selectedThemeMode === option.value"
+                  @click="handleSelectThemeMode(option.value)"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <div class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ option.label }}</div>
+                      <p class="text-sm text-slate-500 dark:text-slate-400">
+                        {{ option.description }}
+                      </p>
+                    </div>
+                    <span
+                      class="rounded-full px-3 py-1 text-xs font-semibold"
+                      :class="
+                        selectedThemeMode === option.value
+                          ? 'bg-emerald-600 text-white dark:bg-emerald-500'
+                          : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                      "
+                    >
+                      {{ selectedThemeMode === option.value ? '선택됨' : '선택 가능' }}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div class="ui-panel px-5 py-5 sm:px-6">
               <SectionHeader title="사이트 레이아웃 사이즈" description="공통 레이아웃을 사용하는 화면 전반에 바로 반영됩니다." />
 
@@ -167,7 +260,14 @@ const handleSelectSideMenuMode = (mode: SideMenuDisplayMode) => {
 
           <aside class="ui-panel px-5 py-5 sm:px-6">
             <div class="space-y-4">
-              <SectionHeader eyebrow="현재 레이아웃" :title="selectedOption.label" :description="selectedOption.description" />
+              <SectionHeader eyebrow="현재 설정" :title="selectedOption.label" :description="selectedOption.description" />
+
+              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">테마 모드</p>
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ selectedThemeOption.label }}</p>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ selectedThemeOption.description }}</p>
+                <p class="mt-2 text-xs font-semibold text-slate-400 dark:text-slate-500">현재 적용 테마: {{ resolvedThemeLabel }}</p>
+              </div>
 
               <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">사이드메뉴 동작</p>
@@ -178,6 +278,7 @@ const handleSelectSideMenuMode = (mode: SideMenuDisplayMode) => {
               <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">적용 범위</p>
                 <ul class="mt-3 space-y-2 text-sm text-slate-500 dark:text-slate-400">
+                  <li>시스템, 화이트, 다크 테마 모드</li>
                   <li>홈, 커뮤니티, 게시글 상세와 작성 화면 같은 공통 레이아웃 페이지</li>
                   <li>데스크톱 사이드메뉴 펼치기 방식</li>
                   <li>브라우저에만 저장되는 개인 설정</li>

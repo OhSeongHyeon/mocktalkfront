@@ -12,6 +12,8 @@ const USER_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.sig';
 const logoutMock = vi.hoisted(() => vi.fn());
 const stopNotificationPresenceMock = vi.hoisted(() => vi.fn());
 const applyThemeMock = vi.hoisted(() => vi.fn());
+const getThemeStateMock = vi.hoisted(() => vi.fn());
+const subscribeThemeChangeMock = vi.hoisted(() => vi.fn());
 
 vi.mock('../../features/auth', () => ({
   logout: logoutMock,
@@ -25,6 +27,8 @@ vi.mock('../../features/notification', () => ({
 
 vi.mock('../../shared/lib/theme', () => ({
   applyTheme: applyThemeMock,
+  getThemeState: getThemeStateMock,
+  subscribeThemeChange: subscribeThemeChangeMock,
 }));
 
 const createRouterInstance = async (initialPath = '/') => {
@@ -68,6 +72,10 @@ describe('widgets/layout/TopMenuBar', () => {
     logoutMock.mockReset();
     logoutMock.mockResolvedValue(undefined);
     applyThemeMock.mockReset();
+    getThemeStateMock.mockReset();
+    getThemeStateMock.mockReturnValue({ mode: 'system', resolvedTheme: 'light' });
+    subscribeThemeChangeMock.mockReset();
+    subscribeThemeChangeMock.mockReturnValue(vi.fn());
     stopNotificationPresenceMock.mockReset();
     document.documentElement.classList.remove('dark');
   });
@@ -87,12 +95,12 @@ describe('widgets/layout/TopMenuBar', () => {
     expect(router.currentRoute.value.query.type).toBe('ALL');
   });
 
-  it('테마 토글 버튼 클릭 시 applyTheme를 호출한다', async () => {
+  it('테마 토글 버튼 클릭 시 다음 테마 모드를 적용한다', async () => {
     // given
     const { wrapper } = await mountTopMenuBar('/');
 
     // when
-    await wrapper.get('button[aria-label="다크/화이트 모드 전환"]').trigger('click');
+    await wrapper.get('[data-testid="theme-toggle-button"]').trigger('click');
 
     // then
     expect(applyThemeMock).toHaveBeenCalledWith('dark');

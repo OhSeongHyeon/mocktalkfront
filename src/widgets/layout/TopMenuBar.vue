@@ -7,13 +7,15 @@ import { logout } from '../../features/auth';
 import { useNotificationPresence } from '../../features/notification';
 import type { NotificationResponse } from '../../features/notification';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
-import { applyTheme } from '../../shared/lib/theme';
+import { applyTheme, getThemeState, subscribeThemeChange } from '../../shared/lib/theme';
+import type { ResolvedTheme, ThemeMode } from '../../shared/lib/theme';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
 import defaultAvatar from '../../assets/default-avatar.svg';
 import iconBell from '../../assets/icons/icon-bell.svg';
 import iconMoon from '../../assets/icons/icon-moon.svg';
 import iconSearch from '../../assets/icons/icon-search.svg';
+import iconSettings from '../../assets/icons/icon-settings.svg';
 import iconStack from '../../assets/icons/icon-stack.svg';
 import iconSun from '../../assets/icons/icon-sun.svg';
 
@@ -27,7 +29,8 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 const { displayName, isAuthenticated, isManagerOrAdmin, profileImageUrl, userPoint } = storeToRefs(authStore);
 const { notificationError, notificationListDirty, notificationLoading, notificationUnreadCount, notifications } = storeToRefs(notificationStore);
-const isDark = ref(false);
+const themeMode = ref<ThemeMode>('system');
+const resolvedTheme = ref<ResolvedTheme>('light');
 const isProfileMenuOpen = ref(false);
 const isNotificationMenuOpen = ref(false);
 const profileMenuRef = ref<HTMLDivElement | null>(null);
@@ -45,6 +48,13 @@ const notificationButtonLabel = computed(() => {
   }
   return `알림 ${notificationUnreadCount.value}개`;
 });
+const themeModeLabel = computed(() => {
+  if (themeMode.value === 'system') {
+    return `시스템 (${resolvedTheme.value === 'dark' ? '다크' : '화이트'} 적용)`;
+  }
+  return themeMode.value === 'dark' ? '다크' : '화이트';
+});
+const themeToggleLabel = computed(() => `테마 모드 전환, 현재 ${themeModeLabel.value}`);
 const quickLinks = computed(() => {
   const items = [
     { label: '홈', to: '/' },
@@ -66,9 +76,16 @@ const { stopNotificationPresence } = useNotificationPresence({
   isAuthenticated,
   isNotificationMenuOpen,
 });
+let stopThemeChangeSubscription: (() => void) | null = null;
 
 onMounted(() => {
-  isDark.value = globalThis.document?.documentElement.classList.contains('dark') ?? false;
+  const themeState = getThemeState();
+  themeMode.value = themeState.mode;
+  resolvedTheme.value = themeState.resolvedTheme;
+  stopThemeChangeSubscription = subscribeThemeChange((nextThemeState) => {
+    themeMode.value = nextThemeState.mode;
+    resolvedTheme.value = nextThemeState.resolvedTheme;
+  });
   if (!globalThis.document) {
     return;
   }
@@ -88,6 +105,8 @@ watch(
 onBeforeUnmount(() => {
   notificationStore.stopNotificationRealtime();
   stopNotificationPresence(true);
+  stopThemeChangeSubscription?.();
+  stopThemeChangeSubscription = null;
   if (!globalThis.document) {
     return;
   }
@@ -130,8 +149,15 @@ const openBoardCreate = async () => {
 };
 
 const toggleTheme = () => {
-  isDark.value = !isDark.value;
-  applyTheme(isDark.value ? 'dark' : 'light');
+  if (themeMode.value === 'system') {
+    applyTheme(resolvedTheme.value === 'dark' ? 'light' : 'dark');
+    return;
+  }
+  if (themeMode.value === 'light') {
+    applyTheme('dark');
+    return;
+  }
+  applyTheme('system');
 };
 
 const toggleProfileMenu = () => {
@@ -333,8 +359,16 @@ const isQuickLinkActive = (path: string) => {
           <img :src="iconSearch" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
         </button>
 
-        <button type="button" class="ui-icon-button" aria-label="다크/화이트 모드 전환" @click="toggleTheme">
-          <img v-if="isDark" :src="iconSun" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
+        <button
+          type="button"
+          class="ui-icon-button"
+          data-testid="theme-toggle-button"
+          :aria-label="themeToggleLabel"
+          :title="themeToggleLabel"
+          @click="toggleTheme"
+        >
+          <img v-if="themeMode === 'system'" :src="iconSettings" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
+          <img v-else-if="themeMode === 'dark'" :src="iconSun" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
           <img v-else :src="iconMoon" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
         </button>
 
