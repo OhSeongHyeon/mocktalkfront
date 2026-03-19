@@ -14,7 +14,6 @@ import { useNotificationStore } from '../../stores/notification';
 import defaultAvatar from '../../assets/default-avatar.svg';
 import iconBell from '../../assets/icons/icon-bell.svg';
 import iconMoon from '../../assets/icons/icon-moon.svg';
-import iconSearch from '../../assets/icons/icon-search.svg';
 import iconStack from '../../assets/icons/icon-stack.svg';
 import iconSun from '../../assets/icons/icon-sun.svg';
 
@@ -26,7 +25,7 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
-const { displayName, isAuthenticated, isManagerOrAdmin, profileImageUrl, userPoint } = storeToRefs(authStore);
+const { displayName, isAuthenticated, profileImageUrl, userPoint } = storeToRefs(authStore);
 const { notificationError, notificationListDirty, notificationLoading, notificationUnreadCount, notifications } = storeToRefs(notificationStore);
 const resolvedTheme = ref<ResolvedTheme>('light');
 const isProfileMenuOpen = ref(false);
@@ -49,20 +48,6 @@ const notificationButtonLabel = computed(() => {
 const currentThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '다크' : '화이트'));
 const nextThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '화이트' : '다크'));
 const themeToggleLabel = computed(() => `테마 전환, 현재 ${currentThemeLabel.value}, 클릭 시 ${nextThemeLabel.value}`);
-const quickLinks = computed(() => {
-  const items = [
-    { label: '홈', to: '/' },
-    { label: '커뮤니티', to: '/boards' },
-    { label: '콘텐츠', to: '/contents' },
-    { label: '보관함', to: '/bookmarks' },
-  ];
-
-  if (isManagerOrAdmin.value) {
-    items.push({ label: '백오피스', to: '/admin' });
-  }
-
-  return items;
-});
 const searchKeyword = ref('');
 const menuPanelClass =
   'absolute right-0 top-full mt-2 overflow-hidden rounded-[0.7rem] border border-slate-200 bg-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900';
@@ -113,17 +98,6 @@ const openLogin = () => {
   if (router.currentRoute.value.path !== '/login') {
     router.push('/login');
   }
-};
-
-const openSearch = async () => {
-  closeNotificationMenu();
-  closeProfileMenu();
-  const trimmed = searchKeyword.value.trim();
-  if (trimmed) {
-    await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
-    return;
-  }
-  await router.push('/search');
 };
 
 const openMyPage = async () => {
@@ -276,25 +250,18 @@ const handleMarkAllRead = async () => {
 const handleDeleteAllNotifications = async () => {
   await notificationStore.deleteAll();
 };
-
-const isQuickLinkActive = (path: string) => {
-  if (path === '/') {
-    return route.path === '/';
-  }
-  return route.path.startsWith(path);
-};
 </script>
 
 <template>
   <header class="sticky top-0 z-40 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/92">
-    <div class="mx-auto flex w-full max-w-[1560px] items-center gap-3 px-3 py-2.5 sm:px-4">
-      <div class="flex shrink-0 items-center gap-2">
+    <div class="mx-auto flex w-full max-w-[1560px] flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4">
+      <div class="order-1 flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
         <button type="button" class="ui-icon-button" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
           <img :src="iconStack" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
         </button>
 
-        <RouterLink to="/" class="min-w-0">
-          <div class="flex items-center gap-2.5">
+        <RouterLink to="/" class="min-w-0 shrink">
+          <div class="flex items-center gap-2">
             <div class="bg-brand-600 hidden h-8 w-8 items-center justify-center rounded-[0.55rem] text-xs font-black text-white sm:flex">MT</div>
             <div class="min-w-0">
               <p class="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Community</p>
@@ -304,24 +271,11 @@ const isQuickLinkActive = (path: string) => {
         </RouterLink>
       </div>
 
-      <nav class="hidden items-center gap-1 lg:flex" aria-label="빠른 이동">
-        <RouterLink
-          v-for="item in quickLinks"
-          :key="item.to"
-          :to="item.to"
-          class="rounded-[0.45rem] px-3 py-2 text-sm font-semibold transition"
-          :class="
-            isQuickLinkActive(item.to)
-              ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-slate-100'
-              : 'text-slate-600 hover:bg-white hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-slate-100'
-          "
+      <div class="order-3 basis-full md:order-2 md:min-w-0 md:flex-1 md:basis-auto">
+        <form
+          class="flex w-full items-center gap-2 rounded-[0.6rem] border border-slate-200 bg-white px-2 py-1.5 md:mx-auto md:max-w-2xl dark:border-slate-800 dark:bg-slate-900"
+          @submit.prevent="handleSearch"
         >
-          {{ item.label }}
-        </RouterLink>
-      </nav>
-
-      <div class="hidden max-w-2xl min-w-0 flex-1 md:block">
-        <div class="flex items-center gap-2 rounded-[0.6rem] border border-slate-200 bg-white px-2 py-1.5 dark:border-slate-800 dark:bg-slate-900">
           <label class="sr-only" for="global-search">검색</label>
           <input
             id="global-search"
@@ -329,20 +283,14 @@ const isQuickLinkActive = (path: string) => {
             type="search"
             placeholder="게시판, 게시글, 댓글, 사용자"
             class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
-            @keydown.enter.prevent="handleSearch"
           />
-          <button type="button" class="ui-button-primary h-8 px-3 text-xs" aria-label="검색" @click="handleSearch">
-            <img :src="iconSearch" alt="" aria-hidden="true" class="h-3.5 w-3.5" />
+          <button type="submit" class="ui-button-primary h-8 px-3 text-xs" aria-label="검색">
             <span>검색</span>
           </button>
-        </div>
+        </form>
       </div>
 
-      <div class="ml-auto flex shrink-0 items-center gap-2">
-        <button type="button" class="ui-icon-button md:hidden" aria-label="검색" @click="openSearch">
-          <img :src="iconSearch" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
-        </button>
-
+      <div class="order-2 ml-auto flex shrink-0 items-center gap-2 md:order-3 md:ml-0">
         <button
           type="button"
           class="ui-icon-button"
@@ -487,13 +435,6 @@ const isQuickLinkActive = (path: string) => {
               </button>
             </div>
           </div>
-        </div>
-
-        <div
-          v-if="isAuthenticated"
-          class="hidden border-l border-slate-200 pl-2 text-xs text-slate-500 xl:block dark:border-slate-800 dark:text-slate-400"
-        >
-          {{ resolvedDisplayName }} · {{ resolvedPoint }}P
         </div>
       </div>
     </div>

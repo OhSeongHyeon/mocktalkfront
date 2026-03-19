@@ -80,19 +80,31 @@ describe('widgets/layout/TopMenuBar', () => {
     document.documentElement.classList.remove('dark');
   });
 
-  it('검색어 입력 후 Enter를 누르면 통합검색으로 이동한다', async () => {
+  it('검색어 입력 후 검색 버튼을 누르면 통합검색으로 이동한다', async () => {
     // given
     const { router, wrapper } = await mountTopMenuBar('/');
 
     // when
     await wrapper.get('#global-search').setValue('레이아웃');
-    await wrapper.get('#global-search').trigger('keydown.enter');
+    await wrapper.get('form').trigger('submit');
     await flushPromises();
 
     // then
     expect(router.currentRoute.value.path).toBe('/search');
     expect(router.currentRoute.value.query.q).toBe('레이아웃');
     expect(router.currentRoute.value.query.type).toBe('ALL');
+  });
+
+  it('비로그인 상단 메뉴는 빠른이동 없이 검색과 핵심 액션만 노출한다', async () => {
+    // given
+    const { wrapper } = await mountTopMenuBar('/');
+
+    // then
+    expect(wrapper.find('nav[aria-label="빠른 이동"]').exists()).toBe(false);
+    expect(wrapper.find('button[aria-label="검색"]').exists()).toBe(true);
+    expect(wrapper.find('button[aria-label="로그인"]').exists()).toBe(true);
+    expect(wrapper.find('button[aria-label="알림"]').exists()).toBe(false);
+    expect(wrapper.find('button[aria-label="프로필"]').exists()).toBe(false);
   });
 
   it('화이트 계열에서 테마 토글 버튼 클릭 시 다크를 적용한다', async () => {
