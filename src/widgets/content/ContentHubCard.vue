@@ -30,7 +30,7 @@ const accentClass = computed(() => {
         <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">{{ title }}</h2>
         <span
           v-if="badge"
-          class="rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:border-slate-800/80 dark:bg-slate-950/70 dark:text-slate-300"
+          class="rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-slate-500 uppercase dark:border-slate-800/80 dark:bg-slate-950/70 dark:text-slate-300"
         >
           {{ badge }}
         </span>

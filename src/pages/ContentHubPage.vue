@@ -9,7 +9,7 @@ import ContentHubCard from '../widgets/content/ContentHubCard.vue';
   <AppShell>
     <PageContainer width="wide">
       <section class="space-y-8">
-        <div class="rounded-[32px] border border-slate-200/80 bg-white px-6 py-8 shadow-sm dark:border-slate-800/80 dark:bg-slate-950 sm:px-8">
+        <div class="rounded-[32px] border border-slate-200/80 bg-white px-6 py-8 shadow-sm sm:px-8 dark:border-slate-800/80 dark:bg-slate-950">
           <SectionHeader eyebrow="Contents" title="콘텐츠" description="커뮤니티 바깥에서도 가볍게 둘러볼 수 있는 정보형 화면을 한곳에 모았습니다." />
         </div>
 

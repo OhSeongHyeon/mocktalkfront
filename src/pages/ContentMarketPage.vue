@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
   <AppShell>
     <PageContainer width="wide">
       <section class="space-y-6">
-        <div class="rounded-[32px] border border-slate-200/80 bg-white px-6 py-8 shadow-sm dark:border-slate-800/80 dark:bg-slate-950 sm:px-8">
+        <div class="rounded-[32px] border border-slate-200/80 bg-white px-6 py-8 shadow-sm sm:px-8 dark:border-slate-800/80 dark:bg-slate-950">
           <SectionHeader
             eyebrow="Market"
             title="환율 / 금 시세"
@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
           <div class="ui-panel space-y-6 px-6 py-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Overview</p>
+                <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Overview</p>
                 <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">통합 그래프</h2>
                 <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   전체 종목 흐름을 한 번에 보고, 아래 탭에서 원하는 종목만 따로 자세히 확인할 수 있습니다. 통합 그래프는 기준일을 100으로 맞춘 상대
@@ -494,27 +494,27 @@ onBeforeUnmount(() => {
 
               <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
                 <label class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">시작일</span>
+                  <span class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">시작일</span>
                   <input
                     v-model="customStartDate"
                     type="date"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     :max="customEndDate || undefined"
                   />
                 </label>
                 <label class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">종료일</span>
+                  <span class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">종료일</span>
                   <input
                     v-model="customEndDate"
                     type="date"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     :min="customStartDate || undefined"
                   />
                 </label>
                 <div class="flex items-end">
                   <button
                     type="button"
-                    class="ui-chip-button h-[50px] w-full justify-center border-cyan-200 bg-cyan-50 px-5 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-200 md:w-auto"
+                    class="ui-chip-button h-[50px] w-full justify-center border-cyan-200 bg-cyan-50 px-5 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100 md:w-auto dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-200"
                     @click="applyCustomRange"
                   >
                     직접 선택 적용
@@ -558,7 +558,7 @@ onBeforeUnmount(() => {
 
           <div class="ui-panel space-y-4 px-6 py-6">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Selector</p>
+              <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Selector</p>
               <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">종목 선택</h2>
             </div>
 
@@ -579,7 +579,7 @@ onBeforeUnmount(() => {
                 <div class="flex items-center justify-between gap-3">
                   <div>
                     <p
-                      class="text-[11px] font-semibold uppercase tracking-[0.16em]"
+                      class="text-[11px] font-semibold tracking-[0.16em] uppercase"
                       :class="selectedInstrument === item.instrumentCode ? 'text-white/70 dark:text-slate-500' : 'text-slate-400 dark:text-slate-500'"
                     >
                       {{ item.displayUnitLabel }}
@@ -587,7 +587,7 @@ onBeforeUnmount(() => {
                     <h3 class="mt-2 text-sm font-semibold">{{ item.displayNameLabel }}</h3>
                   </div>
                   <span
-                    class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]"
+                    class="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase"
                     :class="
                       selectedInstrument === item.instrumentCode
                         ? 'bg-white/15 text-white dark:bg-slate-900 dark:text-slate-100'
@@ -607,7 +607,7 @@ onBeforeUnmount(() => {
           <div v-if="selectedOverviewItem" class="ui-panel space-y-6 px-6 py-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Detail</p>
+                <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Detail</p>
                 <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ selectedOverviewItem.displayNameLabel }}</h2>
                 <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
                   {{ selectedOverviewItem.marketGroup === 'FX' ? '선택한 환율 종목 상세' : '선택한 금 시세 종목 상세 (1g 기준)' }}
@@ -615,13 +615,13 @@ onBeforeUnmount(() => {
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">현재 값</p>
+                  <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">현재 값</p>
                   <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
                     {{ selectedPriceLabel }} {{ selectedOverviewItem.displayUnitLabel }}
                   </p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">변동</p>
+                  <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">변동</p>
                   <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ selectedChangeLabel }}</p>
                 </div>
               </div>
@@ -640,25 +640,25 @@ onBeforeUnmount(() => {
 
             <div v-if="selectedSeriesStats" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 평균값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 평균값</p>
                 <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
                   {{ formatStatValue(selectedSeriesStats.average, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
               <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 중위값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 중위값</p>
                 <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
                   {{ formatStatValue(selectedSeriesStats.median, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
               <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 최저값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 최저값</p>
                 <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
                   {{ formatStatValue(selectedSeriesStats.minimum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
               <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">기간 최고값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 최고값</p>
                 <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
                   {{ formatStatValue(selectedSeriesStats.maximum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>

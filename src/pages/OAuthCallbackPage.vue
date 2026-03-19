@@ -80,7 +80,7 @@ onMounted(() => {
   <div class="min-h-screen text-slate-900 dark:text-slate-100">
     <main class="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-6 px-4 text-center sm:px-6">
       <div class="ui-panel w-full max-w-md p-8">
-        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">OAuth Callback</p>
+        <p class="text-sm font-semibold tracking-[0.3em] text-slate-400 uppercase">OAuth Callback</p>
         <h1 class="mt-4 text-2xl font-semibold text-slate-900">
           {{ isLoading ? '로그인 확인 중' : '로그인 결과' }}
         </h1>

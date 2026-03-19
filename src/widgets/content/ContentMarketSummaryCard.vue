@@ -48,7 +48,7 @@ const formattedChange = computed(() => {
     <div class="flex items-start justify-between gap-3">
       <div>
         <p
-          class="text-xs font-semibold uppercase tracking-[0.18em]"
+          class="text-xs font-semibold tracking-[0.18em] uppercase"
           :class="active ? 'text-white/70 dark:text-slate-500' : 'text-slate-400 dark:text-slate-500'"
         >
           {{ item.baseCurrency }} / {{ item.quoteCurrency }}
@@ -56,7 +56,7 @@ const formattedChange = computed(() => {
         <h3 class="mt-2 text-base font-semibold">{{ item.displayName }}</h3>
       </div>
       <span
-        class="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]"
+        class="rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] uppercase"
         :class="
           active
             ? 'bg-white/15 text-white dark:bg-slate-900 dark:text-slate-100'

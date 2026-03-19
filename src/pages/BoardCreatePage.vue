@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
                 </select>
               </label>
 
-              <label for="board-description" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200 md:col-span-2">
+              <label for="board-description" class="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2 dark:text-slate-200">
                 설명
                 <textarea
                   id="board-description"
