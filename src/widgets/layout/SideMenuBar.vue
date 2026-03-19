@@ -118,7 +118,7 @@ const isDesktopHidden = computed(() => props.displayMode === 'hidden' && props.c
 const isBackofficeRoute = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'));
 const menuTitle = computed(() => (isBackofficeRoute.value ? '백오피스' : '서비스 탐색'));
 const menuDescription = computed(() =>
-  isBackofficeRoute.value ? '운영 도구를 빠르게 이동하는 업무형 메뉴입니다.' : '자주 쓰는 커뮤니티 흐름을 정보 밀도형 구조로 정리했습니다.',
+  isBackofficeRoute.value ? '운영 화면을 빠르게 오갈 수 있는 메뉴입니다.' : '주요 게시판과 기능을 빠르게 찾는 탐색 메뉴입니다.',
 );
 
 const closeMobileMenu = () => {
@@ -207,7 +207,7 @@ const sections = computed(() => {
 <template>
   <div v-if="props.mobileOpen" class="fixed inset-0 z-40 bg-slate-900/40 md:hidden" aria-hidden="true" @click="closeMobileMenu"></div>
   <aside
-    class="fixed top-[5.25rem] z-50 flex h-[calc(100vh-5.85rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white/88 p-3 shadow-[0_22px_50px_-36px_rgba(15,23,42,0.36)] backdrop-blur transition-all md:static md:top-auto md:h-auto md:self-stretch dark:border-slate-800/80 dark:bg-slate-950/82"
+    class="fixed top-[3.9rem] z-50 flex h-[calc(100vh-4.6rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition-all md:static md:top-auto md:h-auto md:self-stretch dark:border-slate-800 dark:bg-slate-900"
     :class="[
       props.mobileOpen ? 'translate-x-0' : '-translate-x-full',
       isDesktopHidden
@@ -217,22 +217,17 @@ const sections = computed(() => {
           : 'md:w-72 md:translate-x-0',
     ]"
   >
-    <div v-if="!isCompact" class="ui-data-panel px-4 py-4">
-      <p class="text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">
-        {{ isBackofficeRoute ? 'Ops Navigation' : 'Quick Navigation' }}
+    <div v-if="!isCompact" class="border-b border-slate-200 px-4 py-4 dark:border-slate-800">
+      <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">
+        {{ isBackofficeRoute ? 'Workspace' : 'Boards' }}
       </p>
-      <div class="mt-2 flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <p class="truncate text-base font-black tracking-tight text-slate-900 dark:text-slate-100">{{ menuTitle }}</p>
-          <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ menuDescription }}</p>
-        </div>
-        <span class="ui-badge ui-badge-accent shrink-0">{{ sections.length }}개 섹션</span>
-      </div>
+      <p class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ menuTitle }}</p>
+      <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ menuDescription }}</p>
     </div>
 
-    <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain" aria-label="사이드 메뉴">
+    <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-2 py-3" aria-label="사이드 메뉴">
       <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
-        <p v-if="!isCompact" class="px-3 pt-3 text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">
+        <p v-if="!isCompact" class="px-2 pt-2 text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">
           {{ section.title }}
         </p>
         <component
@@ -240,14 +235,14 @@ const sections = computed(() => {
           v-for="item in section.items"
           :key="item.name"
           :to="item.path ?? undefined"
-          class="focus-visible:ring-brand-300/80 dark:focus-visible:ring-brand-500/40 flex items-center gap-3 rounded-[1.15rem] border border-transparent px-3 py-3 text-sm font-semibold transition focus-visible:ring-2 focus-visible:outline-none"
+          class="focus-visible:ring-brand-300/80 dark:focus-visible:ring-brand-500/40 flex items-center gap-3 rounded-[0.55rem] border px-2.5 py-2.5 text-sm font-semibold transition focus-visible:ring-2 focus-visible:outline-none"
           :class="[
             isCompact ? 'justify-center' : 'justify-start',
             item.active
-              ? 'border-brand-200 bg-brand-50 dark:border-brand-900/50 dark:bg-brand-950/30 text-slate-900 shadow-sm dark:text-slate-100'
+              ? 'border-brand-200 bg-brand-50 dark:border-brand-900/50 dark:bg-brand-950/30 text-slate-900 dark:text-slate-100'
               : item.implemented
-                ? 'cursor-pointer text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900/70'
-                : 'cursor-not-allowed text-slate-400 dark:text-slate-500',
+                ? 'cursor-pointer border-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-800 dark:hover:bg-slate-950'
+                : 'cursor-not-allowed border-transparent text-slate-400 dark:text-slate-500',
           ]"
           :aria-current="item.active ? 'page' : undefined"
           :title="isCompact ? item.name : undefined"
@@ -256,13 +251,13 @@ const sections = computed(() => {
           @click="handleMenuClick(item)"
         >
           <span
-            class="grid h-10 w-10 place-items-center rounded-[1rem] border border-transparent"
+            class="grid h-9 w-9 place-items-center rounded-[0.55rem] border"
             :class="
               item.active
                 ? 'border-brand-200 text-brand-700 dark:border-brand-900/60 dark:text-brand-300 bg-white dark:bg-slate-950'
                 : item.implemented
-                  ? 'bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300'
-                  : 'text-slate-400 dark:text-slate-500'
+                  ? 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300'
+                  : 'border-transparent text-slate-400 dark:text-slate-500'
             "
           >
             <img :src="iconAssets[item.icon]" alt="" aria-hidden="true" class="h-5 w-5" />

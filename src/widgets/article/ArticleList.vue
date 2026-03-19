@@ -90,8 +90,6 @@ const resolveCategoryName = (article: ArticleSummaryResponse) => {
   return trimmed ? trimmed : null;
 };
 
-const resolveReactionBalance = (article: ArticleSummaryResponse) => article.likeCount - article.dislikeCount;
-
 const resolveHref = (article: ArticleSummaryResponse) => props.resolveHref?.(article) ?? '#';
 
 const handleSelect = (articleId: number) => {
@@ -171,6 +169,16 @@ const handleNextPageWindow = () => {
       <span class="text-xs text-slate-400 dark:text-slate-500">{{ pinnedList.length }}건</span>
     </div>
     <div class="mt-3 space-y-2">
+      <div
+        class="hidden grid-cols-[minmax(0,1fr)_7rem_5.5rem_4.5rem_4.5rem_4.5rem] gap-2 rounded-[0.55rem] border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-700 md:grid dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200"
+      >
+        <span>제목</span>
+        <span class="text-center">작성자</span>
+        <span class="text-center">작성일</span>
+        <span class="text-center">댓글</span>
+        <span class="text-center">추천</span>
+        <span class="text-center">조회</span>
+      </div>
       <a
         v-for="article in pinnedList"
         :key="article.id"
@@ -178,7 +186,7 @@ const handleNextPageWindow = () => {
         class="ui-list-row border-amber-200/80 bg-amber-50/70 dark:border-amber-900/40 dark:bg-amber-950/20"
         @click="handleArticleClick($event, article.id)"
       >
-        <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div class="grid gap-2 md:grid-cols-[minmax(0,1fr)_7rem_5.5rem_4.5rem_4.5rem_4.5rem] md:items-center">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <span class="ui-badge ui-badge-warning">공지</span>
@@ -186,18 +194,21 @@ const handleNextPageWindow = () => {
                 {{ resolveCategoryName(article) }}
               </span>
             </div>
-            <h3 class="mt-2 truncate text-base font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</h3>
-            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <h3 class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</h3>
+            <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 md:hidden dark:text-slate-400">
               <span>{{ article.authorName }}</span>
               <span>{{ formatDate(article.createdAt) }}</span>
+              <span>댓글 {{ article.commentCount }}</span>
+              <span>추천 {{ article.likeCount }}</span>
+              <span>조회 {{ article.hit }}</span>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 md:justify-end">
-            <span class="ui-badge ui-badge-warning">댓글 {{ article.commentCount }}</span>
-            <span class="ui-badge ui-badge-warning">추천 {{ article.likeCount }}</span>
-            <span class="ui-badge ui-badge-muted">조회 {{ article.hit }}</span>
-          </div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.authorName }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ formatDate(article.createdAt) }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.commentCount }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.likeCount }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.hit }}</div>
         </div>
       </a>
     </div>
@@ -206,7 +217,7 @@ const handleNextPageWindow = () => {
   <section class="mt-8">
     <div class="ui-toolbar justify-between">
       <div>
-        <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Article Feed</p>
+        <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">Article Feed</p>
         <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">게시글</h2>
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -234,6 +245,16 @@ const handleNextPageWindow = () => {
     </div>
 
     <div v-else class="mt-4 space-y-2">
+      <div
+        class="hidden grid-cols-[minmax(0,1fr)_7rem_5.5rem_4.5rem_4.5rem_4.5rem] gap-2 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+      >
+        <span>제목</span>
+        <span class="text-center">작성자</span>
+        <span class="text-center">작성일</span>
+        <span class="text-center">댓글</span>
+        <span class="text-center">추천</span>
+        <span class="text-center">조회</span>
+      </div>
       <a
         v-for="article in articles"
         :key="article.id"
@@ -241,32 +262,37 @@ const handleNextPageWindow = () => {
         class="ui-list-row group"
         @click="handleArticleClick($event, article.id)"
       >
-        <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <div class="grid gap-2 md:grid-cols-[minmax(0,1fr)_7rem_5.5rem_4.5rem_4.5rem_4.5rem] md:items-center">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <span v-if="resolveCategoryName(article)" class="ui-badge ui-badge-success">
                 {{ resolveCategoryName(article) }}
               </span>
               <span v-if="article.notice" class="ui-badge ui-badge-warning">공지</span>
-              <span class="ui-badge ui-badge-muted">{{ formatDate(article.createdAt) }}</span>
             </div>
-            <h3
-              class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
-            >
-              {{ article.title }}
-            </h3>
-            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <div class="mt-1 flex min-w-0 items-center gap-2">
+              <h3
+                class="group-hover:text-brand-700 dark:group-hover:text-brand-300 truncate text-sm font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+              >
+                {{ article.title }}
+              </h3>
+              <span v-if="article.commentCount > 0" class="shrink-0 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                [{{ article.commentCount }}]
+              </span>
+            </div>
+            <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 md:hidden dark:text-slate-400">
               <span>{{ article.authorName }}</span>
-              <span>추천 차이 {{ resolveReactionBalance(article) }}</span>
+              <span>{{ formatDate(article.createdAt) }}</span>
+              <span>추천 {{ article.likeCount }}</span>
+              <span>조회 {{ article.hit }}</span>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 md:justify-end">
-            <span class="ui-badge ui-badge-muted">댓글 {{ article.commentCount }}</span>
-            <span class="ui-badge ui-badge-muted">추천 {{ article.likeCount }}</span>
-            <span class="ui-badge ui-badge-muted">비추천 {{ article.dislikeCount }}</span>
-            <span class="ui-badge ui-badge-muted">조회 {{ article.hit }}</span>
-          </div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.authorName }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ formatDate(article.createdAt) }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.commentCount }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.likeCount }}</div>
+          <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ article.hit }}</div>
         </div>
       </a>
     </div>

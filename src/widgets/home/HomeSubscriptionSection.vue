@@ -84,10 +84,10 @@ watch(
 
 <template>
   <section class="ui-panel overflow-hidden">
-    <div class="px-5 py-5 sm:px-6">
-      <SectionHeader title="내 구독 커뮤니티" description="자주 찾는 커뮤니티를 바로 열 수 있습니다.">
+    <div class="px-4 py-4 sm:px-5">
+      <SectionHeader eyebrow="Subscriptions" title="내 구독 커뮤니티" description="자주 찾는 게시판만 먼저 모아봅니다.">
         <template #actions>
-          <RouterLink to="/boards/subscribes" class="ui-button-ghost h-10 px-4 text-xs">전체 보기</RouterLink>
+          <RouterLink to="/boards/subscribes" class="ui-button-ghost h-9 px-3.5 text-xs">전체 보기</RouterLink>
         </template>
       </SectionHeader>
 
@@ -100,20 +100,13 @@ watch(
         구독 목록을 불러오는 중입니다.
       </div>
 
-      <div v-else-if="subscribes.length > 0" class="mt-5 space-y-3">
+      <div v-else-if="subscribes.length > 0" class="mt-4 space-y-2">
         <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
-          <div class="grid gap-3 sm:grid-cols-[7.5rem_minmax(0,1fr)_auto] sm:items-center">
-            <div class="h-24 overflow-hidden rounded-[1.1rem] bg-slate-100 dark:bg-slate-900">
-              <FileImage
-                v-if="board.boardImage"
-                :file="board.boardImage"
-                variant="thumb"
-                :alt="board.boardName"
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
+          <div class="grid gap-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center">
+            <div class="h-14 overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+              <FileImage v-if="board.boardImage" :file="board.boardImage" variant="thumb" :alt="board.boardName" class="h-full w-full object-cover" />
               <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
-                <span class="text-xs">대표 이미지 없음</span>
+                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-5 w-5" />
               </div>
             </div>
 
@@ -124,11 +117,11 @@ watch(
                 <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
               </div>
               <h3
-                class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+                class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-1 truncate text-sm font-black tracking-tight text-slate-900 transition dark:text-slate-100"
               >
                 {{ board.boardName }}
               </h3>
-              <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                 {{ resolveDescription(board.description) }}
               </p>
             </div>

@@ -161,7 +161,7 @@ onMounted(() => {
 
 <template>
   <section class="ui-panel overflow-hidden">
-    <div class="px-5 py-5 sm:px-6">
+    <div class="px-4 py-4 sm:px-5">
       <SectionHeader :title="sectionTitle" :description="sectionDescription">
         <template #actions>
           <div class="ui-tab-list" role="tablist" aria-label="홈 게시글 목록 전환">
@@ -212,8 +212,17 @@ onMounted(() => {
           공개 최신글을 불러오는 중입니다.
         </div>
 
-        <div v-else-if="articles.length > 0" class="mt-5 space-y-4">
-          <div class="space-y-3">
+        <div v-else-if="articles.length > 0" class="mt-4 space-y-3">
+          <div
+            class="hidden grid-cols-[minmax(0,1fr)_7rem_4.5rem_4.5rem_4.5rem] gap-2 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+          >
+            <span>제목</span>
+            <span class="text-center">작성자</span>
+            <span class="text-center">댓글</span>
+            <span class="text-center">조회</span>
+            <span class="text-center">추천</span>
+          </div>
+          <div class="space-y-2">
             <ArticleFeedCard v-for="article in articles" :key="article.id" :article="article" />
           </div>
 
@@ -226,7 +235,7 @@ onMounted(() => {
               <button
                 type="button"
                 data-testid="home-recent-load-more"
-                class="ui-button-primary h-11 min-w-32 px-5 disabled:cursor-not-allowed disabled:opacity-60"
+                class="ui-button-primary h-9 min-w-28 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isLoadingMore"
                 @click="loadMoreArticles"
               >
@@ -256,8 +265,17 @@ onMounted(() => {
           최근 반응이 뜨거운 글을 모으는 중입니다.
         </div>
 
-        <div v-else-if="trendingArticles.length > 0" class="mt-5 space-y-5">
-          <div class="space-y-3">
+        <div v-else-if="trendingArticles.length > 0" class="mt-4 space-y-3">
+          <div
+            class="hidden grid-cols-[minmax(0,1fr)_7rem_4.5rem_4.5rem_5rem] gap-2 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+          >
+            <span>제목</span>
+            <span class="text-center">작성자</span>
+            <span class="text-center">댓글</span>
+            <span class="text-center">조회</span>
+            <span class="text-center">점수</span>
+          </div>
+          <div class="space-y-2">
             <ArticleTrendingCard v-for="article in trendingArticles" :key="article.articleId" :article="article" />
           </div>
         </div>
@@ -282,8 +300,17 @@ onMounted(() => {
           관심사와 현재 인기 흐름을 반영한 글을 모으는 중입니다.
         </div>
 
-        <div v-else-if="recommendedArticles.length > 0" class="mt-5 space-y-5">
-          <div class="space-y-3">
+        <div v-else-if="recommendedArticles.length > 0" class="mt-4 space-y-3">
+          <div
+            class="hidden grid-cols-[minmax(0,1fr)_7rem_4.5rem_4.5rem_4.5rem] gap-2 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+          >
+            <span>제목</span>
+            <span class="text-center">작성자</span>
+            <span class="text-center">댓글</span>
+            <span class="text-center">조회</span>
+            <span class="text-center">추천</span>
+          </div>
+          <div class="space-y-2">
             <ArticleRecommendedCard v-for="article in recommendedArticles" :key="article.articleId" :article="article" />
           </div>
         </div>

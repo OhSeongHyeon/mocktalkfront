@@ -259,8 +259,8 @@ watch(
 <template>
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
-      <div class="space-y-6">
-        <PageHeader eyebrow="검색" title="통합검색" description="게시판, 게시글, 댓글, 사용자를 한 번에 찾을 수 있습니다.">
+      <div class="space-y-4">
+        <PageHeader eyebrow="Search" title="통합검색" description="게시판, 게시글, 댓글, 사용자를 같은 밀도로 한 번에 찾을 수 있습니다.">
           <template #meta>
             <span class="ui-badge ui-badge-accent">{{ selectedTypeLabel }}</span>
             <span class="ui-badge ui-badge-muted">{{ selectedOrder === 'LATEST' ? '최신순' : '과거순' }}</span>
@@ -345,10 +345,12 @@ watch(
               </template>
             </SectionHeader>
             <div v-if="boardResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
-            <div v-else class="mt-3 space-y-3">
+            <div v-else class="mt-3 space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
-                <div class="grid gap-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-center">
-                  <div class="h-16 overflow-hidden rounded-[1rem] bg-slate-100 dark:bg-slate-900">
+                <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
+                  <div
+                    class="h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950"
+                  >
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -364,8 +366,8 @@ watch(
                       <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
                       <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
                     </div>
-                    <div class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
-                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    <div class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
+                    <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
                       {{ board.description ?? '설명이 없습니다.' }}
                     </p>
                   </div>
@@ -385,7 +387,7 @@ watch(
               </template>
             </SectionHeader>
             <div v-if="articleResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
-            <div v-else class="mt-3 space-y-3">
+            <div v-else class="mt-3 space-y-2">
               <RouterLink
                 v-for="article in articleResults"
                 :key="article.id"
@@ -399,7 +401,7 @@ watch(
                       <span>{{ article.authorName }}</span>
                       <span>{{ formatDate(article.createdAt) }}</span>
                     </div>
-                    <div class="mt-2 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
+                    <div class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
                   </div>
                   <span class="ui-badge ui-badge-muted">게시글</span>
                 </div>
@@ -416,7 +418,7 @@ watch(
               </template>
             </SectionHeader>
             <div v-if="commentResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
-            <div v-else class="mt-3 space-y-3">
+            <div v-else class="mt-3 space-y-2">
               <RouterLink
                 v-for="comment in commentResults"
                 :key="comment.id"
@@ -442,7 +444,7 @@ watch(
               </template>
             </SectionHeader>
             <div v-if="userResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
-            <div v-else class="mt-3 space-y-3">
+            <div v-else class="mt-3 space-y-2">
               <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
                 <div class="flex items-center justify-between gap-3">
                   <div>
@@ -465,10 +467,12 @@ watch(
               <span>{{ selectedTypeLabel }} {{ currentPageInfo.items.length }}건</span>
               <span>페이지 {{ currentPageInfo.page + 1 }}</span>
             </div>
-            <div v-if="selectedType === 'BOARD'" class="space-y-3">
+            <div v-if="selectedType === 'BOARD'" class="space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
-                <div class="grid gap-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-center">
-                  <div class="h-16 overflow-hidden rounded-[1rem] bg-slate-100 dark:bg-slate-900">
+                <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
+                  <div
+                    class="h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950"
+                  >
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -484,8 +488,8 @@ watch(
                       <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
                       <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
                     </div>
-                    <div class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
-                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    <div class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
+                    <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
                       {{ board.description ?? '설명이 없습니다.' }}
                     </p>
                   </div>
@@ -495,7 +499,7 @@ watch(
               </RouterLink>
             </div>
 
-            <div v-else-if="selectedType === 'ARTICLE'" class="space-y-3">
+            <div v-else-if="selectedType === 'ARTICLE'" class="space-y-2">
               <RouterLink
                 v-for="article in articleResults"
                 :key="article.id"
@@ -509,14 +513,14 @@ watch(
                       <span>{{ article.authorName }}</span>
                       <span>{{ formatDate(article.createdAt) }}</span>
                     </div>
-                    <div class="mt-2 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
+                    <div class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
                   </div>
                   <span class="ui-badge ui-badge-muted">게시글</span>
                 </div>
               </RouterLink>
             </div>
 
-            <div v-else-if="selectedType === 'COMMENT'" class="space-y-3">
+            <div v-else-if="selectedType === 'COMMENT'" class="space-y-2">
               <RouterLink
                 v-for="comment in commentResults"
                 :key="comment.id"
@@ -532,7 +536,7 @@ watch(
               </RouterLink>
             </div>
 
-            <div v-else-if="selectedType === 'USER'" class="space-y-3">
+            <div v-else-if="selectedType === 'USER'" class="space-y-2">
               <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
                 <div class="flex items-center justify-between gap-3">
                   <div>

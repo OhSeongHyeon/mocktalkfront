@@ -52,6 +52,17 @@ const resolveVisibilityLabel = (visibility: string) => {
   return '기타';
 };
 
+const formatDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleDateString('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
 const loadNextPage = async () => {
   if (isLoading.value || !hasNext.value) {
     return;
@@ -110,13 +121,8 @@ onBeforeUnmount(() => {
 <template>
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
-      <div class="space-y-6">
-        <PageHeader
-          class="animate-rise"
-          eyebrow="탐색"
-          title="커뮤니티"
-          description="공개된 커뮤니티를 리스트 중심 레이아웃으로 빠르게 탐색할 수 있습니다."
-        >
+      <div class="space-y-4">
+        <PageHeader class="animate-rise" eyebrow="Boards" title="커뮤니티" description="공개된 커뮤니티를 게시판형 목록으로 빠르게 훑을 수 있습니다.">
           <template #meta>
             <span class="ui-badge ui-badge-success">게시판 {{ visibleBoardCount }}개</span>
             <span v-if="isLoading && visibleBoards.length > 0" class="ui-badge ui-badge-muted">추가 로딩 중</span>
@@ -127,45 +133,52 @@ onBeforeUnmount(() => {
           {{ listError }}
         </div>
 
-        <div v-if="visibleBoards.length > 0" class="space-y-3">
+        <div v-if="visibleBoards.length > 0" class="space-y-2">
+          <div
+            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] gap-3 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+          >
+            <span>이미지</span>
+            <span>게시판</span>
+            <span class="text-center">공개 범위</span>
+            <span class="text-center">개설일</span>
+          </div>
           <RouterLink v-for="board in visibleBoards" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
-            <div class="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-center">
-              <div class="h-24 overflow-hidden rounded-[1.1rem] bg-slate-100 dark:bg-slate-900">
+            <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] md:items-center">
+              <div class="h-14 overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
                 <FileImage
                   v-if="board.boardImage"
                   :file="board.boardImage"
                   variant="thumb"
                   :alt="board.boardName"
-                  class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  class="h-full w-full object-cover"
                 />
                 <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                  <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
-                  <span class="text-xs">대표 이미지 없음</span>
+                  <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-5 w-5" />
                 </div>
               </div>
 
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
                   <span class="ui-badge ui-badge-muted">{{
                     board.articleWritePolicy === 'ALL_AUTHENTICATED' ? '회원 글쓰기' : '운영 정책 적용'
                   }}</span>
                   <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
                 </div>
                 <h3
-                  class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+                  class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-1 truncate text-sm font-black tracking-tight text-slate-900 transition dark:text-slate-100"
                 >
                   {{ board.boardName }}
                 </h3>
-                <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
                   {{ resolveDescription(board.description) }}
                 </p>
               </div>
 
-              <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
-                <span class="ui-badge ui-badge-muted">빠른 입장</span>
-                <span class="text-xs text-slate-400 dark:text-slate-500">상세 보기</span>
+              <div class="hidden justify-center md:flex">
+                <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
               </div>
+
+              <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ formatDate(board.createdAt) }}</div>
             </div>
           </RouterLink>
         </div>

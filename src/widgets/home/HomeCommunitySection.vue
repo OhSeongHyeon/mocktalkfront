@@ -88,10 +88,10 @@ onMounted(() => {
 
 <template>
   <section class="ui-panel overflow-hidden">
-    <div class="px-5 py-5 sm:px-6">
-      <SectionHeader title="공개 커뮤니티" description="홈에는 누구나 둘러볼 수 있는 공개 커뮤니티만 표시됩니다.">
+    <div class="px-4 py-4 sm:px-5">
+      <SectionHeader eyebrow="Boards" title="공개 커뮤니티" description="누구나 둘러볼 수 있는 게시판만 빠르게 모았습니다.">
         <template #actions>
-          <RouterLink to="/boards" class="ui-button-ghost h-10 px-4 text-xs">더보기</RouterLink>
+          <RouterLink to="/boards" class="ui-button-ghost h-9 px-3.5 text-xs">더보기</RouterLink>
         </template>
       </SectionHeader>
 
@@ -104,19 +104,13 @@ onMounted(() => {
         공개 커뮤니티를 불러오는 중입니다.
       </div>
 
-      <div v-else-if="boards.length > 0" class="mt-5 grid gap-3 xl:grid-cols-2">
+      <div v-else-if="boards.length > 0" class="mt-4 grid gap-2 xl:grid-cols-2">
         <RouterLink v-for="board in boards" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
-          <div class="grid gap-3 sm:grid-cols-[8.5rem_minmax(0,1fr)_auto] sm:items-center">
-            <div class="h-24 overflow-hidden rounded-[1.1rem] bg-slate-100 dark:bg-slate-900">
-              <FileImage
-                v-if="board.boardImage"
-                :file="board.boardImage"
-                variant="thumb"
-                :alt="board.boardName"
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
+          <div class="grid gap-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto] sm:items-center">
+            <div class="h-14 overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+              <FileImage v-if="board.boardImage" :file="board.boardImage" variant="thumb" :alt="board.boardName" class="h-full w-full object-cover" />
               <div v-else class="flex h-full w-full items-center justify-center text-slate-400">
-                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-8 w-8" />
+                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-5 w-5" />
               </div>
             </div>
 
@@ -127,17 +121,17 @@ onMounted(() => {
                 <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
               </div>
               <h3
-                class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+                class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-1 truncate text-sm font-black tracking-tight text-slate-900 transition dark:text-slate-100"
               >
                 {{ board.boardName }}
               </h3>
-              <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
                 {{ resolveDescription(board.description) }}
               </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
-              <span class="ui-badge ui-badge-muted">바로 입장</span>
+              <span class="ui-badge ui-badge-muted">입장</span>
               <span class="text-xs text-slate-400 dark:text-slate-500">개설 {{ formatDate(board.createdAt) }}</span>
             </div>
           </div>

@@ -378,12 +378,12 @@ watch(
 <template>
   <section class="ui-panel mt-6 overflow-hidden">
     <div class="px-4 py-4 sm:px-5">
-      <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-800">
         <div class="min-w-0">
-          <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Board Feed</p>
-          <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">게시글 탐색</h2>
-          <p class="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-            카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 찾을 수 있습니다.
+          <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">Board Feed</p>
+          <h2 class="mt-1 text-base font-black tracking-tight text-slate-900 dark:text-slate-100">게시글 탐색</h2>
+          <p class="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
+            카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 좁혀볼 수 있습니다.
           </p>
         </div>
 
@@ -394,11 +394,11 @@ watch(
         </div>
       </div>
 
-      <div v-if="isCategoryLoading" class="mt-4 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+      <div v-if="isCategoryLoading" class="mt-3 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
       <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-4">
         {{ categoryErrorMessage }}
       </div>
-      <div v-else class="mt-4 flex gap-2 overflow-x-auto pb-1">
+      <div v-else class="mt-3 flex gap-2 overflow-x-auto pb-1">
         <button
           type="button"
           class="shrink-0"
@@ -434,7 +434,7 @@ watch(
     <input id="board-search" v-model="searchKeyword" type="search" placeholder="게시글 제목/본문/작성자 검색" class="ui-input min-w-[220px] flex-1" />
     <button
       type="submit"
-      class="ui-button-primary h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
+      class="ui-button-primary h-9 px-3.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
       :disabled="!searchKeyword.trim() || isLoading"
     >
       검색
@@ -442,7 +442,7 @@ watch(
     <button
       v-if="isSearching"
       type="button"
-      class="ui-button-ghost h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
+      class="ui-button-ghost h-9 px-3.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
       :disabled="isLoading"
       @click="clearSearch"
     >
