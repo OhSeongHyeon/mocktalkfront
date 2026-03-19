@@ -5,8 +5,12 @@ import { useLayoutStore } from '../../stores/layout';
 import AppShell from './AppShell.vue';
 
 const TopMenuBarStub = {
+  props: {
+    hiddenByScroll: { type: Boolean, default: false },
+  },
   emits: ['toggle-menu'],
-  template: '<button type="button" data-testid="toggle-menu" @click="$emit(\'toggle-menu\')">toggle</button>',
+  template:
+    '<button type="button" data-testid="toggle-menu" :data-hidden-by-scroll="String(hiddenByScroll)" @click="$emit(\'toggle-menu\')">toggle</button>',
 };
 
 const SideMenuBarStub = {
@@ -42,6 +46,7 @@ describe('widgets/layout/AppShell', () => {
     const layoutStore = useLayoutStore();
     layoutStore.setMenuCollapsed(false);
     layoutStore.setSideMenuDisplayMode('collapse');
+    layoutStore.setTopMenuBehavior('fixed');
     setViewportWidth(1280);
   });
 
@@ -95,5 +100,41 @@ describe('widgets/layout/AppShell', () => {
 
     // then
     expect(wrapper.get('[data-testid="side-menu"]').attributes('data-mobile-open')).toBe('false');
+  });
+
+  it('상단메뉴 자동 숨김 설정에서는 메인 스크롤을 내릴 때 헤더를 숨긴다', async () => {
+    // given
+    const layoutStore = useLayoutStore();
+    layoutStore.setTopMenuBehavior('auto-hide');
+    const wrapper = mount(AppShell, {
+      global: {
+        stubs: {
+          SideMenuBar: SideMenuBarStub,
+          TopMenuBar: TopMenuBarStub,
+        },
+      },
+    });
+    const mainElement = wrapper.get('main').element as HTMLElement;
+    Object.defineProperty(mainElement, 'scrollTop', {
+      configurable: true,
+      value: 0,
+      writable: true,
+    });
+
+    // when
+    mainElement.scrollTop = 80;
+    await wrapper.get('main').trigger('scroll');
+
+    // then
+    expect(wrapper.get('[data-testid="top-menu-wrapper"]').classes()).toContain('h-0');
+    expect(wrapper.get('[data-testid="toggle-menu"]').attributes('data-hidden-by-scroll')).toBe('true');
+
+    // when
+    mainElement.scrollTop = 10;
+    await wrapper.get('main').trigger('scroll');
+
+    // then
+    expect(wrapper.get('[data-testid="top-menu-wrapper"]').classes()).toContain('h-[3.75rem]');
+    expect(wrapper.get('[data-testid="toggle-menu"]').attributes('data-hidden-by-scroll')).toBe('false');
   });
 });

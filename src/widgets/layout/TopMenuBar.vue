@@ -21,6 +21,14 @@ import iconSun from '../../assets/icons/icon-sun.svg';
 const emit = defineEmits<{
   (event: 'toggle-menu'): void;
 }>();
+const props = withDefaults(
+  defineProps<{
+    hiddenByScroll?: boolean;
+  }>(),
+  {
+    hiddenByScroll: false,
+  },
+);
 
 const route = useRoute();
 const router = useRouter();
@@ -268,9 +276,10 @@ const handleDeleteAllNotifications = async () => {
 <template>
   <header
     data-testid="top-menu-bar"
-    class="sticky top-0 z-50 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-700 dark:bg-slate-950/96"
+    class="relative z-50 h-[3.75rem] border-b border-slate-200 bg-slate-50/95 backdrop-blur transition-transform duration-200 dark:border-slate-700 dark:bg-slate-950/96"
+    :class="props.hiddenByScroll ? '-translate-y-full' : 'translate-y-0'"
   >
-    <div class="flex w-full items-center justify-between gap-3 px-3 py-2.5 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
+    <div class="flex h-full w-full items-center justify-between gap-3 px-3 py-2.5 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
       <div class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
         <button type="button" class="ui-icon-button" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
           <img :src="iconStack" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />

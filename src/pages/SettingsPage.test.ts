@@ -70,4 +70,19 @@ describe('pages/SettingsPage', () => {
     // then
     expect(applyThemeMock).toHaveBeenCalledWith('dark');
   });
+
+  it('상단메뉴 스크롤 숨김 옵션을 누르면 레이아웃 저장소에 반영한다', async () => {
+    // given
+    const wrapper = await mountPage();
+    const autoHideButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().includes('스크롤 시 숨김') && button.text().includes('아래로 스크롤하면 위로 숨고'));
+
+    // when
+    await autoHideButton?.trigger('click');
+
+    // then
+    expect(window.localStorage.getItem('layout.topMenuBehavior')).toBe('auto-hide');
+    expect(wrapper.text()).toContain('상단메뉴바 동작');
+  });
 });

@@ -51,11 +51,12 @@ const createRouterInstance = async (initialPath = '/') => {
   return router;
 };
 
-const mountTopMenuBar = async (initialPath = '/') => {
+const mountTopMenuBar = async (initialPath = '/', props: Record<string, unknown> = {}) => {
   const pinia = createPinia();
   setActivePinia(pinia);
   const router = await createRouterInstance(initialPath);
   const wrapper = mount(TopMenuBar, {
+    props,
     global: {
       plugins: [pinia, router],
     },
@@ -126,6 +127,14 @@ describe('widgets/layout/TopMenuBar', () => {
 
     // then
     expect(wrapper.get('[data-testid="top-menu-bar"]').classes()).toContain('z-50');
+  });
+
+  it('스크롤 숨김 상태를 받으면 상단 메뉴를 위로 올린다', async () => {
+    // given
+    const { wrapper } = await mountTopMenuBar('/', { hiddenByScroll: true });
+
+    // then
+    expect(wrapper.get('[data-testid="top-menu-bar"]').classes()).toContain('-translate-y-full');
   });
 
   it('화이트 계열에서 테마 토글 버튼 클릭 시 다크를 적용한다', async () => {

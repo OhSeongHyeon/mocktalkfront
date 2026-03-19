@@ -8,7 +8,7 @@ import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import SectionHeader from '../shared/ui/SectionHeader.vue';
 import { useLayoutStore } from '../stores/layout';
-import type { ContentWidthPreset, SideMenuDisplayMode } from '../stores/layout';
+import type { ContentWidthPreset, SideMenuDisplayMode, TopMenuBehavior } from '../stores/layout';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 type LayoutOption = {
@@ -25,6 +25,12 @@ type SideMenuOption = {
 
 type ThemeOption = {
   value: ThemeMode;
+  label: string;
+  description: string;
+};
+
+type TopMenuOption = {
+  value: TopMenuBehavior;
   label: string;
   description: string;
 };
@@ -82,9 +88,21 @@ const sideMenuOptions: SideMenuOption[] = [
     description: '사이드메뉴를 완전히 숨겼다가 필요할 때 전체 메뉴를 다시 펼칩니다.',
   },
 ];
+const topMenuOptions: TopMenuOption[] = [
+  {
+    value: 'fixed',
+    label: '항상 표시',
+    description: '상단메뉴바를 화면 위에 계속 고정해서 항상 보이게 합니다.',
+  },
+  {
+    value: 'auto-hide',
+    label: '스크롤 시 숨김',
+    description: '아래로 스크롤하면 위로 숨고, 위로 올리면 다시 나타납니다.',
+  },
+];
 const layoutStore = useLayoutStore();
-const { contentWidthPreset, sideMenuDisplayMode } = storeToRefs(layoutStore);
-const { setContentWidthPreset, setSideMenuDisplayMode } = layoutStore;
+const { contentWidthPreset, sideMenuDisplayMode, topMenuBehavior } = storeToRefs(layoutStore);
+const { setContentWidthPreset, setSideMenuDisplayMode, setTopMenuBehavior } = layoutStore;
 const selectedThemeMode = ref<ThemeMode>(getThemeState().mode);
 const resolvedTheme = ref<ResolvedTheme>(getThemeState().resolvedTheme);
 let stopThemeChangeSubscription: (() => void) | null = null;
@@ -92,6 +110,9 @@ let stopThemeChangeSubscription: (() => void) | null = null;
 const selectedOption = computed<LayoutOption>(() => layoutOptions.find((option) => option.value === contentWidthPreset.value) ?? layoutOptions[0]!);
 const selectedSideMenuOption = computed<SideMenuOption>(
   () => sideMenuOptions.find((option) => option.value === sideMenuDisplayMode.value) ?? sideMenuOptions[0]!,
+);
+const selectedTopMenuOption = computed<TopMenuOption>(
+  () => topMenuOptions.find((option) => option.value === topMenuBehavior.value) ?? topMenuOptions[0]!,
 );
 const selectedThemeOption = computed<ThemeOption>(() => themeOptions.find((option) => option.value === selectedThemeMode.value) ?? themeOptions[0]!);
 const resolvedThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '다크' : '화이트'));
@@ -102,6 +123,10 @@ const handleSelectPreset = (preset: ContentWidthPreset) => {
 
 const handleSelectSideMenuMode = (mode: SideMenuDisplayMode) => {
   setSideMenuDisplayMode(mode);
+};
+
+const handleSelectTopMenuBehavior = (behavior: TopMenuBehavior) => {
+  setTopMenuBehavior(behavior);
 };
 
 const handleSelectThemeMode = (mode: ThemeMode) => {
@@ -219,6 +244,45 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="ui-panel px-5 py-5 sm:px-6">
+              <SectionHeader title="상단메뉴바 동작" description="상단메뉴바를 항상 고정할지, 스크롤 방향에 따라 자동으로 숨길지 정합니다." />
+
+              <div class="mt-5 grid gap-3">
+                <button
+                  v-for="option in topMenuOptions"
+                  :key="option.value"
+                  type="button"
+                  class="rounded-3xl border px-5 py-4 text-left transition"
+                  :class="
+                    topMenuBehavior === option.value
+                      ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
+                      : 'border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                  "
+                  :aria-pressed="topMenuBehavior === option.value"
+                  @click="handleSelectTopMenuBehavior(option.value)"
+                >
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="space-y-1">
+                      <div class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ option.label }}</div>
+                      <p class="text-sm text-slate-500 dark:text-slate-400">
+                        {{ option.description }}
+                      </p>
+                    </div>
+                    <span
+                      class="rounded-full px-3 py-1 text-xs font-semibold"
+                      :class="
+                        topMenuBehavior === option.value
+                          ? 'bg-emerald-600 text-white dark:bg-emerald-500'
+                          : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                      "
+                    >
+                      {{ topMenuBehavior === option.value ? '선택됨' : '선택 가능' }}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div class="ui-panel px-5 py-5 sm:px-6">
               <SectionHeader title="사이드메뉴 펼치기 방식" description="데스크톱에서 메뉴 버튼을 눌렀을 때 사이드메뉴가 어떻게 동작할지 정합니다." />
 
               <div class="mt-5 grid gap-3">
@@ -276,10 +340,17 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">상단메뉴바 동작</p>
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ selectedTopMenuOption.label }}</p>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ selectedTopMenuOption.description }}</p>
+              </div>
+
+              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
                 <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">적용 범위</p>
                 <ul class="mt-3 space-y-2 text-sm text-slate-500 dark:text-slate-400">
                   <li>시스템, 화이트, 다크 테마 모드</li>
                   <li>홈, 커뮤니티, 게시글 상세와 작성 화면 같은 공통 레이아웃 페이지</li>
+                  <li>상단메뉴바 고정 또는 스크롤 시 숨김 동작</li>
                   <li>데스크톱 사이드메뉴 펼치기 방식</li>
                   <li>브라우저에만 저장되는 개인 설정</li>
                   <li>모바일 화면에서는 전체 폭 사용</li>
