@@ -58,6 +58,7 @@ const currentThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '다�
 const nextThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '화이트' : '다크'));
 const themeToggleLabel = computed(() => `테마 전환, 현재 ${currentThemeLabel.value}, 클릭 시 ${nextThemeLabel.value}`);
 const searchKeyword = ref('');
+const brandMarkSrc = '/mocktalk_favicon_color.svg';
 const menuPanelClass =
   'absolute right-0 top-full mt-2 overflow-hidden rounded-[0.7rem] border border-slate-200 bg-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900';
 const { stopNotificationPresence } = useNotificationPresence({
@@ -279,25 +280,22 @@ const handleDeleteAllNotifications = async () => {
     class="relative z-50 h-[3.75rem] border-b border-slate-200 bg-slate-50/95 backdrop-blur transition-transform duration-200 dark:border-slate-700 dark:bg-slate-950/96"
     :class="props.hiddenByScroll ? '-translate-y-full' : 'translate-y-0'"
   >
-    <div class="flex h-full w-full items-center justify-between gap-3 px-3 py-2.5 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
+    <div class="flex h-full w-full items-center justify-between gap-3 px-3 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
       <div class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
-        <button type="button" class="ui-icon-button" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
+        <button type="button" class="ui-icon-button h-10 w-10 shrink-0" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
           <img :src="iconStack" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
         </button>
 
         <RouterLink to="/" class="min-w-0 shrink">
           <div class="flex items-center gap-2">
-            <div class="bg-brand-600 hidden h-8 w-8 items-center justify-center rounded-[0.55rem] text-xs font-black text-white sm:flex">MT</div>
-            <div class="min-w-0">
-              <p class="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-400">Community</p>
-              <p class="truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">MockTalk</p>
-            </div>
+            <img :src="brandMarkSrc" alt="" aria-hidden="true" class="h-8 w-8 shrink-0 rounded-[0.55rem]" />
+            <p class="truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">MockTalk</p>
           </div>
         </RouterLink>
       </div>
 
       <form
-        class="hidden w-full max-w-[720px] items-center gap-2 justify-self-center rounded-[0.6rem] border border-slate-200 bg-white px-2 py-1.5 md:flex dark:border-slate-700 dark:bg-slate-900"
+        class="hidden h-10 w-full max-w-[720px] items-center gap-2 justify-self-center rounded-[0.6rem] border border-slate-200 bg-white px-2 py-0 md:flex dark:border-slate-700 dark:bg-slate-900"
         @submit.prevent="handleSearch"
       >
         <label class="sr-only" for="global-search">검색</label>
@@ -305,8 +303,8 @@ const handleDeleteAllNotifications = async () => {
           id="global-search"
           v-model="searchKeyword"
           type="search"
-          placeholder="게시판, 게시글, 댓글, 사용자"
-          class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-50 dark:placeholder:text-slate-400"
+          placeholder="통합검색"
+          class="h-full min-w-0 flex-1 border-0 bg-transparent px-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-50 dark:placeholder:text-slate-400"
         />
         <button
           type="submit"
@@ -319,13 +317,19 @@ const handleDeleteAllNotifications = async () => {
       </form>
 
       <div class="flex shrink-0 items-center gap-2 justify-self-end">
-        <button type="button" class="ui-icon-button md:hidden" data-testid="mobile-search-button" aria-label="검색 페이지 열기" @click="openSearch">
+        <button
+          type="button"
+          class="ui-icon-button h-10 w-10 shrink-0 md:hidden"
+          data-testid="mobile-search-button"
+          aria-label="검색 페이지 열기"
+          @click="openSearch"
+        >
           <img :src="iconSearch" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
         </button>
 
         <button
           type="button"
-          class="ui-icon-button"
+          class="ui-icon-button h-10 w-10 shrink-0"
           data-testid="theme-toggle-button"
           :aria-label="themeToggleLabel"
           :title="themeToggleLabel"
@@ -339,7 +343,7 @@ const handleDeleteAllNotifications = async () => {
           <button
             ref="notificationButtonRef"
             type="button"
-            class="ui-icon-button relative"
+            class="ui-icon-button relative h-10 w-10 shrink-0"
             :aria-label="notificationButtonLabel"
             aria-haspopup="menu"
             :aria-expanded="isNotificationMenuOpen"
@@ -419,7 +423,7 @@ const handleDeleteAllNotifications = async () => {
           </div>
         </div>
 
-        <button v-if="!isAuthenticated" type="button" class="ui-button-ghost h-9 px-3.5 text-xs" aria-label="로그인" @click="openLogin">
+        <button v-if="!isAuthenticated" type="button" class="ui-button-ghost h-10 px-3.5 text-xs" aria-label="로그인" @click="openLogin">
           로그인
         </button>
 
@@ -427,7 +431,7 @@ const handleDeleteAllNotifications = async () => {
           <button
             ref="profileButtonRef"
             type="button"
-            class="ui-icon-button grid place-items-center overflow-hidden p-0"
+            class="ui-icon-button grid h-10 w-10 shrink-0 place-items-center overflow-hidden p-0"
             aria-label="프로필"
             aria-haspopup="menu"
             :aria-expanded="isProfileMenuOpen"

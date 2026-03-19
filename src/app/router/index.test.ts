@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { useAuthStore } from '../../stores/auth';
+import { useAuthPromptStore } from '../../stores/authPrompt';
 import router from './index';
 
 const USER_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.sig';
@@ -9,18 +10,22 @@ const MANAGER_TOKEN = 'e30.eyJyb2xlIjoiTUFOQUdFUiJ9.sig';
 describe('router guard characterization', () => {
   beforeEach(async () => {
     useAuthStore().clearAccessToken();
+    useAuthPromptStore().closePrompt();
     await router.push('/');
   });
 
-  it('비인증 사용자가 인증 필요 페이지에 접근하면 로그인 페이지로 이동한다', async () => {
+  it('비인증 사용자가 인증 필요 페이지에 접근하면 현재 화면에 남고 로그인 안내 모달을 연다', async () => {
     // given
     useAuthStore().clearAccessToken();
+    const authPromptStore = useAuthPromptStore();
 
     // when
     await router.push('/mypage');
 
     // then
-    expect(router.currentRoute.value.path).toBe('/login');
+    expect(router.currentRoute.value.path).toBe('/');
+    expect(authPromptStore.isOpen).toBe(true);
+    expect(authPromptStore.requestedPath).toBe('/mypage');
   });
 
   it('비인증 사용자도 설정 페이지에는 접근할 수 있다', async () => {

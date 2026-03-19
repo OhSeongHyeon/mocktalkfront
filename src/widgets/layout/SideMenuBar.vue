@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 
+import type { TopMenuPositionMode } from '../../stores/layout';
 import { useAuthStore } from '../../stores/auth';
 import iconBookmark from '../../assets/icons/icon-bookmark.svg';
 import iconChat from '../../assets/icons/icon-chat.svg';
@@ -23,6 +24,7 @@ const props = defineProps<{
   collapsed: boolean;
   displayMode: 'collapse' | 'hidden';
   mobileOpen: boolean;
+  topMenuPositionMode: TopMenuPositionMode;
 }>();
 
 const emit = defineEmits<{
@@ -115,11 +117,10 @@ const isActive = (path?: string) => {
 
 const isCompact = computed(() => props.displayMode === 'collapse' && props.collapsed && !props.mobileOpen);
 const isDesktopHidden = computed(() => props.displayMode === 'hidden' && props.collapsed && !props.mobileOpen);
-const isBackofficeRoute = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'));
-const menuTitle = computed(() => (isBackofficeRoute.value ? '백오피스' : '서비스 탐색'));
-const menuDescription = computed(() =>
-  isBackofficeRoute.value ? '운영 화면을 빠르게 오갈 수 있는 메뉴입니다.' : '주요 게시판과 기능을 빠르게 찾는 탐색 메뉴입니다.',
+const mobilePanelPlacementClass = computed(() =>
+  props.topMenuPositionMode === 'fixed' ? 'top-[3.75rem] h-[calc(100vh-3.75rem)]' : 'top-0 h-screen',
 );
+const isBackofficeRoute = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'));
 
 const closeMobileMenu = () => {
   emit('close');
@@ -214,8 +215,9 @@ const sections = computed(() => {
   ></div>
   <aside
     data-testid="side-menu-panel"
-    class="fixed top-[3.75rem] z-40 flex h-[calc(100vh-3.75rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition-all md:static md:top-auto md:h-auto md:self-stretch md:rounded-none md:border-y-0 md:border-l-0 md:shadow-none dark:border-slate-600 dark:bg-slate-900"
+    class="fixed z-40 flex min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition-all md:static md:top-auto md:h-auto md:self-stretch md:rounded-none md:border-y-0 md:border-l-0 md:shadow-none dark:border-slate-600 dark:bg-slate-900"
     :class="[
+      mobilePanelPlacementClass,
       props.mobileOpen ? 'translate-x-0' : '-translate-x-full',
       isDesktopHidden
         ? 'md:pointer-events-none md:w-0 md:min-w-0 md:translate-x-0 md:border-transparent md:bg-transparent md:p-0 md:opacity-0 md:shadow-none'
@@ -225,11 +227,7 @@ const sections = computed(() => {
     ]"
   >
     <div v-if="!isCompact" class="border-b border-slate-200 px-4 py-4 dark:border-slate-800">
-      <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-300">
-        {{ isBackofficeRoute ? 'Workspace' : 'Boards' }}
-      </p>
-      <p class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ menuTitle }}</p>
-      <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-200">{{ menuDescription }}</p>
+      <p class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">메뉴</p>
     </div>
 
     <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-2 py-3" aria-label="사이드 메뉴">
@@ -246,7 +244,7 @@ const sections = computed(() => {
           :class="[
             isCompact ? 'justify-center' : 'justify-start',
             item.active
-              ? 'border-brand-200 bg-brand-50 dark:border-brand-800 dark:bg-brand-950/45 text-slate-900 dark:text-white'
+              ? 'border-slate-900 bg-slate-900 text-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100'
               : item.implemented
                 ? 'cursor-pointer border-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-50 dark:hover:border-slate-600 dark:hover:bg-slate-800'
                 : 'cursor-not-allowed border-transparent text-slate-400 dark:text-slate-500',
@@ -261,7 +259,7 @@ const sections = computed(() => {
             class="grid h-9 w-9 place-items-center rounded-[0.55rem] border"
             :class="
               item.active
-                ? 'border-brand-200 text-brand-700 dark:border-brand-800 dark:text-brand-200 bg-white dark:bg-slate-800'
+                ? 'border-slate-700 bg-slate-950 text-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200'
                 : item.implemented
                   ? 'border-slate-200 bg-slate-100 text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100'
                   : 'border-transparent text-slate-400 dark:text-slate-500'
@@ -272,8 +270,8 @@ const sections = computed(() => {
 
           <div v-if="!isCompact" class="flex min-w-0 flex-1 items-center justify-between gap-2">
             <div class="min-w-0">
-              <span class="truncate text-sm">{{ item.name }}</span>
-              <p v-if="item.active" class="text-[11px] text-slate-500 dark:text-slate-200">현재 화면</p>
+              <span class="truncate text-sm" :class="item.active ? 'text-slate-50 dark:text-slate-100' : ''">{{ item.name }}</span>
+              <p v-if="item.active" class="text-[11px] font-semibold text-slate-300 dark:text-slate-400">현재 화면</p>
             </div>
             <span v-if="!item.implemented" class="ui-badge ui-badge-muted shrink-0">준비중</span>
           </div>

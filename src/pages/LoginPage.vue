@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { API_BASE_URL, ApiError } from '../shared/lib/http/api';
 import { applyProfileSummary } from '../shared/lib/profile';
@@ -12,6 +12,7 @@ import googleColorIcon from '../assets/icons/icon-google-color.svg';
 import googleMonoIcon from '../assets/icons/icon-google-mono.svg';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const loginId = ref('');
 const password = ref('');
@@ -26,6 +27,14 @@ const githubAuthUrl = `${apiBase}/oauth2/authorization/github`;
 
 const handleForgotPassword = () => {
   errorMessage.value = '비밀번호 찾기 기능은 준비 중입니다.';
+};
+
+const resolveLoginSuccessPath = () => {
+  const redirect = route.query.redirect;
+  if (typeof redirect !== 'string' || !redirect.startsWith('/') || redirect.startsWith('//') || redirect === '/login') {
+    return '/';
+  }
+  return redirect;
 };
 
 const handleSubmit = async () => {
@@ -51,7 +60,7 @@ const handleSubmit = async () => {
     } catch {
       // 로그인 직후 프로필 조회 실패는 무시
     }
-    await router.push('/');
+    await router.push(resolveLoginSuccessPath());
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 401) {

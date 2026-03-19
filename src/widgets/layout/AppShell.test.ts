@@ -18,6 +18,7 @@ const SideMenuBarStub = {
     collapsed: { type: Boolean, required: true },
     displayMode: { type: String, required: true },
     mobileOpen: { type: Boolean, required: true },
+    topMenuPositionMode: { type: String, required: true },
   },
   emits: ['close'],
   template: `
@@ -27,6 +28,7 @@ const SideMenuBarStub = {
         :data-collapsed="String(collapsed)"
         :data-display-mode="displayMode"
         :data-mobile-open="String(mobileOpen)"
+        :data-top-menu-position-mode="topMenuPositionMode"
       />
       <button type="button" data-testid="close-mobile" @click="$emit('close')">close</button>
     </div>
@@ -46,7 +48,8 @@ describe('widgets/layout/AppShell', () => {
     const layoutStore = useLayoutStore();
     layoutStore.setMenuCollapsed(false);
     layoutStore.setSideMenuDisplayMode('collapse');
-    layoutStore.setTopMenuBehavior('fixed');
+    layoutStore.setTopMenuPositionMode('fixed');
+    layoutStore.setTopMenuVisibilityMode('always');
     setViewportWidth(1280);
   });
 
@@ -102,10 +105,8 @@ describe('widgets/layout/AppShell', () => {
     expect(wrapper.get('[data-testid="side-menu"]').attributes('data-mobile-open')).toBe('false');
   });
 
-  it('상단메뉴 자동 숨김 설정에서는 메인 스크롤을 내릴 때 헤더를 숨긴다', async () => {
+  it('화면 상단 고정 모드에서는 뷰포트 높이를 고정하고 상단메뉴를 항상 표시한다', async () => {
     // given
-    const layoutStore = useLayoutStore();
-    layoutStore.setTopMenuBehavior('auto-hide');
     const wrapper = mount(AppShell, {
       global: {
         stubs: {
@@ -126,8 +127,10 @@ describe('widgets/layout/AppShell', () => {
     await wrapper.get('main').trigger('scroll');
 
     // then
-    expect(wrapper.get('[data-testid="top-menu-wrapper"]').classes()).toContain('h-0');
-    expect(wrapper.get('[data-testid="toggle-menu"]').attributes('data-hidden-by-scroll')).toBe('true');
+    expect(wrapper.get('[data-testid="app-shell"]').classes()).toContain('h-screen');
+    expect(wrapper.get('[data-testid="app-shell"]').classes()).toContain('overflow-hidden');
+    expect(wrapper.get('[data-testid="top-menu-wrapper"]').classes()).toContain('h-[3.75rem]');
+    expect(wrapper.get('[data-testid="toggle-menu"]').attributes('data-hidden-by-scroll')).toBe('false');
 
     // when
     mainElement.scrollTop = 10;
@@ -136,5 +139,26 @@ describe('widgets/layout/AppShell', () => {
     // then
     expect(wrapper.get('[data-testid="top-menu-wrapper"]').classes()).toContain('h-[3.75rem]');
     expect(wrapper.get('[data-testid="toggle-menu"]').attributes('data-hidden-by-scroll')).toBe('false');
+  });
+
+  it('상단메뉴를 본문과 함께 스크롤로 바꾸면 헤더를 스크롤 영역 안에 렌더링한다', async () => {
+    // given
+    const layoutStore = useLayoutStore();
+    layoutStore.setTopMenuPositionMode('static');
+    const wrapper = mount(AppShell, {
+      global: {
+        stubs: {
+          SideMenuBar: SideMenuBarStub,
+          TopMenuBar: TopMenuBarStub,
+        },
+      },
+    });
+    // then
+    expect(wrapper.get('[data-testid="app-shell"]').classes()).toContain('min-h-screen');
+    expect(wrapper.get('[data-testid="app-shell"]').classes()).not.toContain('h-screen');
+    expect(wrapper.find('[data-testid="top-menu-wrapper"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="top-menu-inline"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="toggle-menu"]').attributes('data-hidden-by-scroll')).toBe('false');
+    expect(wrapper.get('[data-testid="side-menu"]').attributes('data-top-menu-position-mode')).toBe('static');
   });
 });

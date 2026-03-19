@@ -71,18 +71,38 @@ describe('pages/SettingsPage', () => {
     expect(applyThemeMock).toHaveBeenCalledWith('dark');
   });
 
-  it('상단메뉴 스크롤 숨김 옵션을 누르면 레이아웃 저장소에 반영한다', async () => {
+  it('상단메뉴 위치를 본문 스크롤로 바꾸면 레이아웃 저장소에 반영한다', async () => {
     // given
     const wrapper = await mountPage();
-    const autoHideButton = wrapper
+    const staticButton = wrapper
       .findAll('button')
-      .find((button) => button.text().includes('스크롤 시 숨김') && button.text().includes('아래로 스크롤하면 위로 숨고'));
+      .find((button) => button.text().includes('본문과 함께 스크롤') && button.text().includes('페이지를 내리면 함께 위로 사라지게'));
 
     // when
-    await autoHideButton?.trigger('click');
+    await staticButton?.trigger('click');
 
     // then
-    expect(window.localStorage.getItem('layout.topMenuBehavior')).toBe('auto-hide');
-    expect(wrapper.text()).toContain('상단메뉴바 동작');
+    expect(window.localStorage.getItem('layout.topMenuPositionMode')).toBe('static');
+    expect(window.localStorage.getItem('layout.topMenuVisibilityMode')).toBe('always');
+    expect(wrapper.text()).toContain('상단메뉴바 위치 방식');
+  });
+
+  it('상단메뉴 노출 방식은 항상 표시 고정 안내만 노출한다', async () => {
+    // given
+    const wrapper = await mountPage();
+
+    // then
+    expect(wrapper.text()).toContain('상단메뉴바 노출');
+    expect(wrapper.text()).toContain('항상 표시');
+    expect(wrapper.text()).toContain('상단메뉴바는 자동 숨김 없이 계속 표시합니다.');
+  });
+
+  it('이전 자동 숨김 저장값이 남아 있어도 항상 표시로 정규화한다', async () => {
+    // given
+    window.localStorage.setItem('layout.topMenuVisibilityMode', 'auto-hide');
+    await mountPage();
+
+    // then
+    expect(window.localStorage.getItem('layout.topMenuVisibilityMode')).toBe('always');
   });
 });

@@ -48,6 +48,7 @@ describe('widgets/layout/SideMenuBar', () => {
         collapsed: false,
         displayMode: 'collapse',
         mobileOpen: true,
+        topMenuPositionMode: 'fixed',
       },
       global: {
         plugins: [pinia, router],
@@ -75,6 +76,7 @@ describe('widgets/layout/SideMenuBar', () => {
         collapsed: false,
         displayMode: 'collapse',
         mobileOpen: false,
+        topMenuPositionMode: 'fixed',
       },
       global: {
         plugins: [pinia, router],
@@ -85,8 +87,11 @@ describe('widgets/layout/SideMenuBar', () => {
     const activeLink = wrapper.find('[aria-current="page"]');
 
     // then
+    expect(wrapper.text()).toContain('메뉴');
     expect(wrapper.text()).toContain('백오피스');
     expect(wrapper.text()).toContain('신고 관리');
     expect(activeLink.text()).toContain('신고 관리');
+    expect(activeLink.classes()).toContain('bg-slate-900');
+    expect(activeLink.text()).toContain('현재 화면');
   });
 });
