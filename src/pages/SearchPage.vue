@@ -261,73 +261,70 @@ watch(
     <PageContainer width="auto">
       <div class="space-y-6">
         <PageHeader eyebrow="검색" title="통합검색" description="게시판, 게시글, 댓글, 사용자를 한 번에 찾을 수 있습니다.">
-          <form class="ui-sub-panel flex flex-col gap-3 p-4" @submit.prevent="handleSubmit">
-            <div class="flex flex-wrap items-center gap-2">
+          <template #meta>
+            <span class="ui-badge ui-badge-accent">{{ selectedTypeLabel }}</span>
+            <span class="ui-badge ui-badge-muted">{{ selectedOrder === 'LATEST' ? '최신순' : '과거순' }}</span>
+            <span class="ui-badge ui-badge-muted">표시 {{ size }}개</span>
+          </template>
+
+          <form class="space-y-3" @submit.prevent="handleSubmit">
+            <div class="ui-toolbar">
               <label for="global-search-page" class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색어</label>
-              <input
-                id="global-search-page"
-                v-model="keyword"
-                type="search"
-                placeholder="게시판, 게시글, 댓글, 사용자"
-                class="h-10 flex-1 rounded-full border border-slate-200 px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-              />
+              <input id="global-search-page" v-model="keyword" type="search" placeholder="게시판, 게시글, 댓글, 사용자" class="ui-input flex-1" />
               <button
                 type="submit"
-                class="inline-flex h-10 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+                class="ui-button-primary h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!keyword.trim() || isLoading"
               >
                 검색
               </button>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색 범위</span>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="type in types"
-                  :key="type.value"
-                  type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
-                  :class="
-                    selectedType === type.value
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                  "
-                  @click="handleTypeChange(type.value)"
-                >
-                  {{ type.label }}
-                </button>
+
+            <div class="ui-toolbar">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색 범위</span>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="type in types"
+                    :key="type.value"
+                    type="button"
+                    class="h-9 px-4 text-xs"
+                    :class="selectedType === type.value ? 'ui-button-primary' : 'ui-button-ghost'"
+                    @click="handleTypeChange(type.value)"
+                  >
+                    {{ type.label }}
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">정렬</span>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="order in orders"
-                  :key="order.value"
-                  type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
-                  :class="
-                    selectedOrder === order.value
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                  "
-                  @click="handleOrderChange(order.value)"
-                >
-                  {{ order.label }}
-                </button>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">정렬</span>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-for="order in orders"
+                    :key="order.value"
+                    type="button"
+                    class="h-9 px-4 text-xs"
+                    :class="selectedOrder === order.value ? 'ui-button-primary' : 'ui-button-ghost'"
+                    @click="handleOrderChange(order.value)"
+                  >
+                    {{ order.label }}
+                  </button>
+                </div>
               </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <label for="search-size" class="text-xs font-semibold text-slate-500 dark:text-slate-400">표시 개수</label>
-              <select
-                id="search-size"
-                v-model.number="size"
-                class="h-9 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 shadow-sm focus:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/20"
-                :disabled="isLoading"
-                @change="handleSizeChange(size)"
-              >
-                <option v-for="option in sizeOptions" :key="option" :value="option">{{ option }}개</option>
-              </select>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <label for="search-size" class="text-xs font-semibold text-slate-500 dark:text-slate-400">표시 개수</label>
+                <select
+                  id="search-size"
+                  v-model.number="size"
+                  class="ui-select text-xs font-semibold"
+                  :disabled="isLoading"
+                  @change="handleSizeChange(size)"
+                >
+                  <option v-for="option in sizeOptions" :key="option" :value="option">{{ option }}개</option>
+                </select>
+              </div>
             </div>
           </form>
         </PageHeader>
@@ -342,26 +339,16 @@ watch(
           <section>
             <SectionHeader title="게시판">
               <template #actions>
-                <button
-                  v-if="results?.boards.hasNext"
-                  type="button"
-                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                  @click="openSection('BOARD')"
-                >
+                <button v-if="results?.boards.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('BOARD')">
                   더보기
                 </button>
               </template>
             </SectionHeader>
             <div v-if="boardResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
-            <div v-else class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <RouterLink
-                v-for="board in boardResults"
-                :key="board.id"
-                :to="`/b/${board.slug}`"
-                class="ui-sub-panel group overflow-hidden p-3 transition hover:-translate-y-0.5 hover:border-slate-300/80"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
+            <div v-else class="mt-3 space-y-3">
+              <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
+                <div class="grid gap-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-center">
+                  <div class="h-16 overflow-hidden rounded-[1rem] bg-slate-100 dark:bg-slate-900">
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -371,12 +358,20 @@ watch(
                     />
                     <div v-else class="flex h-full w-full items-center justify-center text-xs text-slate-400">없음</div>
                   </div>
-                  <div class="flex-1">
-                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
-                    <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ resolveVisibilityLabel(board.visibility) }}</div>
+
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                      <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
+                    </div>
+                    <div class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
+                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      {{ board.description ?? '설명이 없습니다.' }}
+                    </p>
                   </div>
+
+                  <span class="ui-badge ui-badge-muted">이동</span>
                 </div>
-                <p class="mt-3 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{{ board.description ?? '설명이 없습니다.' }}</p>
               </RouterLink>
             </div>
           </section>
@@ -384,12 +379,7 @@ watch(
           <section>
             <SectionHeader title="게시글">
               <template #actions>
-                <button
-                  v-if="results?.articles.hasNext"
-                  type="button"
-                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                  @click="openSection('ARTICLE')"
-                >
+                <button v-if="results?.articles.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('ARTICLE')">
                   더보기
                 </button>
               </template>
@@ -400,14 +390,19 @@ watch(
                 v-for="article in articleResults"
                 :key="article.id"
                 :to="`/b/${article.boardSlug}/articles/${article.id}`"
-                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
+                class="ui-list-row"
               >
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span>{{ article.boardName }}</span>
-                  <span>{{ article.authorName }}</span>
-                  <span>{{ formatDate(article.createdAt) }}</span>
+                <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
+                      <span>{{ article.authorName }}</span>
+                      <span>{{ formatDate(article.createdAt) }}</span>
+                    </div>
+                    <div class="mt-2 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
+                  </div>
+                  <span class="ui-badge ui-badge-muted">게시글</span>
                 </div>
-                <div class="mt-1 font-semibold text-slate-900 dark:text-slate-100">{{ article.title }}</div>
               </RouterLink>
             </div>
           </section>
@@ -415,12 +410,7 @@ watch(
           <section>
             <SectionHeader title="댓글">
               <template #actions>
-                <button
-                  v-if="results?.comments.hasNext"
-                  type="button"
-                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                  @click="openSection('COMMENT')"
-                >
+                <button v-if="results?.comments.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('COMMENT')">
                   더보기
                 </button>
               </template>
@@ -431,14 +421,14 @@ watch(
                 v-for="comment in commentResults"
                 :key="comment.id"
                 :to="`/b/${comment.boardSlug}/articles/${comment.articleId}`"
-                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
+                class="ui-list-row"
               >
                 <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span>{{ comment.boardName }}</span>
+                  <span class="ui-badge ui-badge-muted">{{ comment.boardName }}</span>
                   <span>{{ comment.articleTitle }}</span>
                   <span>{{ comment.authorName }}</span>
                 </div>
-                <p class="mt-2 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{{ comment.content }}</p>
+                <p class="line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{{ comment.content }}</p>
               </RouterLink>
             </div>
           </section>
@@ -446,21 +436,21 @@ watch(
           <section>
             <SectionHeader title="사용자">
               <template #actions>
-                <button
-                  v-if="results?.users.hasNext"
-                  type="button"
-                  class="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
-                  @click="openSection('USER')"
-                >
+                <button v-if="results?.users.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('USER')">
                   더보기
                 </button>
               </template>
             </SectionHeader>
             <div v-if="userResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
-            <div v-else class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div v-for="user in userResults" :key="user.id" class="ui-sub-panel px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
-                <div class="font-semibold text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
-                <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
+            <div v-else class="mt-3 space-y-3">
+              <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="font-black tracking-tight text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
+                  </div>
+                  <span class="ui-badge ui-badge-muted">사용자</span>
+                </div>
               </div>
             </div>
           </section>
@@ -471,19 +461,14 @@ watch(
 
           <div v-if="currentPageInfo.items.length === 0" class="ui-state ui-state-empty px-4 py-6">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
           <div v-else class="space-y-3">
-            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div class="ui-toolbar justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>{{ selectedTypeLabel }} {{ currentPageInfo.items.length }}건</span>
               <span>페이지 {{ currentPageInfo.page + 1 }}</span>
-              <span v-if="currentPageInfo.hasNext">다음 페이지 있음</span>
             </div>
-            <div v-if="selectedType === 'BOARD'" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <RouterLink
-                v-for="board in boardResults"
-                :key="board.id"
-                :to="`/b/${board.slug}`"
-                class="ui-sub-panel group overflow-hidden p-3 transition hover:-translate-y-0.5 hover:border-slate-300/80"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="h-12 w-12 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
+            <div v-if="selectedType === 'BOARD'" class="space-y-3">
+              <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
+                <div class="grid gap-3 sm:grid-cols-[4rem_minmax(0,1fr)_auto] sm:items-center">
+                  <div class="h-16 overflow-hidden rounded-[1rem] bg-slate-100 dark:bg-slate-900">
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -493,12 +478,20 @@ watch(
                     />
                     <div v-else class="flex h-full w-full items-center justify-center text-xs text-slate-400">없음</div>
                   </div>
-                  <div class="flex-1">
-                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
-                    <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ resolveVisibilityLabel(board.visibility) }}</div>
+
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                      <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
+                    </div>
+                    <div class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
+                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                      {{ board.description ?? '설명이 없습니다.' }}
+                    </p>
                   </div>
+
+                  <span class="ui-badge ui-badge-muted">이동</span>
                 </div>
-                <p class="mt-3 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{{ board.description ?? '설명이 없습니다.' }}</p>
               </RouterLink>
             </div>
 
@@ -507,14 +500,19 @@ watch(
                 v-for="article in articleResults"
                 :key="article.id"
                 :to="`/b/${article.boardSlug}/articles/${article.id}`"
-                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
+                class="ui-list-row"
               >
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span>{{ article.boardName }}</span>
-                  <span>{{ article.authorName }}</span>
-                  <span>{{ formatDate(article.createdAt) }}</span>
+                <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
+                      <span>{{ article.authorName }}</span>
+                      <span>{{ formatDate(article.createdAt) }}</span>
+                    </div>
+                    <div class="mt-2 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
+                  </div>
+                  <span class="ui-badge ui-badge-muted">게시글</span>
                 </div>
-                <div class="mt-1 font-semibold text-slate-900 dark:text-slate-100">{{ article.title }}</div>
               </RouterLink>
             </div>
 
@@ -523,33 +521,38 @@ watch(
                 v-for="comment in commentResults"
                 :key="comment.id"
                 :to="`/b/${comment.boardSlug}/articles/${comment.articleId}`"
-                class="ui-sub-panel block px-4 py-3 text-sm text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-300/80 dark:text-slate-200"
+                class="ui-list-row"
               >
                 <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span>{{ comment.boardName }}</span>
+                  <span class="ui-badge ui-badge-muted">{{ comment.boardName }}</span>
                   <span>{{ comment.articleTitle }}</span>
                   <span>{{ comment.authorName }}</span>
                 </div>
-                <p class="mt-2 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{{ comment.content }}</p>
+                <p class="line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{{ comment.content }}</p>
               </RouterLink>
             </div>
 
-            <div v-else-if="selectedType === 'USER'" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div v-for="user in userResults" :key="user.id" class="ui-sub-panel px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
-                <div class="font-semibold text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
-                <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
+            <div v-else-if="selectedType === 'USER'" class="space-y-3">
+              <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="font-black tracking-tight text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
+                  </div>
+                  <span class="ui-badge ui-badge-muted">사용자</span>
+                </div>
               </div>
             </div>
           </div>
 
           <div
             v-if="currentPageInfo.hasPrevious || currentPageInfo.hasNext"
-            class="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"
+            class="ui-toolbar mt-6 justify-between text-xs text-slate-500 dark:text-slate-400"
           >
             <div class="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!currentPageInfo.hasPrevious || isLoading"
                 @click="handlePageChange(currentPageInfo.page - 1)"
               >
@@ -557,7 +560,7 @@ watch(
               </button>
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="currentPageInfo.page === 0 || isLoading"
                 @click="handlePageChange(0)"
               >
@@ -565,7 +568,7 @@ watch(
               </button>
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!canJumpBackWindow || isLoading"
                 @click="handlePageChange(Math.max(0, currentPageInfo.page - paginationWindow))"
               >
@@ -576,12 +579,8 @@ watch(
                   v-for="pageNumber in paginationPages"
                   :key="pageNumber"
                   type="button"
-                  class="rounded-full border px-3 py-1 text-xs font-semibold transition"
-                  :class="
-                    pageNumber === currentPageInfo.page
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                  "
+                  class="h-9 px-4 text-xs"
+                  :class="pageNumber === currentPageInfo.page ? 'ui-button-primary' : 'ui-button-ghost'"
                   :aria-current="pageNumber === currentPageInfo.page ? 'page' : undefined"
                   :disabled="isLoading"
                   @click="handlePageChange(pageNumber)"
@@ -592,7 +591,7 @@ watch(
               </div>
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!canJumpForwardWindow || isLoading"
                 @click="handlePageChange(currentPageInfo.page + paginationWindow)"
               >
@@ -600,7 +599,7 @@ watch(
               </button>
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!currentPageInfo.hasNext || isLoading"
                 @click="handlePageChange(currentPageInfo.page + 1)"
               >

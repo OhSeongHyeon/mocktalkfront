@@ -488,29 +488,16 @@ onBeforeUnmount(() => {
       <div class="flex flex-col gap-6">
         <PageHeader eyebrow="마이페이지" title="나의 프로필 관리" description="프로필 정보를 수정하고 내 활동을 확인하세요.">
           <template #actions>
-            <div class="flex flex-wrap gap-2">
+            <div class="ui-tab-list">
               <button
                 type="button"
-                class="rounded-full border px-4 py-2 text-sm font-semibold transition"
-                :class="
-                  mainTab === 'activity'
-                    ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
-                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
-                "
+                class="ui-tab-button"
+                :class="mainTab === 'activity' ? 'ui-tab-button-active' : ''"
                 @click="setMainTab('activity')"
               >
                 활동기록
               </button>
-              <button
-                type="button"
-                class="rounded-full border px-4 py-2 text-sm font-semibold transition"
-                :class="
-                  mainTab === 'profile'
-                    ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
-                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
-                "
-                @click="setMainTab('profile')"
-              >
+              <button type="button" class="ui-tab-button" :class="mainTab === 'profile' ? 'ui-tab-button-active' : ''" @click="setMainTab('profile')">
                 프로필 수정
               </button>
             </div>
@@ -570,7 +557,7 @@ onBeforeUnmount(() => {
 
           <form class="ui-panel flex flex-col gap-4 p-6" @submit.prevent="handleSubmit">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-white">프로필 수정</h2>
+              <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">프로필 수정</h2>
               <span v-if="isProfileLoading" class="text-xs text-slate-400">불러오는 중...</span>
             </div>
 
@@ -588,13 +575,7 @@ onBeforeUnmount(() => {
 
             <div class="grid gap-2">
               <label for="mypage-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이름 </label>
-              <input
-                id="mypage-name"
-                v-model="form.userName"
-                type="text"
-                class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-                :disabled="isProfileLoading || isProfileSaving"
-              />
+              <input id="mypage-name" v-model="form.userName" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
@@ -604,31 +585,19 @@ onBeforeUnmount(() => {
                 v-model="form.email"
                 type="email"
                 autocomplete="email"
-                class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+                class="ui-input"
                 :disabled="isProfileLoading || isProfileSaving"
               />
             </div>
 
             <div class="grid gap-2">
               <label for="mypage-nickname" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 닉네임 </label>
-              <input
-                id="mypage-nickname"
-                v-model="form.displayName"
-                type="text"
-                class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-                :disabled="isProfileLoading || isProfileSaving"
-              />
+              <input id="mypage-nickname" v-model="form.displayName" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
               <label for="mypage-handle" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 핸들 </label>
-              <input
-                id="mypage-handle"
-                v-model="form.handle"
-                type="text"
-                class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-                :disabled="isProfileLoading || isProfileSaving"
-              />
+              <input id="mypage-handle" v-model="form.handle" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
@@ -639,7 +608,7 @@ onBeforeUnmount(() => {
                 type="password"
                 autocomplete="new-password"
                 placeholder="변경할 때만 입력"
-                class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+                class="ui-input"
                 :disabled="isProfileLoading || isProfileSaving"
               />
             </div>
@@ -652,7 +621,7 @@ onBeforeUnmount(() => {
                 type="password"
                 autocomplete="new-password"
                 placeholder="비밀번호를 다시 입력"
-                class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
+                class="ui-input"
                 :disabled="isProfileLoading || isProfileSaving"
               />
             </div>
@@ -670,7 +639,7 @@ onBeforeUnmount(() => {
                 <button
                   v-if="form.profileImage"
                   type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                  class="ui-button-ghost h-10 px-4 text-xs"
                   :disabled="isProfileSaving"
                   @click="clearSelectedImage"
                 >
@@ -682,7 +651,7 @@ onBeforeUnmount(() => {
             <div class="flex flex-wrap items-center gap-3">
               <button
                 type="submit"
-                class="h-11 rounded-2xl bg-emerald-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-70"
+                class="ui-button-accent h-11 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-70"
                 :disabled="isProfileLoading || isProfileSaving"
               >
                 저장
@@ -698,7 +667,7 @@ onBeforeUnmount(() => {
               <div>계정 삭제는 되돌릴 수 없습니다. 신중히 진행해주세요.</div>
               <button
                 type="button"
-                class="rounded-full border border-red-300 px-4 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+                class="ui-button-danger h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-70"
                 :disabled="isProfileSaving"
                 @click="openDeleteModal"
               >
@@ -714,32 +683,14 @@ onBeforeUnmount(() => {
 
         <section v-else class="ui-panel flex flex-col gap-4 p-6">
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex gap-2">
-              <button
-                type="button"
-                class="rounded-full border px-4 py-2 text-sm font-semibold transition"
-                :class="
-                  activeTab === 'articles'
-                    ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
-                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
-                "
-                @click="setTab('articles')"
-              >
+            <div class="ui-tab-list">
+              <button type="button" class="ui-tab-button" :class="activeTab === 'articles' ? 'ui-tab-button-active' : ''" @click="setTab('articles')">
                 내 게시글
                 <span v-if="articleTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
                   {{ articleTotalCount }}
                 </span>
               </button>
-              <button
-                type="button"
-                class="rounded-full border px-4 py-2 text-sm font-semibold transition"
-                :class="
-                  activeTab === 'comments'
-                    ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
-                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
-                "
-                @click="setTab('comments')"
-              >
+              <button type="button" class="ui-tab-button" :class="activeTab === 'comments' ? 'ui-tab-button-active' : ''" @click="setTab('comments')">
                 내 댓글
                 <span v-if="commentTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
                   {{ commentTotalCount }}
@@ -747,12 +698,8 @@ onBeforeUnmount(() => {
               </button>
               <button
                 type="button"
-                class="rounded-full border px-4 py-2 text-sm font-semibold transition"
-                :class="
-                  activeTab === 'notifications'
-                    ? 'border-slate-200 bg-white text-slate-900 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100'
-                    : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800'
-                "
+                class="ui-tab-button"
+                :class="activeTab === 'notifications' ? 'ui-tab-button-active' : ''"
                 @click="setTab('notifications')"
               >
                 알림목록
@@ -766,7 +713,7 @@ onBeforeUnmount(() => {
               <button
                 v-if="activeTab === 'notifications' && currentList?.items.length"
                 type="button"
-                class="rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900/40 dark:text-red-300 dark:hover:bg-red-950/40"
+                class="ui-button-danger h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="listLoading"
                 @click="handleDeleteAllNotifications"
               >
@@ -775,12 +722,12 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div v-if="showActivityPagination" class="grid items-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-[1fr_auto_1fr]">
+          <div v-if="showActivityPagination" class="ui-toolbar justify-between text-xs text-slate-500 dark:text-slate-400">
             <div></div>
             <div class="flex flex-wrap items-center justify-center gap-2">
               <button
                 type="button"
-                class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!currentList?.hasPrevious || listLoading"
                 @click="setPage(currentPage - 1)"
               >
@@ -789,7 +736,7 @@ onBeforeUnmount(() => {
               <div v-if="showActivityPageNumbers" class="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
-                  class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!hasPreviousActivityPageWindow || listLoading"
                   aria-label="이전 페이지 묶음"
                   @click="handlePreviousActivityPageWindow"
@@ -800,12 +747,8 @@ onBeforeUnmount(() => {
                   v-for="pageNumber in activityPageNumbers"
                   :key="`mypage-page-${pageNumber}`"
                   type="button"
-                  class="ui-chip-button px-3 py-1"
-                  :class="
-                    pageNumber === currentPage
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                  "
+                  class="h-9 px-4 text-xs"
+                  :class="pageNumber === currentPage ? 'ui-button-primary' : 'ui-button-ghost'"
                   :disabled="listLoading"
                   @click="setPage(pageNumber)"
                 >
@@ -813,7 +756,7 @@ onBeforeUnmount(() => {
                 </button>
                 <button
                   type="button"
-                  class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!hasNextActivityPageWindow || listLoading"
                   aria-label="다음 페이지 묶음"
                   @click="handleNextActivityPageWindow"
@@ -823,7 +766,7 @@ onBeforeUnmount(() => {
               </div>
               <button
                 type="button"
-                class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+                class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!currentList?.hasNext || listLoading"
                 @click="setPage(currentPage + 1)"
               >
@@ -841,7 +784,7 @@ onBeforeUnmount(() => {
           </p>
           <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">{{ activityEmptyMessage }}</div>
           <div v-else class="grid gap-3">
-            <div v-for="item in currentList?.items" :key="item.id" class="ui-sub-panel px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
+            <div v-for="item in currentList?.items" :key="item.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
               <button
                 v-if="activeTab === 'notifications'"
                 type="button"
@@ -866,7 +809,7 @@ onBeforeUnmount(() => {
                   <p>알림을 눌러 상세 화면으로 이동하세요.</p>
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                    class="ui-button-ghost h-8 px-3 text-[11px]"
                     @click.stop="handleDeleteNotification(item as NotificationResponse)"
                   >
                     삭제
@@ -915,21 +858,14 @@ onBeforeUnmount(() => {
     </PageContainer>
 
     <BaseModal :open="isDeleteModalOpen" aria-label="계정 삭제" @close="closeDeleteModal">
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">계정 삭제</h3>
+      <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">계정 삭제</h3>
       <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
         계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
         <span class="font-semibold text-red-500">탈퇴</span>를 입력하세요.
       </p>
       <div class="mt-4 grid gap-2">
         <label for="delete-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 재확인 문구 </label>
-        <input
-          id="delete-confirm"
-          v-model="deleteConfirmText"
-          type="text"
-          placeholder="탈퇴"
-          class="h-11 rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 focus:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400 dark:focus:ring-red-500/20"
-          :disabled="isDeleting"
-        />
+        <input id="delete-confirm" v-model="deleteConfirmText" type="text" placeholder="탈퇴" class="ui-input" :disabled="isDeleting" />
       </div>
       <p
         v-if="deleteError"
@@ -939,17 +875,10 @@ onBeforeUnmount(() => {
         {{ deleteError }}
       </p>
       <div class="mt-5 flex items-center justify-end gap-2">
+        <button type="button" class="ui-button-ghost h-10 px-4 text-sm" :disabled="isDeleting" @click="closeDeleteModal">취소</button>
         <button
           type="button"
-          class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-          :disabled="isDeleting"
-          @click="closeDeleteModal"
-        >
-          취소
-        </button>
-        <button
-          type="button"
-          class="rounded-full border border-red-300 bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-800"
+          class="ui-button-danger h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-70"
           :disabled="isDeleting"
           @click="confirmDelete"
         >
