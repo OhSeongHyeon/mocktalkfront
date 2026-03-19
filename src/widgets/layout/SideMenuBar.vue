@@ -205,7 +205,13 @@ const sections = computed(() => {
 </script>
 
 <template>
-  <div v-if="props.mobileOpen" class="fixed inset-0 z-40 bg-slate-900/40 md:hidden" aria-hidden="true" @click="closeMobileMenu"></div>
+  <div
+    v-if="props.mobileOpen"
+    data-testid="side-menu-backdrop"
+    class="fixed inset-0 z-40 bg-slate-900/40 md:hidden"
+    aria-hidden="true"
+    @click="closeMobileMenu"
+  ></div>
   <aside
     class="fixed top-[3.9rem] z-50 flex h-[calc(100vh-4.6rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition-all md:static md:top-auto md:h-auto md:self-stretch dark:border-slate-800 dark:bg-slate-900"
     :class="[
