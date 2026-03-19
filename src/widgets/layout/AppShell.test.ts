@@ -64,6 +64,7 @@ describe('widgets/layout/AppShell', () => {
     expect(layoutStore.menuCollapsed).toBe(true);
     expect(wrapper.get('[data-testid="side-menu"]').attributes('data-collapsed')).toBe('true');
     expect(wrapper.get('[data-testid="side-menu"]').attributes('data-mobile-open')).toBe('false');
+    expect(wrapper.find('[data-testid="layout-main-frame"]').exists()).toBe(true);
   });
 
   it('모바일에서는 메뉴 버튼이 오프캔버스 상태만 토글하고 close 이벤트로 닫힌다', async () => {

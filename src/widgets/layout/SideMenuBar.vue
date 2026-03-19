@@ -213,7 +213,7 @@ const sections = computed(() => {
     @click="closeMobileMenu"
   ></div>
   <aside
-    class="fixed top-[3.9rem] z-50 flex h-[calc(100vh-4.6rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition-all md:static md:top-auto md:h-auto md:self-stretch dark:border-slate-800 dark:bg-slate-900"
+    class="fixed top-[3.9rem] z-50 flex h-[calc(100vh-4.6rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_18px_36px_-28px_rgba(15,23,42,0.28)] transition-all md:static md:top-auto md:h-auto md:self-stretch md:rounded-l-none md:rounded-r-[0.8rem] md:border-y-0 md:border-l-0 md:shadow-none dark:border-slate-800 dark:bg-slate-900"
     :class="[
       props.mobileOpen ? 'translate-x-0' : '-translate-x-full',
       isDesktopHidden
