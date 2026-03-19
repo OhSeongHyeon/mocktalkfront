@@ -2,12 +2,13 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { ApiError } from '../shared/lib/http/api';
-import { getBoardSubscribes } from '../entities/board';
+import { getBoardSubscribes, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
 import type { BoardSubscribeItemResponse } from '../entities/board';
 import FileImage from '../entities/file/ui/FileImage.vue';
 import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
+import { formatKoreanDate } from '../shared/lib/date';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const isLoading = ref(false);
@@ -18,39 +19,6 @@ const totalPages = ref(0);
 const hasNext = ref(false);
 const hasPrevious = ref(false);
 const pageSize = 10;
-
-const resolveDescription = (description: string | null) => {
-  const trimmed = description?.trim();
-  return trimmed ? trimmed : '설명이 없습니다.';
-};
-
-const resolveVisibilityLabel = (visibility: string) => {
-  if (visibility === 'PUBLIC') {
-    return '공개';
-  }
-  if (visibility === 'GROUP') {
-    return '구독형';
-  }
-  if (visibility === 'PRIVATE') {
-    return '비공개';
-  }
-  if (visibility === 'UNLISTED') {
-    return '운영자 전용';
-  }
-  return '기타';
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 const isInitialLoading = computed(() => isLoading.value && subscribes.value.length === 0);
 const showPagination = computed(() => totalPages.value > 1);
@@ -103,42 +71,52 @@ onMounted(() => {
           {{ listError }}
         </div>
 
-        <div v-if="subscribes.length > 0" class="space-y-3">
+        <div v-if="subscribes.length > 0" class="space-y-2">
+          <div
+            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+          >
+            <span>이미지</span>
+            <span>게시판</span>
+            <span class="text-center">공개 범위</span>
+            <span class="text-center">구독일</span>
+          </div>
           <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
-            <div class="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:items-center">
-              <div class="h-24 overflow-hidden rounded-[1.1rem] bg-slate-100 dark:bg-slate-900">
+            <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] md:items-center">
+              <div class="h-14 overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
                 <FileImage
                   v-if="board.boardImage"
                   :file="board.boardImage"
                   variant="thumb"
                   :alt="board.boardName"
-                  class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  class="h-full w-full object-cover"
                 />
-                <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                  <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
-                  <span class="text-xs">대표 이미지 없음</span>
+                <div v-else class="flex h-full w-full items-center justify-center text-slate-400">
+                  <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-5 w-5" />
                 </div>
               </div>
 
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="ui-badge ui-badge-success">구독중</span>
-                  <span class="ui-badge ui-badge-muted">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                  <span class="ui-badge ui-badge-accent">구독중</span>
                   <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
                 </div>
                 <h2
-                  class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+                  class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-1 truncate text-sm font-black tracking-tight text-slate-900 transition dark:text-slate-100"
                 >
                   {{ board.boardName }}
                 </h2>
-                <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  {{ resolveDescription(board.description) }}
+                <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  {{ resolveBoardSummaryDescription(board.description) }}
                 </p>
               </div>
 
-              <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
-                <span class="ui-badge ui-badge-success">구독일 {{ formatDate(board.subscribedAt) }}</span>
-                <span class="text-xs text-slate-400 dark:text-slate-500">상세 보기</span>
+              <div class="hidden justify-center md:flex">
+                <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:block md:text-center dark:text-slate-400">
+                <span class="ui-badge ui-badge-success md:hidden">구독일 {{ formatKoreanDate(board.subscribedAt) }}</span>
+                <span class="hidden md:inline">{{ formatKoreanDate(board.subscribedAt) }}</span>
               </div>
             </div>
           </RouterLink>

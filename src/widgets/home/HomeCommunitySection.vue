@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-import { getBoards, type BoardResponse } from '../../entities/board';
+import { getBoards, resolveBoardSummaryDescription, resolveBoardWritePolicyLabel, type BoardResponse } from '../../entities/board';
 import FileImage from '../../entities/file/ui/FileImage.vue';
+import { formatKoreanDate } from '../../shared/lib/date';
 import { ApiError } from '../../shared/lib/http/api';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
 import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
@@ -13,38 +14,6 @@ const listError = ref('');
 const targetCount = 15;
 const pageSize = 15;
 const excludedSlugs = new Set(['notice', 'inquiry']);
-
-const resolveDescription = (description: string | null) => {
-  const trimmed = description?.trim();
-  return trimmed ? trimmed : '설명이 없습니다.';
-};
-
-const resolveWritePolicyLabel = (writePolicy: string) => {
-  if (writePolicy === 'ALL_AUTHENTICATED') {
-    return '회원 글쓰기';
-  }
-  if (writePolicy === 'MEMBER') {
-    return '멤버 전용';
-  }
-  if (writePolicy === 'MODERATOR') {
-    return '운영진 전용';
-  }
-  if (writePolicy === 'OWNER') {
-    return '개설자 전용';
-  }
-  return '정책 미정';
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 const loadPublicBoards = async () => {
   if (isLoading.value) {
@@ -117,7 +86,7 @@ onMounted(() => {
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="ui-badge ui-badge-success">공개</span>
-                <span class="ui-badge ui-badge-muted">{{ resolveWritePolicyLabel(board.articleWritePolicy) }}</span>
+                <span class="ui-badge ui-badge-muted">{{ resolveBoardWritePolicyLabel(board.articleWritePolicy) }}</span>
                 <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
               </div>
               <h3
@@ -126,13 +95,15 @@ onMounted(() => {
                 {{ board.boardName }}
               </h3>
               <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                {{ resolveDescription(board.description) }}
+                {{ resolveBoardSummaryDescription(board.description) }}
               </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
               <span class="ui-badge ui-badge-muted">입장</span>
-              <span class="text-xs text-slate-400 dark:text-slate-500">개설 {{ formatDate(board.createdAt) }}</span>
+              <span class="text-xs text-slate-400 dark:text-slate-500">
+                개설 {{ formatKoreanDate(board.createdAt, { month: '2-digit', day: '2-digit' }) }}
+              </span>
             </div>
           </div>
         </RouterLink>

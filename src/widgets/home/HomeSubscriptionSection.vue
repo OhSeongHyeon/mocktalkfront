@@ -2,9 +2,15 @@
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
-import { getBoardSubscribes, type BoardSubscribeItemResponse } from '../../entities/board';
+import {
+  getBoardSubscribes,
+  resolveBoardSummaryDescription,
+  resolveBoardVisibilityLabel,
+  type BoardSubscribeItemResponse,
+} from '../../entities/board';
 import FileImage from '../../entities/file/ui/FileImage.vue';
 import { useAuthStore } from '../../stores/auth';
+import { formatKoreanDate } from '../../shared/lib/date';
 import { ApiError } from '../../shared/lib/http/api';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
 import boardPlaceholderIcon from '../../assets/icons/icon-board-placeholder.svg';
@@ -17,39 +23,6 @@ const authStore = useAuthStore();
 const { isAuthenticated } = storeToRefs(authStore);
 
 const showEmptyState = computed(() => !isLoading.value && !listError.value && subscribes.value.length === 0);
-
-const resolveDescription = (description: string | null) => {
-  const trimmed = description?.trim();
-  return trimmed ? trimmed : '설명이 없습니다.';
-};
-
-const resolveVisibilityLabel = (visibility: string) => {
-  if (visibility === 'PUBLIC') {
-    return '공개';
-  }
-  if (visibility === 'GROUP') {
-    return '구독형';
-  }
-  if (visibility === 'PRIVATE') {
-    return '비공개';
-  }
-  if (visibility === 'UNLISTED') {
-    return '운영자 전용';
-  }
-  return '기타';
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 const loadSubscribes = async () => {
   if (!isAuthenticated.value || isLoading.value) {
@@ -113,7 +86,7 @@ watch(
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="ui-badge ui-badge-accent">구독</span>
-                <span class="ui-badge ui-badge-muted">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
                 <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
               </div>
               <h3
@@ -122,12 +95,12 @@ watch(
                 {{ board.boardName }}
               </h3>
               <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                {{ resolveDescription(board.description) }}
+                {{ resolveBoardSummaryDescription(board.description) }}
               </p>
             </div>
 
             <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
-              <span class="ui-badge ui-badge-success">구독일 {{ formatDate(board.subscribedAt) }}</span>
+              <span class="ui-badge ui-badge-success">구독일 {{ formatKoreanDate(board.subscribedAt) }}</span>
               <span class="text-xs text-slate-400 dark:text-slate-500">바로 이동</span>
             </div>
           </div>

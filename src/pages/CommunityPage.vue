@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { getBoards } from '../entities/board';
+import { getBoards, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
 import type { BoardResponse } from '../entities/board';
 import FileImage from '../entities/file/ui/FileImage.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import { formatKoreanDate } from '../shared/lib/date';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import { ApiError } from '../shared/lib/http/api';
 import AppShell from '../widgets/layout/AppShell.vue';
@@ -30,38 +31,6 @@ let observer: IntersectionObserver | null = null;
 const isInitialLoading = computed(() => isLoading.value && boards.value.length === 0);
 const visibleBoards = computed(() => boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug)));
 const visibleBoardCount = computed(() => visibleBoards.value.length);
-
-const resolveDescription = (description: string | null) => {
-  const trimmed = description?.trim();
-  return trimmed ? trimmed : '설명이 없습니다.';
-};
-
-const resolveVisibilityLabel = (visibility: string) => {
-  if (visibility === 'PUBLIC') {
-    return '공개';
-  }
-  if (visibility === 'GROUP') {
-    return '구독형';
-  }
-  if (visibility === 'PRIVATE') {
-    return '비공개';
-  }
-  if (visibility === 'UNLISTED') {
-    return '운영자 전용';
-  }
-  return '기타';
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 const loadNextPage = async () => {
   if (isLoading.value || !hasNext.value) {
@@ -170,15 +139,17 @@ onBeforeUnmount(() => {
                   {{ board.boardName }}
                 </h3>
                 <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  {{ resolveDescription(board.description) }}
+                  {{ resolveBoardSummaryDescription(board.description) }}
                 </p>
               </div>
 
               <div class="hidden justify-center md:flex">
-                <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                <span class="ui-badge ui-badge-success">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
               </div>
 
-              <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">{{ formatDate(board.createdAt) }}</div>
+              <div class="hidden text-center text-xs text-slate-500 md:block dark:text-slate-400">
+                {{ formatKoreanDate(board.createdAt, { month: '2-digit', day: '2-digit' }) }}
+              </div>
             </div>
           </RouterLink>
         </div>

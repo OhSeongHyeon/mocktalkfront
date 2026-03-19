@@ -2,9 +2,11 @@
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+import { resolveBoardVisibilityLabel } from '../entities/board';
 import { search, type SearchResponse, type SearchType } from '../features/search';
 import FileImage from '../entities/file/ui/FileImage.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import { formatKoreanDate } from '../shared/lib/date';
 import { ApiError } from '../shared/lib/http/api';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import SectionHeader from '../shared/ui/SectionHeader.vue';
@@ -103,33 +105,6 @@ const paginationPages = computed(() => {
 const showTrailingEllipsis = computed(() => currentPageInfo.value.hasNext && paginationPages.value.length > 0);
 const canJumpBackWindow = computed(() => currentPageInfo.value.hasPrevious && currentPageInfo.value.page - paginationWindow >= 0);
 const canJumpForwardWindow = computed(() => currentPageInfo.value.hasNext);
-
-const resolveVisibilityLabel = (visibility: string) => {
-  switch (visibility) {
-    case 'PUBLIC':
-      return '공개';
-    case 'GROUP':
-      return '구독형';
-    case 'PRIVATE':
-      return '비공개';
-    case 'UNLISTED':
-      return '운영자 전용';
-    default:
-      return '알 수 없음';
-  }
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 const scrollToTop = () => {
   if (!scrollAreaRef.value) {
@@ -363,7 +338,7 @@ watch(
 
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                      <span class="ui-badge ui-badge-success">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
                       <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
                     </div>
                     <div class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
@@ -399,7 +374,7 @@ watch(
                     <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
                       <span>{{ article.authorName }}</span>
-                      <span>{{ formatDate(article.createdAt) }}</span>
+                      <span>{{ formatKoreanDate(article.createdAt) }}</span>
                     </div>
                     <div class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
                   </div>
@@ -485,7 +460,7 @@ watch(
 
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="ui-badge ui-badge-success">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                      <span class="ui-badge ui-badge-success">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
                       <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
                     </div>
                     <div class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
@@ -511,7 +486,7 @@ watch(
                     <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                       <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
                       <span>{{ article.authorName }}</span>
-                      <span>{{ formatDate(article.createdAt) }}</span>
+                      <span>{{ formatKoreanDate(article.createdAt) }}</span>
                     </div>
                     <div class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
                   </div>

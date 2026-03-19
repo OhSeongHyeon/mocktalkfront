@@ -7,6 +7,7 @@ import { clearHistoryItems, getHistoryItems, removeHistoryItem } from '../shared
 import type { HistoryItem } from '../shared/lib/history';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
+import { formatKoreanDateTime } from '../shared/lib/date';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
@@ -30,11 +31,6 @@ const filteredItems = computed(() => {
     return title.includes(keyword) || boardName.includes(keyword) || boardSlug.includes(keyword);
   });
 });
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('ko-KR');
-};
 
 const goArticle = async (item: HistoryItem) => {
   await router.push(`/b/${item.boardSlug}/articles/${item.articleId}`);
@@ -77,34 +73,19 @@ onMounted(async () => {
       <div class="space-y-6">
         <PageHeader title="기록" description="최근 열람한 게시글을 확인할 수 있습니다. 이 기록은 브라우저에만 저장됩니다.">
           <template #actions>
-            <button
-              type="button"
-              class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-              @click="openClearModal"
-            >
-              전체 삭제
-            </button>
+            <button type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openClearModal">전체 삭제</button>
           </template>
         </PageHeader>
 
         <div class="ui-panel p-4">
           <div class="flex flex-wrap items-center gap-3">
-            <input
-              v-model="searchKeyword"
-              type="search"
-              class="h-10 min-w-[200px] flex-1 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              placeholder="제목, 게시판명, 슬러그 검색"
-            />
-            <span class="text-xs font-semibold text-slate-400">총 {{ filteredItems.length }}건</span>
+            <input v-model="searchKeyword" type="search" class="ui-input min-w-[200px] flex-1" placeholder="제목, 게시판명, 슬러그 검색" />
+            <span class="ui-badge ui-badge-muted">총 {{ filteredItems.length }}건</span>
           </div>
         </div>
 
-        <div v-if="filteredItems.length > 0" class="flex flex-col gap-3">
-          <div
-            v-for="item in filteredItems"
-            :key="item.articleId"
-            class="ui-sub-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition hover:border-slate-300"
-          >
+        <div v-if="filteredItems.length > 0" class="flex flex-col gap-2">
+          <div v-for="item in filteredItems" :key="item.articleId" class="ui-list-row sm:flex-row sm:items-center sm:justify-between">
             <button type="button" class="flex min-w-0 flex-1 flex-col gap-1 text-left" @click="goArticle(item)">
               <p class="text-xs font-semibold text-slate-400">
                 {{ item.boardName ?? item.boardSlug }}
@@ -113,15 +94,9 @@ onMounted(async () => {
               <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {{ item.title }}
               </p>
-              <p class="text-xs text-slate-400">방문 {{ formatDate(item.visitedAt) }}</p>
+              <p class="text-xs text-slate-400">방문 {{ formatKoreanDateTime(item.visitedAt, item.visitedAt) }}</p>
             </button>
-            <button
-              type="button"
-              class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 dark:border-rose-800 dark:text-rose-300"
-              @click="handleRemove(item)"
-            >
-              삭제
-            </button>
+            <button type="button" class="ui-button-danger h-8 shrink-0 px-3 text-xs" @click="handleRemove(item)">삭제</button>
           </div>
         </div>
 
