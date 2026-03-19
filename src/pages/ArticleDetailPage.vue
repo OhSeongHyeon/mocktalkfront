@@ -121,6 +121,24 @@ const formatFileSize = (size: number) => {
 const attachments = computed(() => article.value?.attachments ?? []);
 const sanitizedContent = computed(() => (article.value?.content ? sanitizeHtml(article.value.content) : ''));
 const renderedContent = ref('');
+const articleCategoryLabel = computed(() => {
+  const trimmed = article.value?.categoryName?.trim();
+  return trimmed ? trimmed : null;
+});
+const articleVisibilityLabel = computed(() => {
+  switch (article.value?.visibility) {
+    case 'PUBLIC':
+      return '공개';
+    case 'GROUP':
+      return '구독형';
+    case 'PRIVATE':
+      return '비공개';
+    case 'UNLISTED':
+      return '운영자 전용';
+    default:
+      return '일반';
+  }
+});
 
 const renderArticleMermaid = async () => {
   await nextTick();
@@ -1016,197 +1034,221 @@ onUnmounted(() => {
           {{ errorMessage }}
         </div>
 
-        <div v-else class="mt-6">
-          <article class="ui-panel px-5 py-6 sm:px-7">
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <span v-if="article?.notice" class="rounded-full bg-amber-500 px-2 py-0.5 font-semibold text-white"> 공지 </span>
-              <span>{{ article?.authorName ?? '작성자' }}</span>
-              <span>조회 {{ article?.hit ?? 0 }}</span>
-              <span>댓글 {{ article?.commentCount ?? 0 }}</span>
-              <span>{{ article?.createdAt ? formatDateTime(article.createdAt) : '' }}</span>
-              <span v-if="article?.updatedAt">수정 {{ formatDateTime(article.updatedAt) }}</span>
-            </div>
-            <h1 class="mt-4 text-2xl font-semibold text-slate-900 dark:text-slate-100">
-              {{ article?.title ?? '' }}
-            </h1>
-            <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
-              <button
-                type="button"
-                class="ui-chip-button px-3 py-1"
-                :class="
-                  article?.myReaction === 1
-                    ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                "
-                :disabled="!isAuthenticated || isReactionLoading"
-                @click="handleReaction(1)"
-              >
-                좋아요 {{ article?.likeCount ?? 0 }}
-              </button>
-              <button
-                type="button"
-                class="ui-chip-button px-3 py-1"
-                :class="
-                  article?.myReaction === -1
-                    ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                "
-                :disabled="!isAuthenticated || isReactionLoading"
-                @click="handleReaction(-1)"
-              >
-                싫어요 {{ article?.dislikeCount ?? 0 }}
-              </button>
-              <button
-                type="button"
-                class="ui-chip-button px-3 py-1"
-                :class="
-                  article?.bookmarked
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                "
-                :disabled="!isAuthenticated || isBookmarkLoading"
-                @click="handleBookmark"
-              >
-                {{ article?.bookmarked ? '북마크됨' : '북마크' }}
-              </button>
-              <span
-                v-if="!isAuthenticated"
-                class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
-              >
-                로그인 후 반응/북마크가 가능합니다.
-              </span>
-            </div>
-            <div v-if="article?.content" ref="articleContentRef" class="ui-content mt-6 max-w-none" v-html="renderedContent"></div>
-            <div v-else class="mt-6 text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
-          </article>
+        <div v-else class="mt-6 space-y-6">
+          <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <article class="ui-panel overflow-hidden">
+              <div class="border-b border-slate-200/80 px-5 py-5 sm:px-6 dark:border-slate-800/80">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span v-if="article?.notice" class="ui-badge ui-badge-warning">공지</span>
+                  <span v-if="articleCategoryLabel" class="ui-badge ui-badge-success">{{ articleCategoryLabel }}</span>
+                  <span class="ui-badge ui-badge-muted">{{ articleVisibilityLabel }}</span>
+                  <span class="ui-badge ui-badge-muted">댓글 {{ article?.commentCount ?? 0 }}</span>
+                </div>
+                <h1 class="mt-3 text-2xl font-black tracking-tight text-slate-900 sm:text-[2rem] dark:text-slate-100">
+                  {{ article?.title ?? '' }}
+                </h1>
+                <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span>{{ article?.authorName ?? '작성자' }}</span>
+                  <span>조회 {{ article?.hit ?? 0 }}</span>
+                  <span>{{ article?.createdAt ? formatDateTime(article.createdAt) : '' }}</span>
+                  <span v-if="article?.updatedAt">수정 {{ formatDateTime(article.updatedAt) }}</span>
+                </div>
+              </div>
 
-          <section class="mt-6">
-            <div class="ui-sub-panel p-3 sm:p-4">
-              <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="px-5 py-5 sm:px-6">
+                <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
+                <div v-else class="text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
+              </div>
+            </article>
+
+            <aside class="space-y-4">
+              <section class="ui-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Quick Actions</p>
+                <div class="mt-3 flex flex-col gap-2">
+                  <button type="button" class="ui-button-ghost h-10 px-4 text-sm" @click="goBoard">게시판으로</button>
+                  <button v-if="isAuthor" type="button" class="ui-button-primary h-10 px-4 text-sm" @click="goEdit">수정</button>
+                  <button v-if="isAuthor" type="button" class="ui-button-danger h-10 px-4 text-sm" @click="openDeleteModal">삭제</button>
+                </div>
+              </section>
+
+              <section class="ui-panel p-4">
+                <div class="flex items-center justify-between gap-2">
+                  <div>
+                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Reaction</p>
+                    <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">반응과 보관</h2>
+                  </div>
+                  <span class="ui-badge" :class="isAuthenticated ? 'ui-badge-success' : 'ui-badge-muted'">
+                    {{ isAuthenticated ? '사용 가능' : '로그인 필요' }}
+                  </span>
+                </div>
+                <div class="mt-3 grid gap-2">
+                  <button
+                    type="button"
+                    class="h-10 px-4 text-sm"
+                    :class="article?.myReaction === 1 ? 'ui-button-primary' : 'ui-button-ghost'"
+                    :disabled="!isAuthenticated || isReactionLoading"
+                    @click="handleReaction(1)"
+                  >
+                    좋아요 {{ article?.likeCount ?? 0 }}
+                  </button>
+                  <button
+                    type="button"
+                    class="h-10 px-4 text-sm"
+                    :class="article?.myReaction === -1 ? 'ui-button-danger' : 'ui-button-ghost'"
+                    :disabled="!isAuthenticated || isReactionLoading"
+                    @click="handleReaction(-1)"
+                  >
+                    싫어요 {{ article?.dislikeCount ?? 0 }}
+                  </button>
+                  <button
+                    type="button"
+                    class="h-10 px-4 text-sm"
+                    :class="article?.bookmarked ? 'ui-button-primary' : 'ui-button-ghost'"
+                    :disabled="!isAuthenticated || isBookmarkLoading"
+                    @click="handleBookmark"
+                  >
+                    {{ article?.bookmarked ? '북마크됨' : '북마크' }}
+                  </button>
+                </div>
+                <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                  로그인 후 반응과 북마크를 사용할 수 있습니다.
+                </p>
+              </section>
+
+              <section class="ui-panel p-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Attachment</p>
+                    <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">첨부파일 {{ attachments.length }}개</h2>
+                  </div>
+                  <button
+                    type="button"
+                    class="ui-button-ghost h-10 px-4 text-xs"
+                    :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
+                    :aria-controls="attachmentSectionId"
+                    @click="isAttachmentExpanded = !isAttachmentExpanded"
+                  >
+                    {{ isAttachmentExpanded ? '접기' : '펼치기' }}
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
-                  :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
-                  :aria-controls="attachmentSectionId"
-                  @click="isAttachmentExpanded = !isAttachmentExpanded"
-                >
-                  <span>첨부파일 {{ attachments.length }}개</span>
-                  <span>{{ isAttachmentExpanded ? '접기' : '펼치기' }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="ui-button-primary mt-3 h-10 w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="attachments.length === 0 || isDownloadingAllAttachments"
                   @click="downloadAllAttachments"
                 >
                   {{ isDownloadingAllAttachments ? '다운로드 중...' : '전체 다운로드' }}
                 </button>
-              </div>
-              <div v-show="isAttachmentExpanded" :id="attachmentSectionId" class="mt-3">
-                <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">첨부파일이 없습니다.</div>
-                <div v-else class="space-y-2">
-                  <div
-                    v-for="file in attachments"
-                    :key="file.id"
-                    class="ui-sub-panel flex items-center justify-between gap-3 px-4 py-3 text-sm text-slate-700 dark:text-slate-200"
-                  >
-                    <div class="min-w-0 flex-1">
-                      <p class="truncate font-medium">{{ file.fileName }}</p>
-                      <p class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-slate-500 dark:text-slate-400">
-                        {{ formatFileSize(file.fileSize) }}
-                      </span>
-                      <button
-                        type="button"
-                        class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-                        @click="downloadAttachment(file)"
-                      >
-                        다운로드
-                      </button>
+
+                <div v-show="isAttachmentExpanded" :id="attachmentSectionId" class="mt-3">
+                  <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">첨부파일이 없습니다.</div>
+                  <div v-else class="space-y-2">
+                    <div v-for="file in attachments" :key="file.id" class="ui-list-row">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{{ file.fileName }}</p>
+                          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</p>
+                        </div>
+                        <span class="ui-badge ui-badge-muted">{{ formatFileSize(file.fileSize) }}</span>
+                      </div>
+                      <button type="button" class="ui-button-ghost h-9 self-end px-4 text-xs" @click="downloadAttachment(file)">다운로드</button>
                     </div>
                   </div>
                 </div>
+              </section>
+            </aside>
+          </div>
+
+          <section class="ui-panel overflow-hidden">
+            <div class="border-b border-slate-200/80 px-5 py-4 sm:px-6 dark:border-slate-800/80">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Comment</p>
+                  <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">댓글</h2>
+                </div>
+                <span class="ui-badge ui-badge-muted">총 {{ article?.commentCount ?? 0 }}개</span>
               </div>
             </div>
-          </section>
 
-          <section class="mt-10">
-            <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold uppercase tracking-[0.16em] text-slate-600 dark:text-slate-300">댓글</h2>
-              <span class="text-xs text-slate-500 dark:text-slate-400">총 {{ article?.commentCount ?? 0 }}개</span>
-            </div>
+            <div class="px-5 py-5 sm:px-6">
+              <div v-if="isAuthenticated" class="ui-sub-panel p-4">
+                <textarea
+                  ref="commentTextareaRef"
+                  v-model="newComment"
+                  rows="3"
+                  placeholder="댓글을 입력하세요"
+                  class="ui-textarea"
+                  @focus="resizeCommentTextarea"
+                  @input="handleCommentInput"
+                  @keydown="handleCommentInputKeydown"
+                ></textarea>
+                <div class="mt-3 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    class="ui-button-primary h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="isCommentSubmitting || !newComment.trim()"
+                    @click="submitComment"
+                  >
+                    댓글 등록
+                  </button>
+                </div>
+              </div>
 
-            <div v-if="isAuthenticated" class="ui-sub-panel mt-4 p-4">
-              <textarea
-                ref="commentTextareaRef"
-                v-model="newComment"
-                rows="3"
-                placeholder="댓글을 입력하세요"
-                class="ui-textarea"
-                @focus="resizeCommentTextarea"
-                @input="handleCommentInput"
-                @keydown="handleCommentInputKeydown"
-              ></textarea>
-              <div class="mt-3 flex items-center justify-end gap-2">
+              <div v-else class="ui-state ui-state-empty px-4 py-6">댓글 작성은 로그인 후 이용할 수 있습니다.</div>
+
+              <div v-if="commentError" class="ui-state ui-state-danger mt-4">
+                {{ commentError }}
+              </div>
+
+              <div v-if="comments && comments.items.length === 0" class="ui-state ui-state-empty mt-4">아직 댓글이 없습니다.</div>
+
+              <div v-else-if="comments" class="mt-4">
+                <CommentList
+                  :comments="comments.items"
+                  :current-user-id="currentUserId"
+                  :article-author-id="article?.userId ?? null"
+                  :is-authenticated="isAuthenticated"
+                  :focus-comment-id="focusCommentId"
+                  @reply="handleReply"
+                  @update="handleUpdate"
+                  @delete="handleDelete"
+                  @reaction="handleCommentReaction"
+                />
+              </div>
+
+              <div v-if="comments && comments.totalPages > 1" class="ui-toolbar mt-4 justify-between text-xs text-slate-500 dark:text-slate-400">
                 <button
                   type="button"
-                  class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
-                  :disabled="isCommentSubmitting || !newComment.trim()"
-                  @click="submitComment"
+                  class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="!comments.hasPrevious || isCommentLoading"
+                  @click="handleCommentPage(commentPage - 1)"
                 >
-                  댓글 등록
+                  이전
+                </button>
+                <span>페이지 {{ commentPage + 1 }} / {{ comments.totalPages }}</span>
+                <button
+                  type="button"
+                  class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="!comments.hasNext || isCommentLoading"
+                  @click="handleCommentPage(commentPage + 1)"
+                >
+                  다음
                 </button>
               </div>
+
+              <div v-if="isCommentLoading" class="mt-3 text-xs text-slate-500">댓글을 불러오는 중입니다...</div>
             </div>
-
-            <div v-else class="ui-state ui-state-empty mt-4 px-4 py-6">댓글 작성은 로그인 후 이용할 수 있습니다.</div>
-
-            <div v-if="commentError" class="ui-state ui-state-danger mt-4">
-              {{ commentError }}
-            </div>
-
-            <div v-if="comments && comments.items.length === 0" class="ui-state ui-state-empty mt-4">아직 댓글이 없습니다.</div>
-
-            <div v-else-if="comments" class="mt-4">
-              <CommentList
-                :comments="comments.items"
-                :current-user-id="currentUserId"
-                :article-author-id="article?.userId ?? null"
-                :is-authenticated="isAuthenticated"
-                :focus-comment-id="focusCommentId"
-                @reply="handleReply"
-                @update="handleUpdate"
-                @delete="handleDelete"
-                @reaction="handleCommentReaction"
-              />
-            </div>
-
-            <div v-if="comments && comments.totalPages > 1" class="mt-4 flex items-center justify-between text-xs text-slate-500">
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="!comments.hasPrevious || isCommentLoading"
-                @click="handleCommentPage(commentPage - 1)"
-              >
-                이전
-              </button>
-              <span>페이지 {{ commentPage + 1 }} / {{ comments.totalPages }}</span>
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="!comments.hasNext || isCommentLoading"
-                @click="handleCommentPage(commentPage + 1)"
-              >
-                다음
-              </button>
-            </div>
-
-            <div v-if="isCommentLoading" class="mt-3 text-xs text-slate-500">댓글을 불러오는 중입니다...</div>
           </section>
 
-          <section class="mt-10">
+          <section class="space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Related Feed</p>
+                <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">같은 게시판의 다른 글</h2>
+              </div>
+              <span class="ui-badge ui-badge-muted">{{ article?.board?.boardName ?? '커뮤니티' }}</span>
+            </div>
             <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
           </section>
         </div>

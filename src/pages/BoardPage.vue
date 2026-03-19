@@ -46,6 +46,23 @@ const visibilityLabel = computed(() => {
       return '알 수 없음';
   }
 });
+const memberStatusLabel = computed(() => {
+  switch (board.value?.memberStatus) {
+    case 'OWNER':
+      return '개설자';
+    case 'MODERATOR':
+      return '운영진';
+    case 'MEMBER':
+      return '멤버';
+    case 'PENDING':
+      return '가입 대기';
+    case 'BANNED':
+      return '제한됨';
+    default:
+      return '방문자';
+  }
+});
+const subscribeStatusLabel = computed(() => (board.value?.subscribed ? '구독 중' : '미구독'));
 
 const canInteract = computed(() => Boolean(isAuthenticated.value && board.value));
 const canBoardAdmin = computed(() => {
@@ -210,50 +227,54 @@ watch(
           :link-to="board ? `/b/${board.slug}` : undefined"
         >
           <template #meta>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <span>운영자 {{ ownerDisplayName }}</span>
-              <span>{{ visibilityLabel }} 커뮤니티</span>
+            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span class="ui-badge ui-badge-accent">{{ visibilityLabel }} 커뮤니티</span>
+              <span class="ui-badge ui-badge-muted">운영자 {{ ownerDisplayName }}</span>
+              <span class="ui-badge" :class="board?.memberStatus === 'BANNED' ? 'ui-badge-danger' : 'ui-badge-warning'">{{ memberStatusLabel }}</span>
+              <span class="ui-badge" :class="board?.subscribed ? 'ui-badge-success' : 'ui-badge-muted'">{{ subscribeStatusLabel }}</span>
             </div>
           </template>
           <template #actions>
-            <div v-if="canInteract" class="flex flex-wrap items-center gap-3">
-              <button
-                v-if="canBoardAdmin"
-                type="button"
-                class="ui-chip-button border-slate-900 bg-slate-900 text-white hover:bg-slate-800 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-                @click="goBoardAdmin"
-              >
-                관리
-              </button>
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="subscribeDisabled"
-                @click="handleSubscribe"
-              >
-                {{ subscribeLabel }}
-              </button>
-              <button
-                v-if="showJoinButton"
-                type="button"
-                class="ui-chip-button border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-300 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-200"
-                :disabled="joinDisabled"
-                @click="handleJoin"
-              >
-                {{ joinButtonLabel }}
-              </button>
-              <button
-                type="button"
-                class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
-                :disabled="!canWrite"
-                :title="!canWrite ? writeUnavailableReason : undefined"
-                @click="goWrite"
-              >
-                글쓰기
-              </button>
-              <span v-if="actionError" class="text-xs text-rose-500">
+            <div class="flex flex-col gap-3">
+              <div v-if="canInteract" class="flex flex-wrap items-center gap-2">
+                <button v-if="canBoardAdmin" type="button" class="ui-button-primary h-10 px-4 text-xs" @click="goBoardAdmin">관리</button>
+                <button
+                  type="button"
+                  class="h-10 px-4 text-xs"
+                  :class="board?.subscribed ? 'ui-button-primary' : 'ui-button-ghost'"
+                  :disabled="subscribeDisabled"
+                  @click="handleSubscribe"
+                >
+                  {{ subscribeLabel }}
+                </button>
+                <button
+                  v-if="showJoinButton"
+                  type="button"
+                  class="h-10 px-4 text-xs"
+                  :class="board?.memberStatus === 'PENDING' ? 'ui-button-ghost' : 'ui-button-primary'"
+                  :disabled="joinDisabled"
+                  @click="handleJoin"
+                >
+                  {{ joinButtonLabel }}
+                </button>
+                <button
+                  type="button"
+                  class="ui-button-accent h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="!canWrite"
+                  :title="!canWrite ? writeUnavailableReason : undefined"
+                  @click="goWrite"
+                >
+                  글쓰기
+                </button>
+              </div>
+
+              <div v-else class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span class="ui-badge ui-badge-muted">로그인 후 구독과 글쓰기를 사용할 수 있습니다.</span>
+              </div>
+
+              <div v-if="actionError" class="ui-state ui-state-danger text-xs font-semibold">
                 {{ actionError }}
-              </span>
+              </div>
             </div>
           </template>
         </BoardHeaderCard>

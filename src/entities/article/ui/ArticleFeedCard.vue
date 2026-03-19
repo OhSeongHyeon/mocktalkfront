@@ -45,35 +45,32 @@ const formatRelativeTime = (value: string) => {
 </script>
 
 <template>
-  <RouterLink
-    :to="articlePath"
-    class="ui-sub-panel group flex h-full flex-col gap-4 px-5 py-5 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:hover:border-slate-700"
-  >
-    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-      <span
-        class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
-      >
-        {{ article.boardName }}
-      </span>
-      <span>{{ formatRelativeTime(article.createdAt) }}</span>
-    </div>
+  <RouterLink :to="articlePath" class="ui-list-row group">
+    <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
+          <span class="ui-badge ui-badge-muted">{{ formatRelativeTime(article.createdAt) }}</span>
+        </div>
+        <h3
+          class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 line-clamp-1 text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+        >
+          {{ article.title }}
+        </h3>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          {{ previewText }}
+        </p>
+        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+          <span>{{ article.authorName }}</span>
+          <span>최근 등록</span>
+        </div>
+      </div>
 
-    <div class="space-y-2">
-      <h3
-        class="line-clamp-2 text-lg font-semibold text-slate-900 transition group-hover:text-emerald-700 dark:text-slate-100 dark:group-hover:text-emerald-300"
-      >
-        {{ article.title }}
-      </h3>
-      <p class="line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-        {{ previewText }}
-      </p>
-    </div>
-
-    <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
-      <span>{{ article.authorName }}</span>
-      <span>댓글 {{ article.commentCount }}</span>
-      <span>좋아요 {{ article.likeCount }}</span>
-      <span>조회 {{ article.hit }}</span>
+      <div class="flex flex-wrap items-center gap-2 md:justify-end">
+        <span class="ui-badge ui-badge-muted">댓글 {{ article.commentCount }}</span>
+        <span class="ui-badge ui-badge-muted">추천 {{ article.likeCount }}</span>
+        <span class="ui-badge ui-badge-muted">조회 {{ article.hit }}</span>
+      </div>
     </div>
   </RouterLink>
 </template>

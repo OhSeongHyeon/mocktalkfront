@@ -55,41 +55,35 @@ const formatRelativeTime = (value: string) => {
 <template>
   <RouterLink
     :to="articlePath"
-    class="ui-sub-panel group flex h-full flex-col gap-4 border-cyan-200/70 bg-gradient-to-br from-white via-cyan-50/70 to-sky-50/80 px-5 py-5 transition hover:-translate-y-0.5 hover:border-cyan-300/80 hover:shadow-md dark:border-cyan-900/30 dark:from-slate-950 dark:via-cyan-950/20 dark:to-sky-950/20 dark:hover:border-cyan-800/60"
+    class="ui-list-row group border-cyan-200/80 bg-gradient-to-r from-white via-cyan-50/70 to-sky-50/70 dark:border-cyan-900/40 dark:from-slate-950 dark:via-cyan-950/20 dark:to-sky-950/20"
   >
-    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-      <span
-        class="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[11px] text-cyan-700 dark:border-cyan-900/40 dark:bg-cyan-950/40 dark:text-cyan-200"
-      >
-        추천
-      </span>
-      <span class="rounded-full border px-2.5 py-1 text-[11px]" :class="recommendationToneClass">
-        {{ recommendationLabel }}
-      </span>
-      <span
-        class="rounded-full border border-white/80 bg-white/80 px-2.5 py-1 text-[11px] text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-300"
-      >
-        {{ boardLabel }}
-      </span>
-      <span>{{ formatRelativeTime(article.createdAt) }}</span>
-    </div>
+    <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="ui-badge ui-badge-accent">추천</span>
+          <span class="ui-badge" :class="recommendationToneClass">{{ recommendationLabel }}</span>
+          <span class="ui-badge ui-badge-muted">{{ boardLabel }}</span>
+          <span class="ui-badge ui-badge-muted">{{ formatRelativeTime(article.createdAt) }}</span>
+        </div>
+        <h3
+          class="mt-2 line-clamp-1 text-base font-black tracking-tight text-slate-900 transition group-hover:text-cyan-700 dark:text-slate-100 dark:group-hover:text-cyan-300"
+        >
+          {{ article.title }}
+        </h3>
+        <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          {{ article.recommendationReason }}
+        </p>
+        <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+          <span>{{ article.authorName }}</span>
+          <span>{{ props.article.personalized ? '개인화 반영' : '발견 추천' }}</span>
+        </div>
+      </div>
 
-    <div class="space-y-2">
-      <h3
-        class="line-clamp-2 text-lg font-semibold text-slate-900 transition group-hover:text-cyan-700 dark:text-slate-100 dark:group-hover:text-cyan-300"
-      >
-        {{ article.title }}
-      </h3>
-      <p class="line-clamp-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-        {{ article.recommendationReason }}
-      </p>
-    </div>
-
-    <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
-      <span>{{ article.authorName }}</span>
-      <span>댓글 {{ article.commentCount }}</span>
-      <span>좋아요 {{ article.likeCount }}</span>
-      <span>조회 {{ article.hit }}</span>
+      <div class="flex flex-wrap items-center gap-2 md:justify-end">
+        <span class="ui-badge ui-badge-muted">댓글 {{ article.commentCount }}</span>
+        <span class="ui-badge ui-badge-accent">추천 {{ article.likeCount }}</span>
+        <span class="ui-badge ui-badge-muted">조회 {{ article.hit }}</span>
+      </div>
     </div>
   </RouterLink>
 </template>

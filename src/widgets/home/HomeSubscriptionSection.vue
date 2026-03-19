@@ -23,6 +23,22 @@ const resolveDescription = (description: string | null) => {
   return trimmed ? trimmed : '설명이 없습니다.';
 };
 
+const resolveVisibilityLabel = (visibility: string) => {
+  if (visibility === 'PUBLIC') {
+    return '공개';
+  }
+  if (visibility === 'GROUP') {
+    return '구독형';
+  }
+  if (visibility === 'PRIVATE') {
+    return '비공개';
+  }
+  if (visibility === 'UNLISTED') {
+    return '운영자 전용';
+  }
+  return '기타';
+};
+
 const formatDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -67,59 +83,67 @@ watch(
 </script>
 
 <template>
-  <section class="ui-panel px-5 py-5 sm:px-6">
-    <SectionHeader title="내 구독 커뮤니티" description="자주 찾는 커뮤니티를 바로 열 수 있습니다.">
-      <template #actions>
-        <RouterLink
-          to="/boards/subscribes"
-          class="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800 dark:text-emerald-300 dark:hover:text-emerald-200"
-        >
-          전체 보기
-        </RouterLink>
-      </template>
-    </SectionHeader>
+  <section class="ui-panel overflow-hidden">
+    <div class="px-5 py-5 sm:px-6">
+      <SectionHeader title="내 구독 커뮤니티" description="자주 찾는 커뮤니티를 바로 열 수 있습니다.">
+        <template #actions>
+          <RouterLink to="/boards/subscribes" class="ui-button-ghost h-10 px-4 text-xs">전체 보기</RouterLink>
+        </template>
+      </SectionHeader>
 
-    <div v-if="listError" class="ui-state ui-state-danger mt-5">
-      {{ listError }}
-    </div>
+      <div v-if="listError" class="ui-state ui-state-danger mt-5">
+        {{ listError }}
+      </div>
 
-    <div v-else-if="isLoading" class="mt-5 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-      <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-      구독 목록을 불러오는 중입니다.
-    </div>
+      <div v-else-if="isLoading" class="mt-5 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+        <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+        구독 목록을 불러오는 중입니다.
+      </div>
 
-    <div v-else-if="subscribes.length > 0" class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      <RouterLink
-        v-for="board in subscribes"
-        :key="board.id"
-        :to="`/b/${board.slug}`"
-        class="ui-sub-panel group block overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:hover:border-slate-700"
-      >
-        <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-          <FileImage
-            v-if="board.boardImage"
-            :file="board.boardImage"
-            variant="thumb"
-            :alt="board.boardName"
-            class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          />
-          <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-            <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
-            <span class="text-xs">대표 이미지 없음</span>
+      <div v-else-if="subscribes.length > 0" class="mt-5 space-y-3">
+        <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
+          <div class="grid gap-3 sm:grid-cols-[7.5rem_minmax(0,1fr)_auto] sm:items-center">
+            <div class="h-24 overflow-hidden rounded-[1.1rem] bg-slate-100 dark:bg-slate-900">
+              <FileImage
+                v-if="board.boardImage"
+                :file="board.boardImage"
+                variant="thumb"
+                :alt="board.boardName"
+                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
+                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
+                <span class="text-xs">대표 이미지 없음</span>
+              </div>
+            </div>
+
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="ui-badge ui-badge-accent">구독</span>
+                <span class="ui-badge ui-badge-muted">{{ resolveVisibilityLabel(board.visibility) }}</span>
+                <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
+              </div>
+              <h3
+                class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+              >
+                {{ board.boardName }}
+              </h3>
+              <p class="mt-2 line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                {{ resolveDescription(board.description) }}
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+              <span class="ui-badge ui-badge-success">구독일 {{ formatDate(board.subscribedAt) }}</span>
+              <span class="text-xs text-slate-400 dark:text-slate-500">바로 이동</span>
+            </div>
           </div>
-        </div>
-        <div class="flex flex-col gap-2 px-4 py-4">
-          <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ board.boardName }}</h3>
-          <p class="line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
-            {{ resolveDescription(board.description) }}
-          </p>
-          <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">구독일 {{ formatDate(board.subscribedAt) }}</span>
-        </div>
-      </RouterLink>
-    </div>
+        </RouterLink>
+      </div>
 
-    <div v-else-if="showEmptyState" class="ui-state ui-state-empty mt-5 px-5 py-8">
-      아직 구독한 커뮤니티가 없습니다. 관심 있는 커뮤니티를 둘러보세요.
+      <div v-else-if="showEmptyState" class="ui-state ui-state-empty mt-5 px-5 py-8">
+        아직 구독한 커뮤니티가 없습니다. 관심 있는 커뮤니티를 둘러보세요.
+      </div>
     </div>
   </section>
 </template>

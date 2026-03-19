@@ -66,6 +66,12 @@ const pageNumbers = computed(() =>
 );
 const hasPreviousPageWindow = computed(() => pageWindowStart.value > 0);
 const hasNextPageWindow = computed(() => pageWindowEnd.value < totalPages.value);
+const pageSummaryText = computed(() => {
+  if (totalPages.value > 0) {
+    return `페이지 ${currentPage.value + 1} / ${totalPages.value}`;
+  }
+  return `페이지 ${currentPage.value + 1}`;
+});
 
 const formatDate = (value: string) => {
   const date = new Date(value);
@@ -83,6 +89,8 @@ const resolveCategoryName = (article: ArticleSummaryResponse) => {
   const trimmed = article.categoryName?.trim();
   return trimmed ? trimmed : null;
 };
+
+const resolveReactionBalance = (article: ArticleSummaryResponse) => article.likeCount - article.dislikeCount;
 
 const resolveHref = (article: ArticleSummaryResponse) => props.resolveHref?.(article) ?? '#';
 
@@ -155,49 +163,56 @@ const handleNextPageWindow = () => {
 
 <template>
   <section v-if="showPinned" class="mt-8">
-    <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">공지</h2>
-    <div class="mt-3 space-y-3">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="ui-badge ui-badge-warning">공지</span>
+        <h2 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">상단 고정 글</h2>
+      </div>
+      <span class="text-xs text-slate-400 dark:text-slate-500">{{ pinnedList.length }}건</span>
+    </div>
+    <div class="mt-3 space-y-2">
       <a
         v-for="article in pinnedList"
         :key="article.id"
         :href="resolveHref(article)"
-        class="flex w-full flex-col gap-2 rounded-2xl border border-amber-200/70 bg-amber-50/70 px-5 py-4 text-left transition hover:-translate-y-0.5 dark:border-amber-900/40 dark:bg-amber-950/30"
+        class="ui-list-row border-amber-200/80 bg-amber-50/70 dark:border-amber-900/40 dark:bg-amber-950/20"
         @click="handleArticleClick($event, article.id)"
       >
-        <div class="flex items-center gap-2">
-          <span class="inline-flex rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-white"> 공지 </span>
-          <span
-            v-if="resolveCategoryName(article)"
-            class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
-          >
-            {{ resolveCategoryName(article) }}
-          </span>
-          <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            {{ article.title }}
-          </span>
-        </div>
-        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <span>{{ article.authorName }}</span>
-          <span>{{ formatDate(article.createdAt) }}</span>
-          <span>댓글 {{ article.commentCount }}</span>
-          <span>좋아요 {{ article.likeCount }}</span>
-          <span>싫어요 {{ article.dislikeCount }}</span>
-          <span>조회 {{ article.hit }}</span>
+        <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="ui-badge ui-badge-warning">공지</span>
+              <span v-if="resolveCategoryName(article)" class="ui-badge ui-badge-success">
+                {{ resolveCategoryName(article) }}
+              </span>
+            </div>
+            <h3 class="mt-2 truncate text-base font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</h3>
+            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <span>{{ article.authorName }}</span>
+              <span>{{ formatDate(article.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 md:justify-end">
+            <span class="ui-badge ui-badge-warning">댓글 {{ article.commentCount }}</span>
+            <span class="ui-badge ui-badge-warning">추천 {{ article.likeCount }}</span>
+            <span class="ui-badge ui-badge-muted">조회 {{ article.hit }}</span>
+          </div>
         </div>
       </a>
     </div>
   </section>
 
   <section class="mt-8">
-    <div class="flex items-center justify-between gap-2">
-      <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">게시글</h2>
-    </div>
-
-    <div v-if="showPagination" class="mt-3 grid items-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-[1fr_auto_1fr]">
-      <div class="flex flex-wrap items-center gap-3 justify-self-center sm:justify-self-start">
+    <div class="ui-toolbar justify-between">
+      <div>
+        <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Article Feed</p>
+        <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">게시글</h2>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
         <div v-if="showOrderControl" class="flex items-center gap-2">
-          <span class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</span>
-          <select aria-label="정렬" class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold" :value="order" @change="handleOrderChange">
+          <span class="font-semibold tracking-[0.12em] text-slate-600 uppercase dark:text-slate-300">정렬</span>
+          <select aria-label="정렬" class="ui-input h-9 px-3 text-xs font-semibold" :value="order" @change="handleOrderChange">
             <option v-for="option in orderOptions" :key="option" :value="option">
               {{ option === 'LATEST' ? '최신순' : '과거순' }}
             </option>
@@ -205,94 +220,10 @@ const handleNextPageWindow = () => {
         </div>
         <div v-if="showPageSizeControl" class="flex items-center gap-2">
           <span class="font-semibold text-slate-600 dark:text-slate-300">표시</span>
-          <select
-            aria-label="표시 개수"
-            class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold"
-            :value="pageSize"
-            @change="handlePageSizeChange"
-          >
+          <select aria-label="표시 개수" class="ui-input h-9 px-3 text-xs font-semibold" :value="pageSize" @change="handlePageSizeChange">
             <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }}개</option>
           </select>
         </div>
-      </div>
-      <div class="flex flex-wrap items-center justify-center gap-2">
-        <button
-          type="button"
-          class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
-          :disabled="!canGoPrevious || isLoading"
-          @click="handlePageChange(currentPage - 1)"
-        >
-          이전
-        </button>
-        <div v-if="showPageNumbers" class="flex flex-wrap items-center gap-1">
-          <button
-            type="button"
-            class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="!hasPreviousPageWindow || isLoading"
-            aria-label="이전 페이지 묶음"
-            @click="handlePreviousPageWindow"
-          >
-            &laquo;
-          </button>
-          <button
-            v-for="pageIndex in pageNumbers"
-            :key="`top-${pageIndex}`"
-            type="button"
-            class="ui-chip-button px-3 py-1"
-            :class="
-              pageIndex === currentPage
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-            "
-            :disabled="isLoading"
-            @click="handlePageChange(pageIndex)"
-          >
-            {{ pageIndex + 1 }}
-          </button>
-          <button
-            type="button"
-            class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="!hasNextPageWindow || isLoading"
-            aria-label="다음 페이지 묶음"
-            @click="handleNextPageWindow"
-          >
-            &raquo;
-          </button>
-        </div>
-        <button
-          type="button"
-          class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
-          :disabled="!canGoNext || isLoading"
-          @click="handlePageChange(currentPage + 1)"
-        >
-          다음
-        </button>
-      </div>
-      <span v-if="totalPages > 0" class="justify-self-center sm:justify-self-end">페이지 {{ currentPage + 1 }} / {{ totalPages }}</span>
-      <span v-else class="justify-self-center sm:justify-self-end">페이지 {{ currentPage + 1 }}</span>
-    </div>
-    <div
-      v-else-if="!showEmpty"
-      class="mt-3 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:justify-start"
-    >
-      <div v-if="showOrderControl" class="flex items-center gap-2">
-        <span class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</span>
-        <select aria-label="정렬" class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold" :value="order" @change="handleOrderChange">
-          <option v-for="option in orderOptions" :key="option" :value="option">
-            {{ option === 'LATEST' ? '최신순' : '과거순' }}
-          </option>
-        </select>
-      </div>
-      <div v-if="showPageSizeControl" class="flex items-center gap-2">
-        <span class="font-semibold text-slate-600 dark:text-slate-300">표시</span>
-        <select
-          aria-label="표시 개수"
-          class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold"
-          :value="pageSize"
-          @change="handlePageSizeChange"
-        >
-          <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }}개</option>
-        </select>
       </div>
     </div>
 
@@ -302,62 +233,50 @@ const handleNextPageWindow = () => {
       </div>
     </div>
 
-    <div v-else class="mt-4 space-y-3">
+    <div v-else class="mt-4 space-y-2">
       <a
         v-for="article in articles"
         :key="article.id"
         :href="resolveHref(article)"
-        class="ui-sub-panel flex w-full cursor-pointer flex-col gap-2 px-5 py-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm dark:hover:border-slate-700"
+        class="ui-list-row group"
         @click="handleArticleClick($event, article.id)"
       >
-        <div class="flex flex-wrap items-center gap-2">
-          <span
-            v-if="resolveCategoryName(article)"
-            class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200"
-          >
-            {{ resolveCategoryName(article) }}
-          </span>
-          <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            {{ article.title }}
-          </span>
-        </div>
-        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-          <span>{{ article.authorName }}</span>
-          <span>{{ formatDate(article.createdAt) }}</span>
-          <span>댓글 {{ article.commentCount }}</span>
-          <span>좋아요 {{ article.likeCount }}</span>
-          <span>싫어요 {{ article.dislikeCount }}</span>
-          <span>조회 {{ article.hit }}</span>
+        <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span v-if="resolveCategoryName(article)" class="ui-badge ui-badge-success">
+                {{ resolveCategoryName(article) }}
+              </span>
+              <span v-if="article.notice" class="ui-badge ui-badge-warning">공지</span>
+              <span class="ui-badge ui-badge-muted">{{ formatDate(article.createdAt) }}</span>
+            </div>
+            <h3
+              class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-2 truncate text-base font-black tracking-tight text-slate-900 transition dark:text-slate-100"
+            >
+              {{ article.title }}
+            </h3>
+            <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+              <span>{{ article.authorName }}</span>
+              <span>추천 차이 {{ resolveReactionBalance(article) }}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 md:justify-end">
+            <span class="ui-badge ui-badge-muted">댓글 {{ article.commentCount }}</span>
+            <span class="ui-badge ui-badge-muted">추천 {{ article.likeCount }}</span>
+            <span class="ui-badge ui-badge-muted">비추천 {{ article.dislikeCount }}</span>
+            <span class="ui-badge ui-badge-muted">조회 {{ article.hit }}</span>
+          </div>
         </div>
       </a>
     </div>
 
-    <div v-if="showPagination" class="mt-4 grid items-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-[1fr_auto_1fr]">
-      <div class="flex flex-wrap items-center gap-3 justify-self-center sm:justify-self-start">
-        <div v-if="showOrderControl" class="flex items-center gap-2">
-          <span class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</span>
-          <select aria-label="정렬" class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold" :value="order" @change="handleOrderChange">
-            <option v-for="option in orderOptions" :key="option" :value="option">
-              {{ option === 'LATEST' ? '최신순' : '과거순' }}
-            </option>
-          </select>
-        </div>
-        <div v-if="showPageSizeControl" class="flex items-center gap-2">
-          <span class="font-semibold text-slate-600 dark:text-slate-300">표시</span>
-          <select
-            aria-label="표시 개수"
-            class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold"
-            :value="pageSize"
-            @change="handlePageSizeChange"
-          >
-            <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }}개</option>
-          </select>
-        </div>
-      </div>
+    <div v-if="showPagination" class="ui-toolbar mt-4 justify-between text-xs text-slate-500 dark:text-slate-400">
+      <span>{{ pageSummaryText }}</span>
       <div class="flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
-          class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+          class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="!canGoPrevious || isLoading"
           @click="handlePageChange(currentPage - 1)"
         >
@@ -366,7 +285,7 @@ const handleNextPageWindow = () => {
         <div v-if="showPageNumbers" class="flex flex-wrap items-center gap-1">
           <button
             type="button"
-            class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+            class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="!hasPreviousPageWindow || isLoading"
             aria-label="이전 페이지 묶음"
             @click="handlePreviousPageWindow"
@@ -377,12 +296,8 @@ const handleNextPageWindow = () => {
             v-for="pageIndex in pageNumbers"
             :key="`bottom-${pageIndex}`"
             type="button"
-            class="ui-chip-button px-3 py-1"
-            :class="
-              pageIndex === currentPage
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-            "
+            class="h-9 px-4 text-xs"
+            :class="pageIndex === currentPage ? 'ui-button-primary' : 'ui-button-ghost'"
             :disabled="isLoading"
             @click="handlePageChange(pageIndex)"
           >
@@ -390,7 +305,7 @@ const handleNextPageWindow = () => {
           </button>
           <button
             type="button"
-            class="ui-chip-button ui-chip-button-muted px-2 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+            class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="!hasNextPageWindow || isLoading"
             aria-label="다음 페이지 묶음"
             @click="handleNextPageWindow"
@@ -400,38 +315,12 @@ const handleNextPageWindow = () => {
         </div>
         <button
           type="button"
-          class="ui-chip-button ui-chip-button-muted px-3 py-1 disabled:cursor-not-allowed disabled:opacity-60"
+          class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="!canGoNext || isLoading"
           @click="handlePageChange(currentPage + 1)"
         >
           다음
         </button>
-      </div>
-      <span v-if="totalPages > 0" class="justify-self-center sm:justify-self-end">페이지 {{ currentPage + 1 }} / {{ totalPages }}</span>
-      <span v-else class="justify-self-center sm:justify-self-end">페이지 {{ currentPage + 1 }}</span>
-    </div>
-    <div
-      v-else-if="!showEmpty"
-      class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 dark:text-slate-400 sm:justify-start"
-    >
-      <div v-if="showOrderControl" class="flex items-center gap-2">
-        <span class="font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">정렬</span>
-        <select aria-label="정렬" class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold" :value="order" @change="handleOrderChange">
-          <option v-for="option in orderOptions" :key="option" :value="option">
-            {{ option === 'LATEST' ? '최신순' : '과거순' }}
-          </option>
-        </select>
-      </div>
-      <div v-if="showPageSizeControl" class="flex items-center gap-2">
-        <span class="font-semibold text-slate-600 dark:text-slate-300">표시</span>
-        <select
-          aria-label="표시 개수"
-          class="ui-input h-8 rounded-full px-3 py-1 text-xs font-semibold"
-          :value="pageSize"
-          @change="handlePageSizeChange"
-        >
-          <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }}개</option>
-        </select>
       </div>
     </div>
   </section>
