@@ -266,7 +266,10 @@ const handleDeleteAllNotifications = async () => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/92">
+  <header
+    data-testid="top-menu-bar"
+    class="sticky top-0 z-50 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-700 dark:bg-slate-950/96"
+  >
     <div class="flex w-full items-center justify-between gap-3 px-3 py-2.5 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
       <div class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
         <button type="button" class="ui-icon-button" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
@@ -277,7 +280,7 @@ const handleDeleteAllNotifications = async () => {
           <div class="flex items-center gap-2">
             <div class="bg-brand-600 hidden h-8 w-8 items-center justify-center rounded-[0.55rem] text-xs font-black text-white sm:flex">MT</div>
             <div class="min-w-0">
-              <p class="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Community</p>
+              <p class="text-[10px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-400">Community</p>
               <p class="truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">MockTalk</p>
             </div>
           </div>
@@ -285,7 +288,7 @@ const handleDeleteAllNotifications = async () => {
       </div>
 
       <form
-        class="hidden w-full max-w-[720px] items-center gap-2 justify-self-center rounded-[0.6rem] border border-slate-200 bg-white px-2 py-1.5 md:flex dark:border-slate-800 dark:bg-slate-900"
+        class="hidden w-full max-w-[720px] items-center gap-2 justify-self-center rounded-[0.6rem] border border-slate-200 bg-white px-2 py-1.5 md:flex dark:border-slate-700 dark:bg-slate-900"
         @submit.prevent="handleSearch"
       >
         <label class="sr-only" for="global-search">검색</label>
@@ -294,12 +297,12 @@ const handleDeleteAllNotifications = async () => {
           v-model="searchKeyword"
           type="search"
           placeholder="게시판, 게시글, 댓글, 사용자"
-          class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500"
+          class="h-8 min-w-0 flex-1 border-0 bg-transparent px-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-50 dark:placeholder:text-slate-400"
         />
         <button
           type="submit"
           data-testid="desktop-search-button"
-          class="ui-icon-button h-8 w-8 shrink-0 border-0 bg-slate-100 p-0 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700"
+          class="ui-icon-button h-8 w-8 shrink-0 border-0 bg-slate-100 p-0 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-600"
           aria-label="검색 실행"
         >
           <img :src="iconSearch" alt="" aria-hidden="true" class="h-4 w-4" />
@@ -347,13 +350,13 @@ const handleDeleteAllNotifications = async () => {
             <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
               <div>
                 <p class="text-sm font-bold text-slate-900 dark:text-slate-100">알림</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-500">최근 상호작용을 빠르게 확인합니다.</p>
+                <p class="text-[11px] text-slate-400 dark:text-slate-400">최근 상호작용을 빠르게 확인합니다.</p>
               </div>
               <div class="flex items-center gap-2">
                 <button
                   v-if="notifications.length"
                   type="button"
-                  class="text-xs font-semibold text-rose-500 transition hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-200"
+                  class="text-xs font-semibold text-rose-500 transition hover:text-rose-600 dark:text-rose-200 dark:hover:text-rose-100"
                   @click="handleDeleteAllNotifications"
                 >
                   전체 삭제
@@ -361,7 +364,7 @@ const handleDeleteAllNotifications = async () => {
                 <button
                   v-if="hasUnreadNotifications"
                   type="button"
-                  class="text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  class="text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50"
                   @click="handleMarkAllRead"
                 >
                   모두 읽음
@@ -370,7 +373,7 @@ const handleDeleteAllNotifications = async () => {
             </div>
 
             <div class="ui-scrollbar max-h-88 overflow-y-auto p-3">
-              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-slate-500 dark:text-slate-400">불러오는 중...</div>
+              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-slate-500 dark:text-slate-300">불러오는 중...</div>
               <div v-else-if="notificationError" class="ui-state ui-state-danger text-sm font-semibold">
                 {{ notificationError }}
               </div>
@@ -388,16 +391,16 @@ const handleDeleteAllNotifications = async () => {
                       <span v-if="!notification.read" class="inline-flex h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span>
                       <span
                         class="text-[11px] font-bold tracking-[0.14em] uppercase"
-                        :class="notification.read ? 'text-slate-400 dark:text-slate-500' : 'text-brand-700 dark:text-brand-300'"
+                        :class="notification.read ? 'text-slate-400 dark:text-slate-400' : 'text-brand-700 dark:text-brand-300'"
                       >
                         {{ notification.read ? '읽음' : '새 알림' }}
                       </span>
                     </div>
-                    <span class="text-xs text-slate-400">{{ formatNotificationDate(notification.createdAt) }}</span>
+                    <span class="text-xs text-slate-400 dark:text-slate-400">{{ formatNotificationDate(notification.createdAt) }}</span>
                   </div>
                   <p
                     class="text-sm leading-6"
-                    :class="notification.read ? 'text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'"
+                    :class="notification.read ? 'text-slate-500 dark:text-slate-300' : 'text-slate-700 dark:text-slate-100'"
                   >
                     {{ formatNotificationMessage(notification) }}
                   </p>
@@ -431,18 +434,18 @@ const handleDeleteAllNotifications = async () => {
                 </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{{ resolvedDisplayName }}</p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">포인트 {{ resolvedPoint }}P</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-300">포인트 {{ resolvedPoint }}P</p>
                 </div>
               </div>
             </div>
             <div class="space-y-2 p-3">
               <button type="button" class="ui-list-row w-full cursor-pointer text-left" role="menuitem" @click="openMyPage">
                 <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">마이페이지</span>
-                <span class="text-xs text-slate-500 dark:text-slate-400">프로필과 활동 기록을 관리합니다.</span>
+                <span class="text-xs text-slate-500 dark:text-slate-300">프로필과 활동 기록을 관리합니다.</span>
               </button>
               <button type="button" class="ui-list-row w-full cursor-pointer text-left" role="menuitem" @click="openBoardCreate">
                 <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">커뮤니티 개설</span>
-                <span class="text-xs text-slate-500 dark:text-slate-400">새 게시판을 만들고 운영을 시작합니다.</span>
+                <span class="text-xs text-slate-500 dark:text-slate-300">새 게시판을 만들고 운영을 시작합니다.</span>
               </button>
               <button
                 type="button"

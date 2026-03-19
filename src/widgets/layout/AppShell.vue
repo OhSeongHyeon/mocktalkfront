@@ -36,19 +36,14 @@ defineExpose({
 <template>
   <div class="flex min-h-screen flex-col bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
     <TopMenuBar @toggle-menu="toggleMenu" />
-    <div class="flex min-h-0 flex-1 items-stretch">
+    <div class="flex min-h-0 flex-1 items-stretch overflow-hidden">
       <SideMenuBar :collapsed="menuCollapsed" :display-mode="sideMenuDisplayMode" :mobile-open="isMobileMenuOpen" @close="closeMobileMenu" />
-      <div class="min-w-0 flex-1 px-3 py-3 sm:px-4 sm:py-4">
-        <div data-testid="layout-main-frame" class="flex h-full w-full min-w-0">
-          <main
-            ref="mainElementRef"
-            class="ui-scrollbar min-h-0 w-full overflow-y-auto rounded-[0.8rem] border border-slate-200 bg-white shadow-[0_12px_28px_-24px_rgba(15,23,42,0.2)] dark:border-slate-800 dark:bg-slate-900"
-          >
-            <div class="min-h-full">
-              <slot />
-            </div>
-          </main>
-        </div>
+      <div data-testid="layout-main-frame" class="flex min-h-0 min-w-0 flex-1">
+        <main ref="mainElementRef" class="ui-scrollbar min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <div class="min-h-full">
+            <slot />
+          </div>
+        </main>
       </div>
     </div>
   </div>

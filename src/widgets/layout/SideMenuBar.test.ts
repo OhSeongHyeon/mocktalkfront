@@ -59,6 +59,8 @@ describe('widgets/layout/SideMenuBar', () => {
 
     // then
     expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(wrapper.get('[data-testid="side-menu-backdrop"]').classes()).toContain('z-30');
+    expect(wrapper.get('[data-testid="side-menu-panel"]').classes()).toContain('z-40');
   });
 
   it('백오피스 경로에서는 관리자 메뉴와 활성 항목을 렌더링한다', async () => {

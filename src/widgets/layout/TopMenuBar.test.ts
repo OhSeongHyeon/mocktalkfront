@@ -120,6 +120,14 @@ describe('widgets/layout/TopMenuBar', () => {
     expect(wrapper.find('button[aria-label="프로필"]').exists()).toBe(false);
   });
 
+  it('상단 메뉴는 다른 오버레이보다 우선되는 z-index를 유지한다', async () => {
+    // given
+    const { wrapper } = await mountTopMenuBar('/');
+
+    // then
+    expect(wrapper.get('[data-testid="top-menu-bar"]').classes()).toContain('z-50');
+  });
+
   it('화이트 계열에서 테마 토글 버튼 클릭 시 다크를 적용한다', async () => {
     // given
     const { wrapper } = await mountTopMenuBar('/');
