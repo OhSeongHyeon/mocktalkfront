@@ -3,13 +3,7 @@ import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
-import {
-  MODERATION_STATUS_OPTIONS,
-  formatModerationStatusLabel,
-  parseModerationTargetSnapshot,
-  type ModerationStatusFilter,
-  resolveModerationStatusBadgeClass,
-} from '../features/admin/lib/reportModeration';
+import { MODERATION_STATUS_OPTIONS, formatModerationStatusLabel, type ModerationStatusFilter } from '../features/admin/lib/reportModeration';
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
 import { ApiError } from '../shared/lib/http/api';
 import { getBoardBySlug } from '../entities/board';
@@ -19,7 +13,7 @@ import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from 
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
-import { formatKoreanDateTime } from '../shared/lib/date';
+import ReportModerationWorkspace from '../widgets/admin/ReportModerationWorkspace.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
@@ -49,8 +43,34 @@ const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMe
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
 const boardName = computed(() => board.value?.boardName ?? '게시판');
+const detailCards = computed(() => {
+  if (!selectedReport.value) {
+    return [];
+  }
+  return [
+    {
+      eyebrow: 'Target',
+      title: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}`,
+    },
+    {
+      eyebrow: 'Reporter',
+      title: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}`,
+      description: `사유 ${selectedReport.value.reasonCode}`,
+    },
+  ];
+});
 
-const selectedReportSnapshot = computed(() => parseModerationTargetSnapshot(selectedReport.value?.targetSnapshot ?? null));
+const detailRows = computed(() => {
+  if (!selectedReport.value) {
+    return [];
+  }
+  return [
+    { label: '신고 번호', value: `#${selectedReport.value.id}` },
+    { label: '대상', value: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}` },
+    { label: '사유', value: selectedReport.value.reasonCode },
+    { label: '신고자 / 대상자', value: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}` },
+  ];
+});
 
 const loadBoard = async () => {
   boardError.value = '';
@@ -204,178 +224,28 @@ onMounted(async () => {
             </div>
           </PageHeader>
 
-          <div v-if="listError" class="ui-state ui-state-danger">
-            {{ listError }}
-          </div>
-
-          <div class="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-            <section class="ui-panel p-5">
-              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
-                <div>
-                  <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 목록</h2>
-                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시판 내부 신고만 모아서 빠르게 검토합니다.</p>
-                </div>
-                <span class="ui-badge ui-badge-muted">총 {{ reports.length }}건</span>
-              </div>
-
-              <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-                불러오는 중...
-              </div>
-
-              <div v-else class="mt-4 flex flex-col gap-3">
-                <button
-                  v-for="item in reports"
-                  :key="item.id"
-                  type="button"
-                  class="ui-list-row text-left"
-                  :class="[item.id === selectedId ? 'border-[color:var(--line-strong)] bg-white/95 shadow-sm dark:bg-slate-900/80' : '']"
-                  @click="selectReport(item.id)"
-                >
-                  <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
-                    <div class="min-w-0">
-                      <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <span :class="resolveModerationStatusBadgeClass(item.status)">{{ formatModerationStatusLabel(item.status) }}</span>
-                        <span class="ui-badge ui-badge-muted">{{ item.targetType }}</span>
-                        <span>대상 {{ item.targetId }}</span>
-                      </div>
-                      <div class="mt-2 flex flex-wrap items-center gap-2">
-                        <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">#{{ item.id }}</span>
-                        <span class="truncate text-sm text-slate-600 dark:text-slate-300">사유 {{ item.reasonCode }}</span>
-                      </div>
-                      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        신고자 {{ item.reporterUserId }} · 접수 {{ formatKoreanDateTime(item.createdAt, item.createdAt) }}
-                      </p>
-                    </div>
-
-                    <div class="text-xs text-slate-400 md:text-right">
-                      <p>처리 {{ formatKoreanDateTime(item.processedAt) }}</p>
-                    </div>
-                  </div>
-                </button>
-
-                <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 신고가 없습니다.</div>
-              </div>
-
-              <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
-                <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
-                  이전
-                </button>
-                <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-                <button
-                  type="button"
-                  class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40"
-                  :disabled="page + 1 >= totalPages"
-                  @click="movePage(1)"
-                >
-                  다음
-                </button>
-              </div>
-            </section>
-
-            <section class="ui-panel p-5">
-              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
-                <div>
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Detail</p>
-                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h2>
-                </div>
-                <div v-if="selectedReport" :class="resolveModerationStatusBadgeClass(selectedReport.status)">
-                  {{ formatModerationStatusLabel(selectedReport.status) }}
-                </div>
-              </div>
-
-              <div v-if="detailError" class="ui-state ui-state-danger mt-4">
-                {{ detailError }}
-              </div>
-
-              <div v-if="isLoadingDetail" class="mt-6 text-sm text-slate-500">상세 정보를 불러오는 중...</div>
-
-              <div v-else-if="selectedReport" class="mt-6 space-y-6">
-                <div class="grid gap-3 md:grid-cols-2">
-                  <div class="ui-data-panel p-4">
-                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Target</p>
-                    <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
-                      {{ selectedReport.targetType }} · {{ selectedReport.targetId }}
-                    </p>
-                  </div>
-                  <div class="ui-data-panel p-4">
-                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Reporter</p>
-                    <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
-                      {{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}
-                    </p>
-                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">사유 {{ selectedReport.reasonCode }}</p>
-                  </div>
-                </div>
-
-                <div
-                  class="grid gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-                >
-                  <div class="flex flex-wrap justify-between gap-3">
-                    <span>신고 번호</span>
-                    <span class="font-semibold text-slate-900 dark:text-slate-100">#{{ selectedReport.id }}</span>
-                  </div>
-                  <div class="flex flex-wrap justify-between gap-3">
-                    <span>대상</span>
-                    <span class="font-semibold text-slate-900 dark:text-slate-100"
-                      >{{ selectedReport.targetType }} · {{ selectedReport.targetId }}</span
-                    >
-                  </div>
-                  <div class="flex flex-wrap justify-between gap-3">
-                    <span>사유</span>
-                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ selectedReport.reasonCode }}</span>
-                  </div>
-                  <div class="flex flex-wrap justify-between gap-3">
-                    <span>신고자 / 대상자</span>
-                    <span class="font-semibold text-slate-900 dark:text-slate-100"
-                      >{{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}</span
-                    >
-                  </div>
-                </div>
-
-                <div>
-                  <h3 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h3>
-                  <p
-                    class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-                  >
-                    {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
-                  </p>
-                </div>
-
-                <div v-if="selectedReportSnapshot">
-                  <h3 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">대상 스냅샷</h3>
-                  <pre
-                    class="ui-scrollbar mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
-                    >{{ selectedReportSnapshot }}</pre
-                  >
-                </div>
-
-                <div class="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                  <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-                    <span>접수 {{ formatKoreanDateTime(selectedReport.createdAt, selectedReport.createdAt) }}</span>
-                    <span>처리 {{ formatKoreanDateTime(selectedReport.processedAt) }}</span>
-                  </div>
-                  <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 상태</label>
-                  <select v-model="processStatus" class="ui-select">
-                    <option v-for="option in MODERATION_STATUS_OPTIONS.filter((item) => item !== 'ALL')" :key="option" :value="option">
-                      {{ formatModerationStatusLabel(option) }}
-                    </option>
-                  </select>
-                  <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 메모</label>
-                  <textarea v-model="processNote" rows="4" class="ui-textarea" placeholder="처리 결과와 사유를 간단히 기록하세요."></textarea>
-                  <button
-                    type="button"
-                    class="ui-button-accent mt-2 h-11 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="isProcessing"
-                    @click="handleProcess"
-                  >
-                    {{ isProcessing ? '처리 중...' : '처리 저장' }}
-                  </button>
-                </div>
-              </div>
-
-              <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">좌측에서 신고를 선택하세요.</div>
-            </section>
-          </div>
+          <ReportModerationWorkspace
+            :reports="reports"
+            :selected-id="selectedId"
+            :selected-report="selectedReport"
+            :detail-cards="detailCards"
+            :detail-rows="detailRows"
+            :list-description="'게시판 내부 신고만 모아서 빠르게 검토합니다.'"
+            :list-error="listError"
+            :detail-error="detailError"
+            :is-loading-list="isLoadingList"
+            :is-loading-detail="isLoadingDetail"
+            :is-processing="isProcessing"
+            :page="page"
+            :total-pages="totalPages"
+            :process-status="processStatus"
+            :process-note="processNote"
+            @select-report="selectReport"
+            @move-page="movePage"
+            @update:process-status="processStatus = $event"
+            @update:process-note="processNote = $event"
+            @process="handleProcess"
+          />
         </div>
       </div>
     </PageContainer>
