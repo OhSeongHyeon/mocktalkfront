@@ -11,6 +11,7 @@ import { approveBoardMember, getBoardMembers, rejectBoardMember, updateBoardMemb
 import type { BoardMemberListItemResponse } from '../features/admin/board';
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 type StatusFilter = BoardMemberStatus | 'ALL';
@@ -51,20 +52,19 @@ const statusLabel = (status: BoardMemberStatus) => {
 };
 
 const statusBadgeClass = (status: BoardMemberStatus) => {
-  const base = 'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold';
   if (status === 'PENDING') {
-    return `${base} bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200`;
+    return 'ui-badge ui-badge-warning';
   }
   if (status === 'BANNED') {
-    return `${base} bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200`;
+    return 'ui-badge ui-badge-danger';
   }
   if (status === 'OWNER') {
-    return `${base} bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-200`;
+    return 'ui-badge ui-badge-accent';
   }
   if (status === 'MODERATOR') {
-    return `${base} bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-200`;
+    return 'ui-badge ui-badge-muted';
   }
-  return `${base} bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200`;
+  return 'ui-badge ui-badge-success';
 };
 
 const formatDate = (value: string) => {
@@ -218,32 +218,56 @@ onMounted(async () => {
         </div>
 
         <div v-if="board && hasPermission" class="space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">멤버 관리</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">게시판 멤버 승인과 권한을 관리합니다.</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">상태</label>
-              <select
-                v-model="statusFilter"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
+          <PageHeader
+            eyebrow="Board Members"
+            :title="`${boardName} 멤버 관리`"
+            description="가입 승인, 역할 변경, 차단 상태를 같은 운영 패턴으로 관리합니다."
+          >
+            <template #meta>
+              <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+              <span class="ui-badge ui-badge-accent">표시 {{ members.length }}건</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{
+                statusFilter === 'ALL' ? '전체 상태' : `${statusLabel(statusFilter)} 상태`
+              }}</span>
+            </template>
+            <template #actions>
+              <label class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">상태</label>
+              <select v-model="statusFilter" class="ui-select min-w-[9rem]">
                 <option v-for="option in statusOptions" :key="option" :value="option">
                   {{ option === 'ALL' ? '전체' : statusLabel(option) }}
                 </option>
               </select>
+            </template>
+            <div class="grid gap-3 md:grid-cols-3">
+              <div class="ui-data-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Board</p>
+                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">이 게시판 멤버만 조회합니다.</p>
+              </div>
+              <div class="ui-data-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Queue</p>
+                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ members.length }}건</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">필터 조건에 맞는 멤버/신청 목록입니다.</p>
+              </div>
+              <div class="ui-data-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Action</p>
+                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">승인, 역할 변경, 차단</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">소유자 변경은 시스템 관리자만 수행할 수 있습니다.</p>
+              </div>
             </div>
-          </div>
+          </PageHeader>
 
           <div v-if="listError" class="ui-state ui-state-danger">
             {{ listError }}
           </div>
 
-          <section class="ui-panel p-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">멤버 목록</h2>
-              <span class="text-xs text-slate-400">총 {{ members.length }}건</span>
+          <section class="ui-panel p-5">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+              <div>
+                <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">멤버 목록</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">사용자별 상태와 최근 변경 시점을 한 줄에서 확인합니다.</p>
+              </div>
+              <span class="ui-badge ui-badge-muted">총 {{ members.length }}건</span>
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
@@ -252,107 +276,96 @@ onMounted(async () => {
             </div>
 
             <div v-else class="mt-4 flex flex-col gap-3">
-              <div
-                v-for="member in members"
-                :key="member.id"
-                class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
-              >
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      <span>#{{ member.userId }}</span>
+              <div v-for="member in members" :key="member.id" class="ui-list-row">
+                <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span :class="statusBadgeClass(member.boardRole)">{{ statusLabel(member.boardRole) }}</span>
+                      <span class="ui-badge ui-badge-muted">{{ actionLabel(member.boardRole) }}</span>
+                      <span>승인자 {{ member.grantedByName ?? '-' }}</span>
+                    </div>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                      <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">#{{ member.userId }}</span>
+                      <span class="text-sm text-slate-600 dark:text-slate-300">{{ member.displayName }}</span>
+                      <span class="text-xs text-slate-400">{{ member.handle }}</span>
                       <span class="text-xs text-slate-400">{{ member.loginId }}</span>
                     </div>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ member.displayName }} · {{ member.handle }}</p>
-                    <p class="mt-1 text-xs text-slate-400">{{ actionLabel(member.boardRole) }} · 신청 {{ formatDate(member.createdAt) }}</p>
+                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      신청 {{ formatDate(member.createdAt) }}<span v-if="member.updatedAt"> · 변경 {{ formatDate(member.updatedAt) }}</span>
+                    </p>
                   </div>
-                  <span :class="statusBadgeClass(member.boardRole)">{{ statusLabel(member.boardRole) }}</span>
-                </div>
 
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-                  <span>승인자 {{ member.grantedByName ?? '-' }}</span>
-                  <span v-if="member.updatedAt">변경 {{ formatDate(member.updatedAt) }}</span>
-                </div>
-
-                <div class="mt-3 flex flex-wrap items-center gap-2">
-                  <button
-                    v-if="member.boardRole === 'PENDING'"
-                    type="button"
-                    class="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                    :disabled="isSubmitting"
-                    @click="handleApprove(member)"
-                  >
-                    승인
-                  </button>
-                  <button
-                    v-if="member.boardRole === 'PENDING'"
-                    type="button"
-                    class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
-                    :disabled="isSubmitting"
-                    @click="handleReject(member)"
-                  >
-                    거절
-                  </button>
-
-                  <button
-                    v-if="member.boardRole === 'MEMBER'"
-                    type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
-                    :disabled="isSubmitting"
-                    @click="handleRoleChange(member, 'MODERATOR')"
-                  >
-                    관리자 승격
-                  </button>
-                  <button
-                    v-if="member.boardRole === 'MODERATOR'"
-                    type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
-                    :disabled="isSubmitting"
-                    @click="handleRoleChange(member, 'MEMBER')"
-                  >
-                    멤버로 변경
-                  </button>
-
-                  <button
-                    v-if="member.boardRole === 'MEMBER' || member.boardRole === 'MODERATOR'"
-                    type="button"
-                    class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
-                    :disabled="isSubmitting"
-                    @click="handleStatusChange(member, 'BANNED')"
-                  >
-                    차단
-                  </button>
-
-                  <button
-                    v-if="member.boardRole === 'BANNED'"
-                    type="button"
-                    class="rounded-full border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-600 transition hover:border-emerald-300 hover:text-emerald-700 disabled:opacity-40 dark:border-emerald-700 dark:text-emerald-300"
-                    :disabled="isSubmitting"
-                    @click="handleStatusChange(member, 'MEMBER')"
-                  >
-                    차단 해제
-                  </button>
-
-                  <span v-if="member.boardRole === 'OWNER'" class="text-xs font-semibold text-slate-400"> 소유자 변경은 ADMIN만 가능합니다. </span>
+                  <div class="flex flex-wrap items-center gap-2 lg:max-w-[20rem] lg:justify-end">
+                    <button
+                      v-if="member.boardRole === 'PENDING'"
+                      type="button"
+                      class="ui-button-accent h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="isSubmitting"
+                      @click="handleApprove(member)"
+                    >
+                      승인
+                    </button>
+                    <button
+                      v-if="member.boardRole === 'PENDING'"
+                      type="button"
+                      class="ui-button-danger h-9 px-4 text-xs disabled:opacity-40"
+                      :disabled="isSubmitting"
+                      @click="handleReject(member)"
+                    >
+                      거절
+                    </button>
+                    <button
+                      v-if="member.boardRole === 'MEMBER'"
+                      type="button"
+                      class="ui-button-ghost h-9 px-4 text-xs disabled:opacity-40"
+                      :disabled="isSubmitting"
+                      @click="handleRoleChange(member, 'MODERATOR')"
+                    >
+                      관리자 승격
+                    </button>
+                    <button
+                      v-if="member.boardRole === 'MODERATOR'"
+                      type="button"
+                      class="ui-button-ghost h-9 px-4 text-xs disabled:opacity-40"
+                      :disabled="isSubmitting"
+                      @click="handleRoleChange(member, 'MEMBER')"
+                    >
+                      멤버로 변경
+                    </button>
+                    <button
+                      v-if="member.boardRole === 'MEMBER' || member.boardRole === 'MODERATOR'"
+                      type="button"
+                      class="ui-button-danger h-9 px-4 text-xs disabled:opacity-40"
+                      :disabled="isSubmitting"
+                      @click="handleStatusChange(member, 'BANNED')"
+                    >
+                      차단
+                    </button>
+                    <button
+                      v-if="member.boardRole === 'BANNED'"
+                      type="button"
+                      class="ui-button-primary h-9 px-4 text-xs disabled:opacity-40"
+                      :disabled="isSubmitting"
+                      @click="handleStatusChange(member, 'MEMBER')"
+                    >
+                      차단 해제
+                    </button>
+                    <span v-if="member.boardRole === 'OWNER'" class="text-xs font-semibold text-slate-400">소유자 변경은 ADMIN만 가능합니다.</span>
+                  </div>
                 </div>
               </div>
 
               <div v-if="members.length === 0" class="ui-state ui-state-empty px-4 py-10">조건에 해당하는 멤버가 없습니다.</div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                :disabled="page === 0"
-                @click="movePage(-1)"
-              >
+            <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+              <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
                 이전
               </button>
               <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <button
                 type="button"
-                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40"
                 :disabled="page + 1 >= totalPages"
                 @click="movePage(1)"
               >

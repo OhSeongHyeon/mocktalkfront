@@ -371,7 +371,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
           <div class="mt-4 overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
               <thead>
-                <tr class="text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+                <tr class="text-left text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase">
                   <th class="px-3 py-3">파일</th>
                   <th class="px-3 py-3">제목</th>
                   <th class="px-3 py-3">게시판</th>

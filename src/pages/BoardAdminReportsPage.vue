@@ -11,6 +11,7 @@ import { getBoardReport, getBoardReports, processBoardReport } from '../features
 import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../features/admin/board';
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 type StatusFilter = ReportStatus | 'ALL';
@@ -56,17 +57,16 @@ const statusLabel = (status: ReportStatus) => {
 };
 
 const statusBadgeClass = (status: ReportStatus) => {
-  const base = 'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold';
   if (status === 'PENDING') {
-    return `${base} bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200`;
+    return 'ui-badge ui-badge-warning';
   }
   if (status === 'IN_REVIEW') {
-    return `${base} bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-200`;
+    return 'ui-badge ui-badge-accent';
   }
   if (status === 'RESOLVED') {
-    return `${base} bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200`;
+    return 'ui-badge ui-badge-success';
   }
-  return `${base} bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200`;
+  return 'ui-badge ui-badge-danger';
 };
 
 const formatDate = (value: string | null) => {
@@ -200,33 +200,59 @@ onMounted(async () => {
         </div>
 
         <div v-if="board && hasPermission" class="space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 신고 관리</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">해당 게시판의 신고를 처리합니다.</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">상태</label>
-              <select
-                v-model="statusFilter"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
+          <PageHeader
+            eyebrow="Board Reports"
+            :title="`${boardName} 신고 관리`"
+            description="해당 게시판에서 발생한 신고를 같은 운영 패턴으로 처리합니다."
+          >
+            <template #meta>
+              <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+              <span class="ui-badge ui-badge-accent">표시 {{ reports.length }}건</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{
+                statusFilter === 'ALL' ? '전체 상태' : `${statusLabel(statusFilter)} 상태`
+              }}</span>
+            </template>
+            <template #actions>
+              <label class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">상태</label>
+              <select v-model="statusFilter" class="ui-select min-w-[9rem]">
                 <option v-for="option in statusOptions" :key="option" :value="option">
                   {{ option === 'ALL' ? '전체' : statusLabel(option) }}
                 </option>
               </select>
+            </template>
+            <div class="grid gap-3 md:grid-cols-3">
+              <div class="ui-data-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Board</p>
+                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">게시판 전용 신고 큐입니다.</p>
+              </div>
+              <div class="ui-data-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Selected</p>
+                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                  {{ selectedReport ? `#${selectedReport.id}` : '미선택' }}
+                </p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">좌측 목록에서 신고를 선택하면 상세가 갱신됩니다.</p>
+              </div>
+              <div class="ui-data-panel p-4">
+                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Action</p>
+                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">상태 변경 + 메모 기록</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">처리 메모는 운영 판단 근거로 남깁니다.</p>
+              </div>
             </div>
-          </div>
+          </PageHeader>
 
           <div v-if="listError" class="ui-state ui-state-danger">
             {{ listError }}
           </div>
 
-          <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-            <section class="ui-panel p-4">
-              <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 목록</h2>
-                <span class="text-xs text-slate-400">총 {{ reports.length }}건</span>
+          <div class="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+            <section class="ui-panel p-5">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+                <div>
+                  <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 목록</h2>
+                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시판 내부 신고만 모아서 빠르게 검토합니다.</p>
+                </div>
+                <span class="ui-badge ui-badge-muted">총 {{ reports.length }}건</span>
               </div>
 
               <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
@@ -239,43 +265,43 @@ onMounted(async () => {
                   v-for="item in reports"
                   :key="item.id"
                   type="button"
-                  class="rounded-2xl border px-4 py-3 text-left transition"
-                  :class="[
-                    item.id === selectedId
-                      ? 'border-slate-300 bg-slate-50 shadow-sm dark:border-slate-600 dark:bg-slate-900'
-                      : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/50',
-                  ]"
+                  class="ui-list-row text-left"
+                  :class="[item.id === selectedId ? 'border-[color:var(--line-strong)] bg-white/95 shadow-sm dark:bg-slate-900/80' : '']"
                   @click="selectReport(item.id)"
                 >
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        <span>#{{ item.id }}</span>
-                        <span class="text-xs text-slate-400">{{ item.targetType }} · {{ item.targetId }}</span>
+                  <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
+                        <span class="ui-badge ui-badge-muted">{{ item.targetType }}</span>
+                        <span>대상 {{ item.targetId }}</span>
                       </div>
-                      <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">신고자 {{ item.reporterUserId }} · 사유 {{ item.reasonCode }}</p>
+                      <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">#{{ item.id }}</span>
+                        <span class="truncate text-sm text-slate-600 dark:text-slate-300">사유 {{ item.reasonCode }}</span>
+                      </div>
+                      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        신고자 {{ item.reporterUserId }} · 접수 {{ formatDate(item.createdAt) }}
+                      </p>
                     </div>
-                    <span :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
+
+                    <div class="text-xs text-slate-400 md:text-right">
+                      <p>처리 {{ formatDate(item.processedAt) }}</p>
+                    </div>
                   </div>
-                  <div class="mt-2 text-xs text-slate-400">접수 {{ formatDate(item.createdAt) }}</div>
                 </button>
 
                 <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 신고가 없습니다.</div>
               </div>
 
-              <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
-                <button
-                  type="button"
-                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                  :disabled="page === 0"
-                  @click="movePage(-1)"
-                >
+              <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+                <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
                   이전
                 </button>
                 <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
                 <button
                   type="button"
-                  class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                  class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40"
                   :disabled="page + 1 >= totalPages"
                   @click="movePage(1)"
                 >
@@ -285,10 +311,10 @@ onMounted(async () => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Detail</p>
-                  <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">신고 상세</h2>
+                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Detail</p>
+                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h2>
                 </div>
                 <div v-if="selectedReport" :class="statusBadgeClass(selectedReport.status)">
                   {{ statusLabel(selectedReport.status) }}
@@ -302,6 +328,22 @@ onMounted(async () => {
               <div v-if="isLoadingDetail" class="mt-6 text-sm text-slate-500">상세 정보를 불러오는 중...</div>
 
               <div v-else-if="selectedReport" class="mt-6 space-y-6">
+                <div class="grid gap-3 md:grid-cols-2">
+                  <div class="ui-data-panel p-4">
+                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Target</p>
+                    <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                      {{ selectedReport.targetType }} · {{ selectedReport.targetId }}
+                    </p>
+                  </div>
+                  <div class="ui-data-panel p-4">
+                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Reporter</p>
+                    <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                      {{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}
+                    </p>
+                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">사유 {{ selectedReport.reasonCode }}</p>
+                  </div>
+                </div>
+
                 <div
                   class="grid gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
                 >
@@ -311,9 +353,9 @@ onMounted(async () => {
                   </div>
                   <div class="flex flex-wrap justify-between gap-3">
                     <span>대상</span>
-                    <span class="font-semibold text-slate-900 dark:text-slate-100">
-                      {{ selectedReport.targetType }} · {{ selectedReport.targetId }}
-                    </span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100"
+                      >{{ selectedReport.targetType }} · {{ selectedReport.targetId }}</span
+                    >
                   </div>
                   <div class="flex flex-wrap justify-between gap-3">
                     <span>사유</span>
@@ -321,25 +363,25 @@ onMounted(async () => {
                   </div>
                   <div class="flex flex-wrap justify-between gap-3">
                     <span>신고자 / 대상자</span>
-                    <span class="font-semibold text-slate-900 dark:text-slate-100">
-                      {{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}
-                    </span>
+                    <span class="font-semibold text-slate-900 dark:text-slate-100"
+                      >{{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}</span
+                    >
                   </div>
                 </div>
 
                 <div>
-                  <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 상세</h3>
+                  <h3 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h3>
                   <p
-                    class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
+                    class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
                   >
                     {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
                   </p>
                 </div>
 
                 <div v-if="selectedReportSnapshot">
-                  <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대상 스냅샷</h3>
+                  <h3 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">대상 스냅샷</h3>
                   <pre
-                    class="mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
+                    class="ui-scrollbar mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
                     >{{ selectedReportSnapshot }}</pre
                   >
                 </div>
@@ -349,25 +391,17 @@ onMounted(async () => {
                     <span>접수 {{ formatDate(selectedReport.createdAt) }}</span>
                     <span>처리 {{ formatDate(selectedReport.processedAt) }}</span>
                   </div>
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 상태</label>
-                  <select
-                    v-model="processStatus"
-                    class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                  >
+                  <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 상태</label>
+                  <select v-model="processStatus" class="ui-select">
                     <option v-for="option in statusOptions.filter((item) => item !== 'ALL')" :key="option" :value="option">
                       {{ statusLabel(option) }}
                     </option>
                   </select>
-                  <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 메모</label>
-                  <textarea
-                    v-model="processNote"
-                    rows="4"
-                    class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                    placeholder="처리 결과와 사유를 간단히 기록하세요."
-                  ></textarea>
+                  <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 메모</label>
+                  <textarea v-model="processNote" rows="4" class="ui-textarea" placeholder="처리 결과와 사유를 간단히 기록하세요."></textarea>
                   <button
                     type="button"
-                    class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                    class="ui-button-accent mt-2 h-11 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                     :disabled="isProcessing"
                     @click="handleProcess"
                   >

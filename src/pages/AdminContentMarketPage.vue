@@ -143,19 +143,19 @@ const handleImport = async () => {
 
           <div v-if="refreshResult" class="mt-5 grid gap-3 md:grid-cols-4">
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">실행 시각</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">실행 시각</p>
               <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ formatDateTime(refreshResult.executedAt) }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">생성</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">생성</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ refreshResult.createdCount }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">갱신</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">갱신</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ refreshResult.updatedCount }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">스킵</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">스킵</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ refreshResult.skippedCount }}</p>
             </div>
           </div>
@@ -250,10 +250,10 @@ const handleImport = async () => {
                 </div>
 
                 <label v-if="importMode === 'SINGLE'" class="mt-5 block space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">종목 선택</span>
+                  <span class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">종목 선택</span>
                   <select
                     v-model="selectedInstrument"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                   >
                     <option v-for="option in instrumentOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
@@ -266,23 +266,23 @@ const handleImport = async () => {
 
           <div v-if="importResult" class="mt-6 grid gap-3 md:grid-cols-5">
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">전체 row</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">전체 row</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.totalCount }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">생성</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">생성</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.createdCount }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">갱신</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">갱신</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.updatedCount }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">스킵</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">스킵</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.skippedCount }}</p>
             </div>
             <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">실패</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">실패</p>
               <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.failedCount }}</p>
             </div>
           </div>

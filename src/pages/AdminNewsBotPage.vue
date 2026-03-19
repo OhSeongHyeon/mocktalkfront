@@ -618,7 +618,7 @@ watch(
             <section class="ui-panel p-5">
               <div class="flex items-center justify-between gap-3">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">{{ isEditMode ? 'Edit' : 'Create' }}</p>
+                  <p class="text-xs tracking-[0.2em] text-slate-400 uppercase">{{ isEditMode ? 'Edit' : 'Create' }}</p>
                   <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
                     {{ isEditMode ? '뉴스봇 잡 수정' : '뉴스봇 잡 생성' }}
                   </h2>
@@ -657,7 +657,7 @@ watch(
                       <select
                         v-model="form.sourceType"
                         name="sourceType"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                       >
                         <option v-for="option in sourceTypeOptions" :key="option.value" :value="option.value">
                           {{ option.label }}
@@ -687,7 +687,7 @@ watch(
                       <select
                         v-model="form.hackerNewsStoryType"
                         name="hackerNewsStoryType"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                       >
                         <option v-for="option in hackerNewsStoryTypeOptions" :key="option.value" :value="option.value">
                           {{ option.label }}
@@ -869,7 +869,7 @@ watch(
                         name="targetCategoryName"
                         type="text"
                         maxlength="48"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                         placeholder="예: release"
                       />
                     </label>
@@ -892,7 +892,7 @@ watch(
                         type="number"
                         min="5"
                         max="10080"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                       />
                       <span class="text-xs font-normal text-slate-400">예: 180=3시간, 1440=24시간</span>
                     </label>
@@ -904,7 +904,7 @@ watch(
                         type="number"
                         min="1"
                         max="100"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                       />
                       <span class="text-xs font-normal text-slate-400">한 번 실행할 때 가져올 최대 글 수입니다.</span>
                     </label>
@@ -912,7 +912,7 @@ watch(
 
                   <div class="mt-4 grid gap-4 md:grid-cols-2">
                     <div>
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">주기 preset</p>
+                      <p class="text-xs font-semibold tracking-[0.14em] text-slate-400 uppercase">주기 preset</p>
                       <div class="mt-2 flex flex-wrap gap-2">
                         <button
                           v-for="preset in selectedSourcePolicy.intervalOptions"
@@ -931,7 +931,7 @@ watch(
                       </div>
                     </div>
                     <div>
-                      <p class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">수집 건수 preset</p>
+                      <p class="text-xs font-semibold tracking-[0.14em] text-slate-400 uppercase">수집 건수 preset</p>
                       <div class="mt-2 flex flex-wrap gap-2">
                         <button
                           v-for="preset in selectedSourcePolicy.fetchLimitOptions"
@@ -971,7 +971,7 @@ watch(
                         name="timezone"
                         type="text"
                         maxlength="64"
-                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm transition outline-none focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                         placeholder="예: Asia/Seoul"
                       />
                     </label>
@@ -1030,19 +1030,19 @@ watch(
               <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">최근 즉시 실행 결과</h2>
               <div class="mt-4 grid gap-3 md:grid-cols-2">
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">실행 시각</p>
+                  <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">실행 시각</p>
                   <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ formatDateTime(lastRunResult.executedAt) }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">상태</p>
+                  <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">상태</p>
                   <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ lastRunResult.status }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">가져온 항목</p>
+                  <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">가져온 항목</p>
                   <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ lastRunResult.fetchedCount }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">생성/갱신/스킵</p>
+                  <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">생성/갱신/스킵</p>
                   <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {{ lastRunResult.createdCount }} / {{ lastRunResult.updatedCount }} / {{ lastRunResult.skippedCount }}
                   </p>

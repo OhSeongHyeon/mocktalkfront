@@ -13,6 +13,7 @@ import {
 } from '../features/admin/system';
 import type { BoardResponse } from '../entities/board';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
@@ -416,41 +417,59 @@ onBeforeUnmount(() => {
   <AppShell>
     <PageContainer width="wide">
       <div class="space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시판 관리</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">전체 게시판 생성 및 정보를 관리합니다.</p>
+        <PageHeader eyebrow="Admin Boards" title="게시판 관리" description="전체 게시판 목록, 생성, 수정, 대표 이미지 관리를 한 화면에서 처리합니다.">
+          <template #meta>
+            <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+            <span class="ui-badge ui-badge-accent">표시 {{ boards.length }}건</span>
+            <span class="text-xs text-slate-500 dark:text-slate-400">{{ filterSummary }}</span>
+          </template>
+          <div class="grid gap-3 md:grid-cols-3">
+            <div class="ui-data-panel p-4">
+              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Filter</p>
+              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                {{ visibilityFilter === 'ALL' ? '전체 공개 범위' : visibilityLabel(visibilityFilter) }}
+              </p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                삭제 포함 {{ includeDeleted ? 'ON' : 'OFF' }} · 정렬 {{ sortBy === 'UPDATED_AT' ? '수정일' : '생성일' }}
+              </p>
+            </div>
+            <div class="ui-data-panel p-4">
+              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Selected</p>
+              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                {{ selectedBoard ? selectedBoard.boardName : '게시판 미선택' }}
+              </p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">우측 편집 패널은 선택한 게시판 기준으로 동작합니다.</p>
+            </div>
+            <div class="ui-data-panel p-4">
+              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
+              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">새 게시판 생성</p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">슬러그와 공개 범위를 지정한 뒤 바로 생성할 수 있습니다.</p>
+            </div>
           </div>
-        </div>
+        </PageHeader>
 
-        <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          <section class="ui-panel p-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">게시판 목록</h2>
-              <span class="text-xs text-slate-400">총 {{ boards.length }}건</span>
+        <div class="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+          <section class="ui-panel p-5">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+              <div>
+                <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">게시판 목록</h2>
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">필터와 검색을 적용한 결과만 좌측 큐에 표시합니다.</p>
+              </div>
+              <span class="ui-badge ui-badge-muted">총 {{ boards.length }}건</span>
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-3">
-              <select
-                v-model="visibilityFilter"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
+            <div class="ui-toolbar mt-4">
+              <select v-model="visibilityFilter" class="ui-select min-w-[10rem]">
                 <option v-for="option in visibilityFilterOptions" :key="option" :value="option">
-                  {{ option === 'ALL' ? '전체' : visibilityLabel(option) }}
+                  {{ option === 'ALL' ? '전체 공개 범위' : visibilityLabel(option) }}
                 </option>
               </select>
-              <select
-                v-model="sortBy"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
+              <select v-model="sortBy" class="ui-select min-w-[8.5rem]">
                 <option v-for="option in sortByOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
               </select>
-              <select
-                v-model="sortOrder"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
+              <select v-model="sortOrder" class="ui-select min-w-[8.5rem]">
                 <option v-for="option in sortOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
@@ -463,19 +482,8 @@ onBeforeUnmount(() => {
                 />
                 삭제 포함
               </label>
-              <input
-                v-model="keyword"
-                type="search"
-                class="h-10 min-w-[200px] flex-1 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                placeholder="게시판명 또는 슬러그 검색"
-              />
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-                @click="applyFilters"
-              >
-                적용
-              </button>
+              <input v-model="keyword" type="search" class="ui-input min-w-[13rem] flex-1" placeholder="게시판명 또는 슬러그 검색" />
+              <button type="button" class="ui-button-primary h-10 px-4 text-xs" @click="applyFilters">적용</button>
             </div>
             <p class="mt-2 text-xs text-slate-400">{{ filterSummary }}</p>
 
@@ -493,16 +501,12 @@ onBeforeUnmount(() => {
                 v-for="item in boards"
                 :key="item.id"
                 type="button"
-                class="rounded-2xl border px-4 py-3 text-left transition"
-                :class="[
-                  item.id === selectedBoardId
-                    ? 'border-slate-300 bg-slate-50 shadow-sm dark:border-slate-600 dark:bg-slate-900'
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/50',
-                ]"
+                class="ui-list-row text-left"
+                :class="[item.id === selectedBoardId ? 'border-[color:var(--line-strong)] bg-white/95 shadow-sm dark:bg-slate-900/80' : '']"
                 @click="selectBoard(item.id)"
               >
-                <div class="flex flex-wrap items-center gap-3">
-                  <div class="h-12 w-12 overflow-hidden rounded-2xl bg-slate-100">
+                <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_auto] md:items-start">
+                  <div class="h-14 overflow-hidden rounded-2xl bg-slate-100">
                     <FileImage
                       v-if="item.boardImage"
                       :file="item.boardImage"
@@ -512,44 +516,41 @@ onBeforeUnmount(() => {
                     />
                     <div v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">NO</div>
                   </div>
-                  <div class="flex-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-semibold text-slate-800 dark:text-slate-100">{{ item.boardName }}</span>
-                      <span class="text-xs text-slate-400">/b/{{ item.slug }}</span>
-                      <span
-                        v-if="item.deletedAt"
-                        class="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold text-rose-600 dark:bg-rose-900/40 dark:text-rose-200"
-                      >
-                        삭제됨
+
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <span :class="item.deletedAt ? 'ui-badge ui-badge-danger' : 'ui-badge ui-badge-success'">
+                        {{ item.deletedAt ? '삭제됨' : '활성' }}
                       </span>
+                      <span class="ui-badge ui-badge-muted">{{ visibilityLabel(item.visibility) }}</span>
+                      <span>ID {{ item.id }}</span>
                     </div>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {{ item.description || '설명이 없습니다.' }}
-                    </p>
+
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                      <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ item.boardName }}</span>
+                      <span class="text-xs text-slate-400">/b/{{ item.slug }}</span>
+                    </div>
+                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ item.description || '설명이 없습니다.' }}</p>
                   </div>
-                  <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-200">
-                    {{ visibilityLabel(item.visibility) }}
-                  </span>
+
+                  <div class="text-xs text-slate-400 md:text-right">
+                    <p>생성 {{ formatDate(item.createdAt) }}</p>
+                    <p class="mt-1">수정 {{ formatDate(item.updatedAt) }}</p>
+                  </div>
                 </div>
-                <div class="mt-2 text-xs text-slate-400">생성 {{ formatDate(item.createdAt) }}</div>
               </button>
 
               <div v-if="boards.length === 0" class="ui-state ui-state-empty px-4 py-10">등록된 게시판이 없습니다.</div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                :disabled="page === 0"
-                @click="movePage(-1)"
-              >
+            <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+              <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
                 이전
               </button>
               <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <button
                 type="button"
-                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
+                class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40"
                 :disabled="page + 1 >= totalPages"
                 @click="movePage(1)"
               >
@@ -560,42 +561,27 @@ onBeforeUnmount(() => {
 
           <div class="flex flex-col gap-6">
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Create</p>
-                  <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">새 게시판 생성</h2>
+                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
+                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">새 게시판 생성</h2>
                 </div>
               </div>
 
               <form class="mt-6 space-y-4" @submit.prevent="submitCreate">
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   게시판명
-                  <input
-                    v-model="createForm.boardName"
-                    type="text"
-                    maxlength="255"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="게시판 이름을 입력하세요"
-                  />
+                  <input v-model="createForm.boardName" type="text" maxlength="255" class="ui-input" placeholder="게시판 이름을 입력하세요" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   슬러그
-                  <input
-                    v-model="createForm.slug"
-                    type="text"
-                    maxlength="80"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="예: notice"
-                  />
+                  <input v-model="createForm.slug" type="text" maxlength="80" class="ui-input" placeholder="예: notice" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   공개 범위
-                  <select
-                    v-model="createForm.visibility"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  >
+                  <select v-model="createForm.visibility" class="ui-select">
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
                     </option>
@@ -604,12 +590,7 @@ onBeforeUnmount(() => {
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   게시판 설명
-                  <textarea
-                    v-model="createForm.description"
-                    rows="3"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    placeholder="게시판 소개를 입력하세요"
-                  ></textarea>
+                  <textarea v-model="createForm.description" rows="3" class="ui-textarea" placeholder="게시판 소개를 입력하세요"></textarea>
                 </label>
 
                 <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
@@ -623,10 +604,7 @@ onBeforeUnmount(() => {
                       <div v-else class="flex h-40 items-center justify-center text-sm text-slate-400">선택된 이미지가 없습니다.</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                      <label
-                        class="cursor-pointer rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:text-slate-200"
-                        :for="`admin-create-image-${createFileInputKey}`"
-                      >
+                      <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`admin-create-image-${createFileInputKey}`">
                         이미지 선택
                       </label>
                       <input
@@ -639,7 +617,7 @@ onBeforeUnmount(() => {
                       />
                       <button
                         type="button"
-                        class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                        class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-50"
                         :disabled="!createImageFile"
                         @click="resetCreateImage"
                       >
@@ -660,11 +638,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                  <button
-                    type="submit"
-                    class="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                    :disabled="isCreating"
-                  >
+                  <button type="submit" class="ui-button-accent h-11 px-6 text-sm disabled:opacity-60" :disabled="isCreating">
                     {{ isCreating ? '생성 중...' : '게시판 생성' }}
                   </button>
                 </div>
@@ -672,12 +646,12 @@ onBeforeUnmount(() => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Edit</p>
-                  <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">선택 게시판 수정</h2>
+                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Edit</p>
+                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">선택 게시판 수정</h2>
                 </div>
-                <span v-if="selectedBoard" class="text-xs text-slate-400">ID {{ selectedBoard.id }}</span>
+                <span v-if="selectedBoard" class="ui-badge ui-badge-muted">ID {{ selectedBoard.id }}</span>
               </div>
 
               <div v-if="!selectedBoard" class="ui-state ui-state-empty mt-6 px-4 py-10">목록에서 게시판을 선택해주세요.</div>
@@ -685,30 +659,17 @@ onBeforeUnmount(() => {
               <form v-else class="mt-6 space-y-4" @submit.prevent="submitUpdate">
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   게시판명
-                  <input
-                    v-model="editForm.boardName"
-                    type="text"
-                    maxlength="255"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  />
+                  <input v-model="editForm.boardName" type="text" maxlength="255" class="ui-input" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   슬러그
-                  <input
-                    v-model="editForm.slug"
-                    type="text"
-                    maxlength="80"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  />
+                  <input v-model="editForm.slug" type="text" maxlength="80" class="ui-input" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   공개 범위
-                  <select
-                    v-model="editForm.visibility"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  >
+                  <select v-model="editForm.visibility" class="ui-select">
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
                     </option>
@@ -717,11 +678,7 @@ onBeforeUnmount(() => {
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
                   게시판 설명
-                  <textarea
-                    v-model="editForm.description"
-                    rows="3"
-                    class="rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                  ></textarea>
+                  <textarea v-model="editForm.description" rows="3" class="ui-textarea"></textarea>
                 </label>
 
                 <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
@@ -742,10 +699,7 @@ onBeforeUnmount(() => {
                       <div v-else class="flex h-40 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                      <label
-                        class="cursor-pointer rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:text-slate-200"
-                        :for="`admin-edit-image-${editFileInputKey}`"
-                      >
+                      <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`admin-edit-image-${editFileInputKey}`">
                         이미지 선택
                       </label>
                       <input
@@ -758,7 +712,7 @@ onBeforeUnmount(() => {
                       />
                       <button
                         type="button"
-                        class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+                        class="ui-button-accent h-10 px-4 text-xs disabled:opacity-60"
                         :disabled="!editImageFile || isUploading"
                         @click="uploadImage"
                       >
@@ -766,7 +720,7 @@ onBeforeUnmount(() => {
                       </button>
                       <button
                         type="button"
-                        class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                        class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-50"
                         :disabled="!editImageFile"
                         @click="resetEditImage"
                       >
@@ -774,7 +728,7 @@ onBeforeUnmount(() => {
                       </button>
                       <button
                         type="button"
-                        class="rounded-full border border-rose-200 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50 dark:border-rose-900/60 dark:text-rose-200"
+                        class="ui-button-danger h-10 px-4 text-xs disabled:opacity-50"
                         :disabled="!selectedBoard.boardImage || isRemoving"
                         @click="deleteImage"
                       >
@@ -804,19 +758,10 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
-                  <button
-                    type="submit"
-                    class="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                    :disabled="isUpdating"
-                  >
+                  <button type="submit" class="ui-button-accent h-11 px-6 text-sm disabled:opacity-60" :disabled="isUpdating">
                     {{ isUpdating ? '저장 중...' : '게시판 저장' }}
                   </button>
-                  <button
-                    type="button"
-                    class="rounded-full border border-rose-200 px-6 py-2 text-sm font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-50 dark:border-rose-900/60 dark:text-rose-200"
-                    :disabled="isUpdating"
-                    @click="deleteBoard"
-                  >
+                  <button type="button" class="ui-button-danger h-11 px-6 text-sm disabled:opacity-50" :disabled="isUpdating" @click="deleteBoard">
                     게시판 삭제
                   </button>
                 </div>

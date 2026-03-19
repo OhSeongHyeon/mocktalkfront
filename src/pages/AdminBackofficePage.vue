@@ -96,7 +96,7 @@ const resolveCardClass = (tone: string) => {
     <PageContainer width="wide">
       <div>
         <section class="ui-panel p-6 sm:p-8">
-          <p class="text-xs font-semibold uppercase tracking-[0.28em] text-red-400 dark:text-red-300">Backoffice</p>
+          <p class="text-xs font-semibold tracking-[0.28em] text-red-400 uppercase dark:text-red-300">Backoffice</p>
           <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 class="text-3xl font-semibold text-slate-900 dark:text-slate-100">운영 작업 공간</h1>

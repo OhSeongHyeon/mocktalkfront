@@ -273,7 +273,7 @@ onMounted(async () => {
           <section class="ui-panel p-5">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Detail</p>
+                <p class="text-xs tracking-[0.2em] text-slate-400 uppercase">Detail</p>
                 <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">로그 상세</h2>
               </div>
             </div>
