@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
+import {
+  MODERATION_STATUS_OPTIONS,
+  formatModerationStatusLabel,
+  parseModerationTargetSnapshot,
+  type ModerationStatusFilter,
+  resolveModerationStatusBadgeClass,
+} from '../features/admin/lib/reportModeration';
 import { ApiError } from '../shared/lib/http/api';
 import { getAdminReport, getAdminReports, processAdminReport } from '../features/admin/system';
 import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../features/admin/system';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
+import { formatKoreanDateTime } from '../shared/lib/date';
 import AppShell from '../widgets/layout/AppShell.vue';
 
-type StatusFilter = ReportStatus | 'ALL';
-
-const statusFilter = ref<StatusFilter>('ALL');
+const statusFilter = ref<ModerationStatusFilter>('ALL');
 const page = ref(0);
 const size = ref(10);
 const totalPages = ref(0);
@@ -25,50 +31,7 @@ const isProcessing = ref(false);
 const processStatus = ref<ReportStatus>('PENDING');
 const processNote = ref('');
 
-const statusOptions: StatusFilter[] = ['ALL', 'PENDING', 'IN_REVIEW', 'RESOLVED', 'REJECTED'];
-
-const selectedReportSnapshot = computed(() => {
-  if (!selectedReport.value?.targetSnapshot) {
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(selectedReport.value.targetSnapshot);
-    return JSON.stringify(parsed, null, 2);
-  } catch {
-    return selectedReport.value.targetSnapshot;
-  }
-});
-
-const statusLabel = (status: ReportStatus) => {
-  const labels: Record<ReportStatus, string> = {
-    PENDING: '대기',
-    IN_REVIEW: '검토',
-    RESOLVED: '해결',
-    REJECTED: '반려',
-  };
-  return labels[status] ?? status;
-};
-
-const statusBadgeClass = (status: ReportStatus) => {
-  if (status === 'PENDING') {
-    return 'ui-badge ui-badge-warning';
-  }
-  if (status === 'IN_REVIEW') {
-    return 'ui-badge ui-badge-accent';
-  }
-  if (status === 'RESOLVED') {
-    return 'ui-badge ui-badge-success';
-  }
-  return 'ui-badge ui-badge-danger';
-};
-
-const formatDate = (value: string | null) => {
-  if (!value) {
-    return '-';
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('ko-KR');
-};
+const selectedReportSnapshot = computed(() => parseModerationTargetSnapshot(selectedReport.value?.targetSnapshot ?? null));
 
 const loadReports = async () => {
   listError.value = '';
@@ -161,14 +124,14 @@ onMounted(async () => {
             <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
             <span class="ui-badge ui-badge-accent">표시 {{ reports.length }}건</span>
             <span class="text-xs text-slate-500 dark:text-slate-400">{{
-              statusFilter === 'ALL' ? '전체 상태' : `${statusLabel(statusFilter)} 상태`
+              statusFilter === 'ALL' ? '전체 상태' : `${formatModerationStatusLabel(statusFilter)} 상태`
             }}</span>
           </template>
           <template #actions>
             <label class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">상태</label>
             <select v-model="statusFilter" class="ui-select min-w-[9rem]">
-              <option v-for="option in statusOptions" :key="option" :value="option">
-                {{ option === 'ALL' ? '전체' : statusLabel(option) }}
+              <option v-for="option in MODERATION_STATUS_OPTIONS" :key="option" :value="option">
+                {{ option === 'ALL' ? '전체' : formatModerationStatusLabel(option) }}
               </option>
             </select>
           </template>
@@ -224,7 +187,7 @@ onMounted(async () => {
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                      <span :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
+                      <span :class="resolveModerationStatusBadgeClass(item.status)">{{ formatModerationStatusLabel(item.status) }}</span>
                       <span class="ui-badge ui-badge-muted">{{ item.targetType }}</span>
                       <span>대상 {{ item.targetId }}</span>
                     </div>
@@ -233,12 +196,12 @@ onMounted(async () => {
                       <span class="truncate text-sm text-slate-600 dark:text-slate-300">사유 {{ item.reasonCode }}</span>
                     </div>
                     <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      신고자 {{ item.reporterUserId }} · 접수 {{ formatDate(item.createdAt) }}
+                      신고자 {{ item.reporterUserId }} · 접수 {{ formatKoreanDateTime(item.createdAt, item.createdAt) }}
                     </p>
                   </div>
 
                   <div class="text-xs text-slate-400 md:text-right">
-                    <p>처리 {{ formatDate(item.processedAt) }}</p>
+                    <p>처리 {{ formatKoreanDateTime(item.processedAt) }}</p>
                   </div>
                 </div>
               </button>
@@ -268,8 +231,8 @@ onMounted(async () => {
                 <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Detail</p>
                 <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h2>
               </div>
-              <div v-if="selectedReport" :class="statusBadgeClass(selectedReport.status)">
-                {{ statusLabel(selectedReport.status) }}
+              <div v-if="selectedReport" :class="resolveModerationStatusBadgeClass(selectedReport.status)">
+                {{ formatModerationStatusLabel(selectedReport.status) }}
               </div>
             </div>
 
@@ -345,13 +308,13 @@ onMounted(async () => {
 
               <div class="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
                 <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-                  <span>접수 {{ formatDate(selectedReport.createdAt) }}</span>
-                  <span>처리 {{ formatDate(selectedReport.processedAt) }}</span>
+                  <span>접수 {{ formatKoreanDateTime(selectedReport.createdAt, selectedReport.createdAt) }}</span>
+                  <span>처리 {{ formatKoreanDateTime(selectedReport.processedAt) }}</span>
                 </div>
                 <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 상태</label>
                 <select v-model="processStatus" class="ui-select">
-                  <option v-for="option in statusOptions.filter((item) => item !== 'ALL')" :key="option" :value="option">
-                    {{ statusLabel(option) }}
+                  <option v-for="option in MODERATION_STATUS_OPTIONS.filter((item) => item !== 'ALL')" :key="option" :value="option">
+                    {{ formatModerationStatusLabel(option) }}
                   </option>
                 </select>
                 <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 메모</label>
