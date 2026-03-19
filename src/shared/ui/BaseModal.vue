@@ -34,7 +34,7 @@ const panelClasses = computed(() => {
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
   };
-  const base = `relative w-full ${sizeMap[props.size] ?? sizeMap.md} rounded-3xl border border-slate-200/80 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-950`;
+  const base = `relative w-full ${sizeMap[props.size] ?? sizeMap.md} rounded-[1.75rem] border border-slate-200/80 bg-white/96 p-6 shadow-[0_30px_70px_-40px_rgba(15,23,42,0.42)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/96`;
   return [base, props.panelClass].filter(Boolean).join(' ');
 });
 
@@ -80,7 +80,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true" :aria-label="ariaLabel">
-    <div class="absolute inset-0" :class="overlayClass" @click="handleBackdropClick"></div>
+    <div class="absolute inset-0 backdrop-blur-sm" :class="overlayClass" @click="handleBackdropClick"></div>
     <div :class="panelClasses" @click.stop>
       <slot :title-id="titleId" />
     </div>

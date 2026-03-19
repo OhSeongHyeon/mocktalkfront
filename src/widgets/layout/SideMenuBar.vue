@@ -18,6 +18,7 @@ import iconSettings from '../../assets/icons/icon-settings.svg';
 import iconShield from '../../assets/icons/icon-shield.svg';
 import iconSubscribe from '../../assets/icons/icon-subscribe.svg';
 import iconUsers from '../../assets/icons/icon-users.svg';
+
 const props = defineProps<{
   collapsed: boolean;
   displayMode: 'collapse' | 'hidden';
@@ -115,7 +116,10 @@ const isActive = (path?: string) => {
 const isCompact = computed(() => props.displayMode === 'collapse' && props.collapsed && !props.mobileOpen);
 const isDesktopHidden = computed(() => props.displayMode === 'hidden' && props.collapsed && !props.mobileOpen);
 const isBackofficeRoute = computed(() => route.path === '/admin' || route.path.startsWith('/admin/'));
-const menuTitle = computed(() => (isBackofficeRoute.value ? '백오피스' : '메뉴'));
+const menuTitle = computed(() => (isBackofficeRoute.value ? '백오피스' : '서비스 탐색'));
+const menuDescription = computed(() =>
+  isBackofficeRoute.value ? '운영 도구를 빠르게 이동하는 업무형 메뉴입니다.' : '자주 쓰는 커뮤니티 흐름을 정보 밀도형 구조로 정리했습니다.',
+);
 
 const closeMobileMenu = () => {
   emit('close');
@@ -203,21 +207,32 @@ const sections = computed(() => {
 <template>
   <div v-if="props.mobileOpen" class="fixed inset-0 z-40 bg-slate-900/40 md:hidden" aria-hidden="true" @click="closeMobileMenu"></div>
   <aside
-    class="fixed top-16 z-50 flex h-[calc(100vh-4rem)] min-h-0 w-64 shrink-0 flex-col gap-4 overflow-hidden rounded-3xl rounded-l-none border border-slate-200/80 bg-[color:var(--surface-glass)] p-3 shadow-sm backdrop-blur transition-all dark:border-slate-800/80 md:static md:top-auto md:h-auto md:self-stretch"
+    class="fixed top-[5.25rem] z-50 flex h-[calc(100vh-5.85rem)] min-h-0 w-72 shrink-0 flex-col gap-3 overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white/88 p-3 shadow-[0_22px_50px_-36px_rgba(15,23,42,0.36)] backdrop-blur transition-all md:static md:top-auto md:h-auto md:self-stretch dark:border-slate-800/80 dark:bg-slate-950/82"
     :class="[
       props.mobileOpen ? 'translate-x-0' : '-translate-x-full',
       isDesktopHidden
         ? 'md:pointer-events-none md:w-0 md:min-w-0 md:translate-x-0 md:border-transparent md:bg-transparent md:p-0 md:opacity-0 md:shadow-none'
         : isCompact
-          ? 'md:w-20 md:translate-x-0 md:items-center'
-          : 'md:w-64 md:translate-x-0',
+          ? 'md:w-24 md:translate-x-0 md:items-center'
+          : 'md:w-72 md:translate-x-0',
     ]"
   >
-    <div v-if="!isCompact" class="px-3 pt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">{{ menuTitle }}</div>
+    <div v-if="!isCompact" class="ui-data-panel px-4 py-4">
+      <p class="text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">
+        {{ isBackofficeRoute ? 'Ops Navigation' : 'Quick Navigation' }}
+      </p>
+      <div class="mt-2 flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="truncate text-base font-black tracking-tight text-slate-900 dark:text-slate-100">{{ menuTitle }}</p>
+          <p class="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ menuDescription }}</p>
+        </div>
+        <span class="ui-badge ui-badge-accent shrink-0">{{ sections.length }}개 섹션</span>
+      </div>
+    </div>
 
     <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain" aria-label="사이드 메뉴">
       <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
-        <p v-if="!isCompact" class="px-3 pt-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+        <p v-if="!isCompact" class="px-3 pt-3 text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase dark:text-slate-500">
           {{ section.title }}
         </p>
         <component
@@ -225,13 +240,13 @@ const sections = computed(() => {
           v-for="item in section.items"
           :key="item.name"
           :to="item.path ?? undefined"
-          class="flex items-center gap-3 rounded-2xl px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/80 dark:focus-visible:ring-red-500/40"
+          class="focus-visible:ring-brand-300/80 dark:focus-visible:ring-brand-500/40 flex items-center gap-3 rounded-[1.15rem] border border-transparent px-3 py-3 text-sm font-semibold transition focus-visible:ring-2 focus-visible:outline-none"
           :class="[
             isCompact ? 'justify-center' : 'justify-start',
             item.active
-              ? 'bg-[color:var(--accent-soft)] text-slate-900 shadow-sm dark:bg-red-500/10 dark:text-slate-100'
+              ? 'border-brand-200 bg-brand-50 dark:border-brand-900/50 dark:bg-brand-950/30 text-slate-900 shadow-sm dark:text-slate-100'
               : item.implemented
-                ? 'cursor-pointer text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800/60'
+                ? 'cursor-pointer text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900/70'
                 : 'cursor-not-allowed text-slate-400 dark:text-slate-500',
           ]"
           :aria-current="item.active ? 'page' : undefined"
@@ -241,25 +256,24 @@ const sections = computed(() => {
           @click="handleMenuClick(item)"
         >
           <span
-            class="grid h-9 w-9 place-items-center rounded-xl"
+            class="grid h-10 w-10 place-items-center rounded-[1rem] border border-transparent"
             :class="
               item.active
-                ? 'text-[color:var(--accent-strong)] dark:text-red-400'
+                ? 'border-brand-200 text-brand-700 dark:border-brand-900/60 dark:text-brand-300 bg-white dark:bg-slate-950'
                 : item.implemented
-                  ? 'text-slate-600 dark:text-slate-300'
+                  ? 'bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300'
                   : 'text-slate-400 dark:text-slate-500'
             "
           >
             <img :src="iconAssets[item.icon]" alt="" aria-hidden="true" class="h-5 w-5" />
           </span>
+
           <div v-if="!isCompact" class="flex min-w-0 flex-1 items-center justify-between gap-2">
-            <span class="truncate">{{ item.name }}</span>
-            <span
-              v-if="!item.implemented"
-              class="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500"
-            >
-              준비중
-            </span>
+            <div class="min-w-0">
+              <span class="truncate text-sm">{{ item.name }}</span>
+              <p v-if="item.active" class="text-[11px] text-slate-500 dark:text-slate-400">현재 화면</p>
+            </div>
+            <span v-if="!item.implemented" class="ui-badge ui-badge-muted shrink-0">준비중</span>
           </div>
         </component>
       </div>

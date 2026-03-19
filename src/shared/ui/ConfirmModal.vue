@@ -41,15 +41,14 @@ const emit = defineEmits<{
 }>();
 
 const confirmButtonClass = computed(() => {
-  const base = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70';
+  const base = 'h-11 px-5 text-sm';
   if (props.confirmVariant === 'danger') {
-    return `${base} border border-rose-300 bg-rose-500 text-white hover:bg-rose-600 dark:border-rose-800`;
+    return `${base} ui-button-danger`;
   }
-  return `${base} bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900`;
+  return `${base} ui-button-primary`;
 });
 
-const cancelButtonClass =
-  'rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900';
+const cancelButtonClass = 'ui-button-ghost h-11 px-5 text-sm';
 
 const ariaLabel = computed(() => props.ariaLabel || props.title || '확인 모달');
 </script>
@@ -65,8 +64,8 @@ const ariaLabel = computed(() => props.ariaLabel || props.title || '확인 모�
     :aria-label="ariaLabel"
     @close="emit('close')"
   >
-    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">{{ title }}</h3>
-    <p v-if="description" class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+    <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">{{ title }}</h3>
+    <p v-if="description" class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
       {{ description }}
     </p>
     <slot />

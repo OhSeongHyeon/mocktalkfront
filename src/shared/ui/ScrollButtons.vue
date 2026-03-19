@@ -25,7 +25,7 @@ const scrollToBottom = () => {
 </script>
 
 <template>
-  <div class="fixed bottom-6 right-6 z-50 hidden flex-col gap-2 md:flex">
+  <div class="fixed right-6 bottom-6 z-50 hidden flex-col gap-2 md:flex">
     <button
       type="button"
       aria-label="맨 위로 이동"
