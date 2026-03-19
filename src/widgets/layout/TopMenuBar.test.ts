@@ -1,0 +1,166 @@
+import { flushPromises, mount } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
+import { createMemoryHistory, createRouter } from 'vue-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { useAuthStore } from '../../stores/auth';
+import { useNotificationStore } from '../../stores/notification';
+import TopMenuBar from './TopMenuBar.vue';
+
+const USER_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.sig';
+
+const logoutMock = vi.hoisted(() => vi.fn());
+const stopNotificationPresenceMock = vi.hoisted(() => vi.fn());
+const applyThemeMock = vi.hoisted(() => vi.fn());
+
+vi.mock('../../features/auth', () => ({
+  logout: logoutMock,
+}));
+
+vi.mock('../../features/notification', () => ({
+  useNotificationPresence: () => ({
+    stopNotificationPresence: stopNotificationPresenceMock,
+  }),
+}));
+
+vi.mock('../../shared/lib/theme', () => ({
+  applyTheme: applyThemeMock,
+}));
+
+const createRouterInstance = async (initialPath = '/') => {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', component: { template: '<div>home</div>' } },
+      { path: '/boards', component: { template: '<div>boards</div>' } },
+      { path: '/contents', component: { template: '<div>contents</div>' } },
+      { path: '/bookmarks', component: { template: '<div>bookmarks</div>' } },
+      { path: '/search', component: { template: '<div>search</div>' } },
+      { path: '/login', component: { template: '<div>login</div>' } },
+      { path: '/mypage', component: { template: '<div>mypage</div>' } },
+      { path: '/boards/create', component: { template: '<div>create</div>' } },
+      { path: '/admin', component: { template: '<div>admin</div>' } },
+    ],
+  });
+  await router.push(initialPath);
+  await router.isReady();
+  return router;
+};
+
+const mountTopMenuBar = async (initialPath = '/') => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const router = await createRouterInstance(initialPath);
+  const wrapper = mount(TopMenuBar, {
+    global: {
+      plugins: [pinia, router],
+    },
+  });
+  await flushPromises();
+  return {
+    router,
+    wrapper,
+  };
+};
+
+describe('widgets/layout/TopMenuBar', () => {
+  beforeEach(() => {
+    logoutMock.mockReset();
+    logoutMock.mockResolvedValue(undefined);
+    applyThemeMock.mockReset();
+    stopNotificationPresenceMock.mockReset();
+    document.documentElement.classList.remove('dark');
+  });
+
+  it('검색어 입력 후 Enter를 누르면 통합검색으로 이동한다', async () => {
+    // given
+    const { router, wrapper } = await mountTopMenuBar('/');
+
+    // when
+    await wrapper.get('#global-search').setValue('레이아웃');
+    await wrapper.get('#global-search').trigger('keydown.enter');
+    await flushPromises();
+
+    // then
+    expect(router.currentRoute.value.path).toBe('/search');
+    expect(router.currentRoute.value.query.q).toBe('레이아웃');
+    expect(router.currentRoute.value.query.type).toBe('ALL');
+  });
+
+  it('테마 토글 버튼 클릭 시 applyTheme를 호출한다', async () => {
+    // given
+    const { wrapper } = await mountTopMenuBar('/');
+
+    // when
+    await wrapper.get('button[aria-label="다크/화이트 모드 전환"]').trigger('click');
+
+    // then
+    expect(applyThemeMock).toHaveBeenCalledWith('dark');
+  });
+
+  it('인증된 사용자로 마운트되면 알림 realtime을 시작하고 알림 메뉴를 열 때 목록을 불러온다', async () => {
+    // given
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const authStore = useAuthStore();
+    const notificationStore = useNotificationStore();
+    authStore.setAccessToken(USER_TOKEN, 60);
+    authStore.setProfileSummary({ displayName: '테스터', point: 7 });
+    notificationStore.notificationUnreadCount = 1;
+    notificationStore.notificationListDirty = true;
+
+    const startRealtimeSpy = vi.spyOn(notificationStore, 'startNotificationRealtime').mockImplementation(() => {});
+    const refreshUnreadSpy = vi.spyOn(notificationStore, 'refreshUnreadCount').mockResolvedValue(undefined);
+    const loadNotificationsSpy = vi.spyOn(notificationStore, 'loadNotifications').mockResolvedValue(undefined);
+    const router = await createRouterInstance('/');
+
+    const wrapper = mount(TopMenuBar, {
+      global: {
+        plugins: [pinia, router],
+      },
+    });
+    await flushPromises();
+
+    // then
+    expect(startRealtimeSpy).toHaveBeenCalled();
+    expect(refreshUnreadSpy).toHaveBeenCalled();
+
+    // when
+    await wrapper.get('button[aria-label="알림 1개"]').trigger('click');
+    await flushPromises();
+
+    // then
+    expect(loadNotificationsSpy).toHaveBeenCalled();
+  });
+
+  it('프로필 메뉴에서 로그아웃을 누르면 인증 상태를 비운다', async () => {
+    // given
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const authStore = useAuthStore();
+    const notificationStore = useNotificationStore();
+    authStore.setAccessToken(USER_TOKEN, 60);
+    authStore.setProfileSummary({ displayName: '테스터', point: 7 });
+
+    vi.spyOn(notificationStore, 'startNotificationRealtime').mockImplementation(() => {});
+    vi.spyOn(notificationStore, 'refreshUnreadCount').mockResolvedValue(undefined);
+
+    const router = await createRouterInstance('/');
+    const wrapper = mount(TopMenuBar, {
+      global: {
+        plugins: [pinia, router],
+      },
+    });
+    await flushPromises();
+
+    // when
+    await wrapper.get('button[aria-label="프로필"]').trigger('click');
+    const logoutButton = wrapper.findAll('button').find((button) => button.text().includes('로그아웃'));
+    await logoutButton?.trigger('click');
+    await flushPromises();
+
+    // then
+    expect(logoutMock).toHaveBeenCalled();
+    expect(authStore.isAuthenticated).toBe(false);
+  });
+});
