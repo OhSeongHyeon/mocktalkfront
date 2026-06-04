@@ -192,9 +192,10 @@ onMounted(() => {
       <div v-if="listError" class="ui-state ui-state-danger ui-section-message">{{ listError }}</div>
       <div v-else-if="isInitialLoading" class="ui-section-loading">불러오는 중...</div>
       <template v-else-if="articles.length > 0">
-        <div class="bbs-table-head bbs-cols-5">
+        <div class="bbs-table-head bbs-cols-6">
           <span>제목</span>
           <span class="text-center">글쓴이</span>
+          <span class="text-center">날짜</span>
           <span class="text-center">댓글</span>
           <span class="text-center">조회</span>
           <span class="text-center">추천</span>
@@ -220,6 +221,14 @@ onMounted(() => {
       <div v-if="trendingError" class="ui-state ui-state-danger ui-section-message">{{ trendingError }}</div>
       <div v-else-if="isTrendingLoading" class="ui-section-loading">불러오는 중...</div>
       <template v-else-if="trendingArticles.length > 0">
+        <div class="bbs-table-head bbs-cols-6">
+          <span>제목</span>
+          <span class="text-center">글쓴이</span>
+          <span class="text-center">날짜</span>
+          <span class="text-center">댓글</span>
+          <span class="text-center">조회</span>
+          <span class="text-center">트렌드</span>
+        </div>
         <ArticleTrendingCard v-for="article in trendingArticles" :key="article.articleId" :article="article" />
       </template>
       <div v-else class="ui-state ui-state-empty ui-section-message">트렌딩 글이 없습니다.</div>
@@ -229,6 +238,14 @@ onMounted(() => {
       <div v-if="recommendedError" class="ui-state ui-state-danger ui-section-message">{{ recommendedError }}</div>
       <div v-else-if="isRecommendedLoading" class="ui-section-loading">불러오는 중...</div>
       <template v-else-if="recommendedArticles.length > 0">
+        <div class="bbs-table-head bbs-cols-6">
+          <span>제목</span>
+          <span class="text-center">글쓴이</span>
+          <span class="text-center">날짜</span>
+          <span class="text-center">댓글</span>
+          <span class="text-center">조회</span>
+          <span class="text-center">추천</span>
+        </div>
         <ArticleRecommendedCard v-for="article in recommendedArticles" :key="article.articleId" :article="article" />
       </template>
       <div v-else class="ui-state ui-state-empty ui-section-message">추천 글이 없습니다.</div>

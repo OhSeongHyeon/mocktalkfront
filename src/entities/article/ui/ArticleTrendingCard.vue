@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { formatKoreanDate } from '../../../shared/lib/date';
 import type { ArticleTrendingItemResponse } from '../api/articleApi';
 
 const props = defineProps<{
@@ -14,13 +15,14 @@ const trendScoreLabel = computed(() => new Intl.NumberFormat('ko-KR', { maximumF
 
 <template>
   <RouterLink :to="articlePath" class="bbs-row">
-    <div class="bbs-cols-5 md:grid">
+    <div class="bbs-cols-6 md:grid">
       <div class="min-w-0">
         <span class="bbs-tag bbs-tag-notice">트렌딩</span>
         <span class="bbs-row-title">{{ article.title }}</span>
         <span v-if="article.commentCount > 0" class="bbs-cmt">[{{ article.commentCount }}]</span>
       </div>
       <span class="bbs-cell-center hidden md:block">{{ article.authorName }}</span>
+      <span class="bbs-cell-center hidden md:block">{{ formatKoreanDate(article.createdAt) }}</span>
       <span class="bbs-cell-center hidden md:block">{{ article.commentCount }}</span>
       <span class="bbs-cell-center hidden md:block">{{ article.hit }}</span>
       <span class="bbs-cell-center hidden md:block">{{ trendScoreLabel }}</span>
