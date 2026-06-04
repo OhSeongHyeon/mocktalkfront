@@ -183,6 +183,7 @@ const editor = {
       split: 'Split',
       preview: 'Preview',
       loading: 'Rendering...',
+      mediaLoading: 'Loading media...',
       empty: 'Preview will appear here.',
       loadFailed: 'Failed to load preview.',
       label: 'Preview',

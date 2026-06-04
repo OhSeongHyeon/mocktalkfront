@@ -19,7 +19,7 @@ import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction
 import type { UserProfileResponse } from '../entities/user';
 import { getMyProfile } from '../entities/user';
 import { ApiError } from '../shared/lib/http/api';
-import { resolveProtectedFileViewUrlsInHtml } from '../entities/file';
+import { attachFileViewMediaRecovery, hasFileViewMediaUrls, resolveProtectedFileViewUrlsInHtml } from '../entities/file';
 import { recordHistoryItem } from '../shared/lib/history';
 import { renderMermaidDiagrams } from '../shared/lib/mermaid';
 import { sanitizeHtml } from '../shared/lib/sanitize';
@@ -124,6 +124,8 @@ const formatFileSize = (size: number) => {
 const attachments = computed(() => article.value?.attachments ?? []);
 const sanitizedContent = computed(() => (article.value?.content ? sanitizeHtml(article.value.content) : ''));
 const renderedContent = ref('');
+const isContentMediaLoading = ref(false);
+let detachMediaRecovery: (() => void) | undefined;
 const articleCategoryLabel = computed(() => {
   const trimmed = article.value?.categoryName?.trim();
   return trimmed ? trimmed : null;
@@ -143,8 +145,26 @@ const renderArticleMermaid = async () => {
   await renderMermaidDiagrams(articleContentRef.value);
 };
 
+const bindArticleContentMediaRecovery = async () => {
+  detachMediaRecovery?.();
+  detachMediaRecovery = undefined;
+  await nextTick();
+  detachMediaRecovery = attachFileViewMediaRecovery(articleContentRef.value, isAuthenticated.value);
+};
+
 const refreshRenderedContent = async () => {
-  renderedContent.value = await resolveProtectedFileViewUrlsInHtml(sanitizedContent.value, isAuthenticated.value);
+  const content = sanitizedContent.value;
+  const shouldHydrateMedia = isAuthenticated.value && hasFileViewMediaUrls(content);
+  isContentMediaLoading.value = shouldHydrateMedia;
+
+  try {
+    renderedContent.value = await resolveProtectedFileViewUrlsInHtml(content, isAuthenticated.value);
+    if (shouldHydrateMedia) {
+      await bindArticleContentMediaRecovery();
+    }
+  } finally {
+    isContentMediaLoading.value = false;
+  }
 };
 
 const boardLink = computed(() => {
@@ -922,6 +942,11 @@ const handleCommentPage = async (page: number) => {
   await loadCommentsPage(page);
 };
 
+onUnmounted(() => {
+  detachMediaRecovery?.();
+  detachMediaRecovery = undefined;
+});
+
 onMounted(async () => {
   articleDetailScrollContainer.value = appShellRef.value?.getMainElement() ?? null;
   await loadArticle();
@@ -1053,7 +1078,12 @@ onUnmounted(() => {
             </div>
 
             <div class="px-5 py-5 sm:px-6">
-              <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
+              <div v-if="article?.content" class="relative min-h-48">
+                <div v-if="isContentMediaLoading" class="flex min-h-48 items-center justify-center">
+                  <p class="ui-section-loading">{{ t('article.detail.mediaLoading') }}</p>
+                </div>
+                <div v-show="!isContentMediaLoading" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
+              </div>
               <div v-else class="text-sm text-muted">{{ t('article.detail.noContent') }}</div>
             </div>
 

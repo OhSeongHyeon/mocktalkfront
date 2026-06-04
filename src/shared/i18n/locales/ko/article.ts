@@ -69,6 +69,7 @@ const article = {
     edit: '수정',
     delete: '삭제',
     loading: '게시글을 불러오는 중입니다...',
+    mediaLoading: '본문 미디어를 불러오는 중...',
     deleteModal: {
       title: '게시글 삭제',
       description: '삭제한 게시글은 복구할 수 없습니다. 계속 진행하시겠어요?',

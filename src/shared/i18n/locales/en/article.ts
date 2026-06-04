@@ -69,6 +69,7 @@ const article = {
     edit: 'Edit',
     delete: 'Delete',
     loading: 'Loading post...',
+    mediaLoading: 'Loading media...',
     deleteModal: {
       title: 'Delete post',
       description: 'Deleted posts cannot be restored. Continue?',

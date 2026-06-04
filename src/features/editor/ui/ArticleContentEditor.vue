@@ -7,7 +7,7 @@ import '../../../shared/styles/ui-content.css';
 import './article-content-editor.css';
 
 import type { ArticleContentFormat } from '../../../entities/article';
-import { resolveProtectedFileViewUrlsInHtml, uploadEditorFileTask } from '../../../entities/file';
+import { attachFileViewMediaRecovery, hasFileViewMediaUrls, resolveProtectedFileViewUrlsInHtml, uploadEditorFileTask } from '../../../entities/file';
 import { previewArticleContent } from '../../../entities/article';
 import { ApiError } from '../../../shared/lib/http/api';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../../../shared/lib/files';
@@ -62,6 +62,8 @@ const previewHtml = ref('');
 const previewSanitizedHtml = ref('');
 const previewErrorMessage = ref('');
 const isPreviewLoading = ref(false);
+const isPreviewMediaLoading = ref(false);
+let detachPreviewMediaRecovery: (() => void) | undefined;
 const isModeSwitching = ref(false);
 const markdownTextareaRef = ref<HTMLTextAreaElement | null>(null);
 const markdownEditorShellRef = ref<HTMLElement | null>(null);
@@ -194,10 +196,27 @@ const resizeMarkdownEditor = () => {
   });
 };
 
+const bindPreviewMediaRecovery = async () => {
+  detachPreviewMediaRecovery?.();
+  detachPreviewMediaRecovery = undefined;
+  await nextTick();
+  detachPreviewMediaRecovery = attachFileViewMediaRecovery(markdownPreviewRef.value, isAuthenticated.value);
+};
+
 const applyPreviewHtml = async (html: string) => {
   const sanitized = sanitizeHtml(html);
   previewSanitizedHtml.value = sanitized;
-  previewHtml.value = await resolveProtectedFileViewUrlsInHtml(sanitized, isAuthenticated.value);
+  const shouldHydrateMedia = isAuthenticated.value && hasFileViewMediaUrls(sanitized);
+  isPreviewMediaLoading.value = shouldHydrateMedia;
+
+  try {
+    previewHtml.value = await resolveProtectedFileViewUrlsInHtml(sanitized, isAuthenticated.value);
+    if (shouldHydrateMedia) {
+      await bindPreviewMediaRecovery();
+    }
+  } finally {
+    isPreviewMediaLoading.value = false;
+  }
 };
 
 const renderPreviewMermaid = async () => {
@@ -715,7 +734,7 @@ watch(
 watch(
   () => isAuthenticated.value,
   async () => {
-    previewHtml.value = await resolveProtectedFileViewUrlsInHtml(previewSanitizedHtml.value, isAuthenticated.value);
+    await applyPreviewHtml(previewSanitizedHtml.value);
     void renderPreviewMermaid();
   },
 );
@@ -746,6 +765,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  detachPreviewMediaRecovery?.();
+  detachPreviewMediaRecovery = undefined;
   clearPreviewTimer();
   markdownEditorResizeObserver?.disconnect();
   markdownEditorResizeObserver = null;
@@ -897,10 +918,18 @@ onBeforeUnmount(() => {
                 <span v-if="isPreviewLoading" class="text-[11px] font-semibold text-success">{{ t('editor.markdown.preview.loading') }}</span>
               </div>
               <div class="ui-markdown-preview-shell" :style="markdownPreviewShellStyle">
-                <div class="ui-markdown-preview-body ui-scrollbar">
+                <div class="ui-markdown-preview-body ui-scrollbar relative min-h-32">
                   <p v-if="previewErrorMessage" class="text-sm font-semibold text-danger">{{ previewErrorMessage }}</p>
-                  <p v-else-if="!previewHtml" class="text-sm text-subtle">{{ t('editor.markdown.preview.empty') }}</p>
-                  <div v-else ref="markdownPreviewRef" class="ui-content max-w-none" v-html="previewHtml"></div>
+                  <p v-else-if="!previewHtml && !isPreviewMediaLoading" class="text-sm text-subtle">{{ t('editor.markdown.preview.empty') }}</p>
+                  <div v-if="isPreviewMediaLoading" class="flex min-h-32 items-center justify-center">
+                    <p class="ui-section-loading">{{ t('editor.markdown.preview.mediaLoading') }}</p>
+                  </div>
+                  <div
+                    v-show="previewHtml && !isPreviewMediaLoading"
+                    ref="markdownPreviewRef"
+                    class="ui-content max-w-none"
+                    v-html="previewHtml"
+                  ></div>
                 </div>
               </div>
             </div>
