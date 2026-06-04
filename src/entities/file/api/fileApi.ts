@@ -1,3 +1,5 @@
+import { translate } from '../../../shared/i18n/translate';
+
 import { cancelUploadSession, completeUpload, initUpload, uploadBinary, uploadBinaryTask } from './uploadSessionApi';
 import type { UploadPurpose } from './uploadSessionApi';
 
@@ -32,12 +34,12 @@ const resolveEditorPurpose = (file: File): UploadPurpose => {
   if (contentType === 'video/mp4' || contentType === 'video/webm') {
     return 'EDITOR_VIDEO';
   }
-  throw new Error('이미지 또는 MP4/WebM 영상만 업로드할 수 있습니다.');
+  throw new Error(translate('editor.file.mediaOnly'));
 };
 
 const ensureFileResponse = (response: { file: FileResponse | null }) => {
   if (!response.file) {
-    throw new Error('파일 업로드 완료 응답이 올바르지 않습니다.');
+    throw new Error(translate('editor.file.invalidCompleteResponse'));
   }
   return response.file;
 };
@@ -121,7 +123,7 @@ const uploadEditorFileTask = (
 
     if (canceled) {
       await safeCancelSession(uploadToken);
-      throw new DOMException('업로드가 취소되었습니다.', 'AbortError');
+      throw new DOMException(translate('editor.file.uploadCancelled'), 'AbortError');
     }
 
     const uploadTask = uploadBinaryTask(init.uploadUrl, file, init.headers, (percent) => {

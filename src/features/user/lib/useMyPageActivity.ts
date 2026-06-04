@@ -6,25 +6,14 @@ import type { NotificationResponse } from '../../notification';
 import { getMyArticles, getMyBoards, getMyComments } from '../../../entities/user';
 import type { ArticleResponse, CommentResponse, MyBoardResponse, PageResponse } from '../../../entities/user';
 import { ApiError } from '../../../shared/lib/http/api';
+import { translate } from '../../../shared/i18n/translate';
 
 export type MyPageActivityTab = 'boards' | 'articles' | 'comments' | 'notifications';
 
 const PAGE_SIZE = 10;
 const PAGE_WINDOW_SIZE = 10;
 
-const TAB_EMPTY_MESSAGES: Record<MyPageActivityTab, string> = {
-  boards: '운영 중인 게시판이 없습니다.',
-  articles: '작성한 게시글이 없습니다.',
-  comments: '작성한 댓글이 없습니다.',
-  notifications: '알림이 없습니다.',
-};
-
-const TAB_LOAD_ERRORS: Record<MyPageActivityTab, string> = {
-  boards: '게시판 조회에 실패했습니다.',
-  articles: '게시글 조회에 실패했습니다.',
-  comments: '댓글 조회에 실패했습니다.',
-  notifications: '알림 조회에 실패했습니다.',
-};
+const tabMessageKey = (tab: MyPageActivityTab, kind: 'empty' | 'errors') => `myPage.activity.${kind}.${tab}`;
 
 type ActivityFetcher<T> = (page: number, size: number) => Promise<PageResponse<T>>;
 
@@ -79,7 +68,7 @@ const useMyPageActivity = (router: Router) => {
         await router.push('/login');
         return;
       }
-      listError.value = error instanceof ApiError ? error.message : TAB_LOAD_ERRORS[tab];
+      listError.value = error instanceof ApiError ? error.message : translate(tabMessageKey(tab, 'errors'));
     } finally {
       finishListRequest(requestId);
     }
@@ -216,7 +205,7 @@ const useMyPageActivity = (router: Router) => {
   const hasPreviousActivityPageWindow = computed(() => activityPageWindowStart.value > 0);
   const hasNextActivityPageWindow = computed(() => activityPageWindowEnd.value < currentTotalPages.value);
 
-  const activityEmptyMessage = computed(() => TAB_EMPTY_MESSAGES[activeTab.value]);
+  const activityEmptyMessage = computed(() => translate(tabMessageKey(activeTab.value, 'empty')));
 
   const boardTotalCount = computed(() => boards.value?.totalElements ?? null);
   const articleTotalCount = computed(() => articles.value?.totalElements ?? null);
@@ -267,7 +256,7 @@ const useMyPageActivity = (router: Router) => {
         const updated = await markNotificationRead(notification.id);
         notification.read = updated.read;
       } catch (error) {
-        listError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
+        listError.value = error instanceof ApiError ? error.message : translate('myPage.activity.errors.markReadFailed');
       }
     }
     if (notification.redirectUrl) {
@@ -283,7 +272,7 @@ const useMyPageActivity = (router: Router) => {
       const nextPage = currentItems <= 1 && notificationPage.value > 0 ? notificationPage.value - 1 : notificationPage.value;
       await loadNotifications(nextPage);
     } catch (error) {
-      listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
+      listError.value = error instanceof ApiError ? error.message : translate('myPage.activity.errors.deleteFailed');
     }
   };
 
@@ -293,7 +282,7 @@ const useMyPageActivity = (router: Router) => {
       await deleteAllNotifications();
       await loadNotifications(0);
     } catch (error) {
-      listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
+      listError.value = error instanceof ApiError ? error.message : translate('myPage.activity.errors.deleteFailed');
     }
   };
 

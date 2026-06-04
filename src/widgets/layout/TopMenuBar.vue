@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 import { logout } from '../../features/auth';
 import { useNotificationPresence } from '../../features/notification';
 import type { NotificationResponse } from '../../features/notification';
+import type { AppLocale } from '../../shared/i18n';
+import { toIntlLocaleTag } from '../../shared/i18n';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
 import { applyTheme, getThemeState, subscribeThemeChange } from '../../shared/lib/theme';
 import type { ResolvedTheme } from '../../shared/lib/theme';
@@ -28,6 +31,7 @@ const props = withDefaults(
   },
 );
 
+const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -42,19 +46,19 @@ const profileButtonRef = ref<HTMLButtonElement | null>(null);
 const notificationMenuRef = ref<HTMLDivElement | null>(null);
 const notificationButtonRef = ref<HTMLButtonElement | null>(null);
 const resolvedAvatar = computed(() => profileImageUrl.value ?? defaultAvatar);
-const resolvedDisplayName = computed(() => displayName.value ?? '사용자');
+const resolvedDisplayName = computed(() => displayName.value ?? t('common.user'));
 const resolvedPoint = computed(() => userPoint.value.toLocaleString());
 const hasUnreadNotifications = computed(() => notificationUnreadCount.value > 0);
 const notificationUnreadLabel = computed(() => (notificationUnreadCount.value > 9 ? '9+' : String(notificationUnreadCount.value)));
 const notificationButtonLabel = computed(() => {
   if (notificationUnreadCount.value <= 0) {
-    return '알림';
+    return t('topMenu.notifications');
   }
-  return `알림 ${notificationUnreadCount.value}개`;
+  return t('topMenu.notificationsWithCount', { count: notificationUnreadCount.value });
 });
-const currentThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '다크' : '화이트'));
-const nextThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '화이트' : '다크'));
-const themeToggleLabel = computed(() => `테마 전환, 현재 ${currentThemeLabel.value}, 클릭 시 ${nextThemeLabel.value}`);
+const currentThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? t('topMenu.themeDark') : t('topMenu.themeLight')));
+const nextThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? t('topMenu.themeLight') : t('topMenu.themeDark')));
+const themeToggleLabel = computed(() => t('topMenu.themeToggle', { current: currentThemeLabel.value, next: nextThemeLabel.value }));
 const searchKeyword = ref('');
 const brandMarkSrc = '/mocktalk_favicon_color.svg';
 const menuPanelClass = 'ui-menu-dropdown absolute right-0 top-full mt-2';
@@ -203,7 +207,7 @@ const formatNotificationDate = (value: string) => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleDateString('ko-KR', {
+  return date.toLocaleDateString(toIntlLocaleTag(locale.value as AppLocale), {
     month: '2-digit',
     day: '2-digit',
   });
@@ -279,7 +283,7 @@ const handleDeleteAllNotifications = async () => {
   >
     <div class="flex h-full w-full items-center justify-between gap-3 px-3 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
       <div class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
-        <button type="button" class="ui-icon-button h-10 w-10 shrink-0" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
+        <button type="button" class="ui-icon-button h-10 w-10 shrink-0" :aria-label="t('topMenu.openSideMenu')" @click="emit('toggle-menu')">
           <AppIcon :icon="Menu" :size="18" />
         </button>
 
@@ -292,13 +296,13 @@ const handleDeleteAllNotifications = async () => {
       </div>
 
       <form class="ui-search-field hidden w-full max-w-[720px] justify-self-center md:flex" @submit.prevent="handleSearch">
-        <label class="sr-only" for="global-search">검색</label>
-        <input id="global-search" v-model="searchKeyword" type="search" placeholder="검색" class="ui-search-input" />
+        <label class="sr-only" for="global-search">{{ t('topMenu.searchLabel') }}</label>
+        <input id="global-search" v-model="searchKeyword" type="search" :placeholder="t('topMenu.searchPlaceholder')" class="ui-search-input" />
         <button
           type="submit"
           data-testid="desktop-search-button"
           class="ui-icon-button h-8 w-8 shrink-0 border-0 bg-surface-soft p-0"
-          aria-label="검색 실행"
+          :aria-label="t('topMenu.searchSubmit')"
         >
           <AppIcon :icon="Search" :size="16" />
         </button>
@@ -309,7 +313,7 @@ const handleDeleteAllNotifications = async () => {
           type="button"
           class="ui-icon-button h-10 w-10 shrink-0 md:hidden"
           data-testid="mobile-search-button"
-          aria-label="검색 페이지 열기"
+          :aria-label="t('topMenu.openSearchPage')"
           @click="openSearch"
         >
           <AppIcon :icon="Search" :size="18" />
@@ -350,8 +354,8 @@ const handleDeleteAllNotifications = async () => {
           <div v-if="isNotificationMenuOpen" ref="notificationMenuRef" :class="[menuPanelClass, 'w-[23rem]']" role="menu">
             <div class="flex items-center justify-between border-b border-line px-4 py-3">
               <div>
-                <p class="text-sm font-bold text-ink">알림</p>
-                <p class="ui-caption">최근 상호작용을 빠르게 확인합니다.</p>
+                <p class="text-sm font-bold text-ink">{{ t('topMenu.notifications') }}</p>
+                <p class="ui-caption">{{ t('topMenu.notificationsCaption') }}</p>
               </div>
               <div class="flex items-center gap-2">
                 <button
@@ -360,7 +364,7 @@ const handleDeleteAllNotifications = async () => {
                   class="text-xs font-semibold text-danger transition hover:opacity-80"
                   @click="handleDeleteAllNotifications"
                 >
-                  전체 삭제
+                  {{ t('topMenu.deleteAll') }}
                 </button>
                 <button
                   v-if="hasUnreadNotifications"
@@ -368,17 +372,17 @@ const handleDeleteAllNotifications = async () => {
                   class="text-xs font-semibold text-muted transition hover:text-ink"
                   @click="handleMarkAllRead"
                 >
-                  모두 읽음
+                  {{ t('topMenu.markAllRead') }}
                 </button>
               </div>
             </div>
 
             <div class="ui-scrollbar max-h-88 overflow-y-auto p-3">
-              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-muted">불러오는 중...</div>
+              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-muted">{{ t('common.loading') }}</div>
               <div v-else-if="notificationError" class="ui-state ui-state-danger text-sm font-semibold">
                 {{ notificationError }}
               </div>
-              <div v-else-if="notifications.length === 0" class="ui-state ui-state-empty px-4 py-7">새 알림이 없습니다.</div>
+              <div v-else-if="notifications.length === 0" class="ui-state ui-state-empty px-4 py-7">{{ t('topMenu.noNotifications') }}</div>
               <div v-else class="space-y-2">
                 <button
                   v-for="notification in notifications"
@@ -394,7 +398,7 @@ const handleDeleteAllNotifications = async () => {
                         class="text-[11px] font-bold tracking-[0.14em] uppercase"
                         :class="notification.read ? 'text-subtle' : 'text-brand-700 dark:text-brand-300'"
                       >
-                        {{ notification.read ? '읽음' : '새 알림' }}
+                        {{ notification.read ? t('topMenu.read') : t('topMenu.new') }}
                       </span>
                     </div>
                     <span class="ui-caption">{{ formatNotificationDate(notification.createdAt) }}</span>
@@ -408,8 +412,8 @@ const handleDeleteAllNotifications = async () => {
           </div>
         </div>
 
-        <button v-if="!isAuthenticated" type="button" class="ui-button-ghost h-10 px-3.5 text-xs" aria-label="로그인" @click="openLogin">
-          로그인
+        <button v-if="!isAuthenticated" type="button" class="ui-button-ghost h-10 px-3.5 text-xs" :aria-label="t('common.login')" @click="openLogin">
+          {{ t('common.login') }}
         </button>
 
         <div v-else class="relative">
@@ -417,29 +421,29 @@ const handleDeleteAllNotifications = async () => {
             ref="profileButtonRef"
             type="button"
             class="ui-icon-button grid h-10 w-10 shrink-0 place-items-center overflow-hidden p-0"
-            aria-label="프로필"
+            :aria-label="t('topMenu.profile')"
             aria-haspopup="menu"
             :aria-expanded="isProfileMenuOpen"
             @click="toggleProfileMenu"
           >
-            <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
+            <img :src="resolvedAvatar" :alt="t('topMenu.profileImageAlt')" class="h-full w-full object-cover" />
           </button>
           <div v-if="isProfileMenuOpen" ref="profileMenuRef" :class="[menuPanelClass, 'w-52']" role="menu">
             <div class="border-b border-line px-3 py-2.5">
               <div class="flex items-center gap-2.5">
                 <div class="h-8 w-8 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-line">
-                  <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
+                  <img :src="resolvedAvatar" :alt="t('topMenu.profileImageAlt')" class="h-full w-full object-cover" />
                 </div>
                 <div class="min-w-0">
                   <p class="truncate text-xs font-bold text-ink">{{ resolvedDisplayName }}</p>
-                  <p class="ui-caption">포인트 {{ resolvedPoint }}P</p>
+                  <p class="ui-caption">{{ t('topMenu.points', { point: resolvedPoint }) }}</p>
                 </div>
               </div>
             </div>
             <div class="flex flex-col py-1">
-              <button type="button" class="ui-menu-item" role="menuitem" @click="openMyPage">마이페이지</button>
-              <button type="button" class="ui-menu-item" role="menuitem" @click="openBoardCreate">커뮤니티 개설</button>
-              <button type="button" class="ui-menu-item ui-menu-item-danger" role="menuitem" @click="handleLogout">로그아웃</button>
+              <button type="button" class="ui-menu-item" role="menuitem" @click="openMyPage">{{ t('topMenu.myPage') }}</button>
+              <button type="button" class="ui-menu-item" role="menuitem" @click="openBoardCreate">{{ t('topMenu.createCommunity') }}</button>
+              <button type="button" class="ui-menu-item ui-menu-item-danger" role="menuitem" @click="handleLogout">{{ t('common.logout') }}</button>
             </div>
           </div>
         </div>

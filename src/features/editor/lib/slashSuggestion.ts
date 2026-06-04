@@ -2,14 +2,15 @@ import { Extension } from '@tiptap/core';
 import { VueRenderer } from '@tiptap/vue-3';
 import Suggestion, { type SuggestionOptions } from '@tiptap/suggestion';
 
+import { translate } from '../../../shared/i18n/translate';
 import SlashCommandList from '../ui/SlashCommandList.vue';
 import type { SlashCommandContext, SlashCommandItem } from './slashTypes';
 
 const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem[] => [
   {
     id: 'paragraph',
-    title: '문단',
-    description: '기본 문단으로 전환',
+    title: translate('editor.slash.commands.paragraph.title'),
+    description: translate('editor.slash.commands.paragraph.description'),
     keywords: ['paragraph', 'p', '문단'],
     command: (editor) => {
       editor.chain().focus().setParagraph().run();
@@ -17,8 +18,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'heading1',
-    title: '제목 1',
-    description: 'H1 제목으로 전환',
+    title: translate('editor.slash.commands.heading1.title'),
+    description: translate('editor.slash.commands.heading1.description'),
     keywords: ['h1', 'heading', '제목'],
     command: (editor) => {
       editor.chain().focus().toggleHeading({ level: 1 }).run();
@@ -26,8 +27,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'heading2',
-    title: '제목 2',
-    description: 'H2 제목으로 전환',
+    title: translate('editor.slash.commands.heading2.title'),
+    description: translate('editor.slash.commands.heading2.description'),
     keywords: ['h2', 'heading', '제목'],
     command: (editor) => {
       editor.chain().focus().toggleHeading({ level: 2 }).run();
@@ -35,8 +36,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'heading3',
-    title: '제목 3',
-    description: 'H3 제목으로 전환',
+    title: translate('editor.slash.commands.heading3.title'),
+    description: translate('editor.slash.commands.heading3.description'),
     keywords: ['h3', 'heading', '제목'],
     command: (editor) => {
       editor.chain().focus().toggleHeading({ level: 3 }).run();
@@ -44,8 +45,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'bullet-list',
-    title: '글머리 목록',
-    description: '불릿 목록 토글',
+    title: translate('editor.slash.commands.bulletList.title'),
+    description: translate('editor.slash.commands.bulletList.description'),
     keywords: ['list', 'bullet', '목록'],
     command: (editor) => {
       editor.chain().focus().toggleBulletList().run();
@@ -53,8 +54,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'ordered-list',
-    title: '번호 목록',
-    description: '순서 목록 토글',
+    title: translate('editor.slash.commands.orderedList.title'),
+    description: translate('editor.slash.commands.orderedList.description'),
     keywords: ['list', 'ordered', '번호'],
     command: (editor) => {
       editor.chain().focus().toggleOrderedList().run();
@@ -62,8 +63,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'task-list',
-    title: '체크리스트',
-    description: '할 일 목록 토글',
+    title: translate('editor.slash.commands.taskList.title'),
+    description: translate('editor.slash.commands.taskList.description'),
     keywords: ['task', 'checklist', 'todo', '체크', '할일'],
     command: (editor) => {
       editor.chain().focus().toggleTaskList().run();
@@ -71,8 +72,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'blockquote',
-    title: '인용문',
-    description: '인용 블록 토글',
+    title: translate('editor.slash.commands.blockquote.title'),
+    description: translate('editor.slash.commands.blockquote.description'),
     keywords: ['quote', 'blockquote', '인용'],
     command: (editor) => {
       editor.chain().focus().toggleBlockquote().run();
@@ -80,8 +81,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'code-block',
-    title: '코드 블록',
-    description: '코드 블록 토글',
+    title: translate('editor.slash.commands.codeBlock.title'),
+    description: translate('editor.slash.commands.codeBlock.description'),
     keywords: ['code', '코드'],
     command: (editor) => {
       editor.chain().focus().toggleCodeBlock().run();
@@ -89,8 +90,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'table',
-    title: '테이블',
-    description: '3x3 표 삽입',
+    title: translate('editor.slash.commands.table.title'),
+    description: translate('editor.slash.commands.table.description'),
     keywords: ['table', '표'],
     command: (editor) => {
       editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
@@ -98,8 +99,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'hr',
-    title: '구분선',
-    description: '수평선 삽입',
+    title: translate('editor.slash.commands.hr.title'),
+    description: translate('editor.slash.commands.hr.description'),
     keywords: ['divider', 'hr', '구분선'],
     command: (editor) => {
       editor.chain().focus().setHorizontalRule().run();
@@ -107,8 +108,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'image',
-    title: '이미지 업로드',
-    description: '파일 선택 창 열기',
+    title: translate('editor.slash.commands.image.title'),
+    description: translate('editor.slash.commands.image.description'),
     keywords: ['image', 'photo', '이미지'],
     command: () => {
       context.openImagePicker();
@@ -116,8 +117,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'video',
-    title: '영상 업로드',
-    description: '동영상 파일 선택 창 열기',
+    title: translate('editor.slash.commands.video.title'),
+    description: translate('editor.slash.commands.video.description'),
     keywords: ['video', '영상'],
     command: () => {
       context.openVideoPicker();
@@ -125,8 +126,8 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
   {
     id: 'youtube',
-    title: '유튜브 임베드',
-    description: '유튜브 링크 입력 모달 열기',
+    title: translate('editor.slash.commands.youtube.title'),
+    description: translate('editor.slash.commands.youtube.description'),
     keywords: ['youtube', '유튜브', 'embed'],
     command: () => {
       context.openYoutubeModal();
@@ -134,11 +135,12 @@ const createSlashCommandItems = (context: SlashCommandContext): SlashCommandItem
   },
 ];
 
-const createSlashSuggestionOptions = (items: SlashCommandItem[]): Omit<SuggestionOptions<SlashCommandItem>, 'editor'> => ({
+const createSlashSuggestionOptions = (context: SlashCommandContext): Omit<SuggestionOptions<SlashCommandItem>, 'editor'> => ({
   char: '/',
   allowSpaces: true,
   startOfLine: true,
   items: ({ query }) => {
+    const items = createSlashCommandItems(context);
     const keyword = query.trim().toLowerCase();
     if (!keyword) {
       return items.slice(0, 8);
@@ -203,14 +205,14 @@ const createSlashSuggestionOptions = (items: SlashCommandItem[]): Omit<Suggestio
   },
 });
 
-const createSlashCommandExtension = (items: SlashCommandItem[]) =>
+const createSlashCommandExtension = (context: SlashCommandContext) =>
   Extension.create({
     name: 'slashCommand',
     addProseMirrorPlugins() {
       return [
         Suggestion({
           editor: this.editor,
-          ...createSlashSuggestionOptions(items),
+          ...createSlashSuggestionOptions(context),
         }),
       ];
     },

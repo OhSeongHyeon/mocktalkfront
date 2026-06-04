@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 import BoardHeaderCard from '../board/BoardHeaderCard.vue';
 import PageContainer from '../../shared/ui/PageContainer.vue';
 import AppShell from '../layout/AppShell.vue';
@@ -16,6 +18,7 @@ interface ArticleUpsertPageLayoutProps {
 }
 
 const props = defineProps<ArticleUpsertPageLayoutProps>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -24,7 +27,7 @@ const props = defineProps<ArticleUpsertPageLayoutProps>();
       <div>
         <BoardHeaderCard
           :title="boardTitle"
-          :description="boardDescription ?? '설명이 없습니다.'"
+          :description="boardDescription ?? t('editor.layout.noDescription')"
           :image-url="boardImageUrl"
           :image-file="boardImageFile"
           :link-to="boardLinkTo"

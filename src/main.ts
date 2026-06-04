@@ -4,6 +4,7 @@ import './style.css';
 import 'highlight.js/styles/github.css';
 import App from './App.vue';
 import router from './app/router';
+import { i18n } from './shared/i18n';
 import { getMyProfile } from './entities/user';
 import { refreshAccessToken } from './features/auth';
 import { applyProfileSummary } from './shared/lib/profile';
@@ -30,6 +31,7 @@ const bootstrap = async () => {
   }
   const app = createApp(App);
   app.use(pinia);
+  app.use(i18n);
   app.use(router);
   app.mount('#app');
 };

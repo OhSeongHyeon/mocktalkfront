@@ -1,0 +1,25 @@
+const topMenu = {
+  openSideMenu: 'Open side menu',
+  searchLabel: 'Search',
+  searchPlaceholder: 'Search',
+  searchSubmit: 'Search',
+  openSearchPage: 'Open search page',
+  notifications: 'Notifications',
+  notificationsWithCount: '{count} notifications',
+  notificationsCaption: 'Quickly review recent interactions.',
+  deleteAll: 'Delete all',
+  markAllRead: 'Mark all read',
+  noNotifications: 'No new notifications.',
+  read: 'Read',
+  new: 'New',
+  profile: 'Profile',
+  profileImageAlt: 'Profile image',
+  points: '{point}P',
+  myPage: 'My page',
+  createCommunity: 'Create community',
+  themeDark: 'Dark',
+  themeLight: 'Light',
+  themeToggle: 'Switch theme, current {current}, click for {next}',
+} as const;
+
+export default topMenu;

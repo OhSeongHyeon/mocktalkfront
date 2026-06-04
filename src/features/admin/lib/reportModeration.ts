@@ -1,17 +1,11 @@
+import { translate } from '../../../shared/i18n/translate';
+
 export type ModerationReportStatus = 'PENDING' | 'IN_REVIEW' | 'RESOLVED' | 'REJECTED';
 export type ModerationStatusFilter = ModerationReportStatus | 'ALL';
 
 const MODERATION_STATUS_OPTIONS: ModerationStatusFilter[] = ['ALL', 'PENDING', 'IN_REVIEW', 'RESOLVED', 'REJECTED'];
 
-const formatModerationStatusLabel = (status: ModerationReportStatus) => {
-  const labels: Record<ModerationReportStatus, string> = {
-    PENDING: '대기',
-    IN_REVIEW: '검토',
-    RESOLVED: '해결',
-    REJECTED: '반려',
-  };
-  return labels[status] ?? status;
-};
+const formatModerationStatusLabel = (status: ModerationReportStatus) => translate(`admin.moderation.status.${status}`);
 
 const resolveModerationStatusBadgeClass = (status: ModerationReportStatus) => {
   if (status === 'PENDING') {

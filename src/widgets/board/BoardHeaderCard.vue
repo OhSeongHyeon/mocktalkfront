@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LayoutGrid } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 
 import FileImage from '../../entities/file/ui/FileImage.vue';
@@ -15,6 +16,7 @@ interface BoardHeaderCardProps {
 }
 
 const props = defineProps<BoardHeaderCardProps>();
+const { t } = useI18n();
 </script>
 
 <template>
@@ -38,7 +40,7 @@ const props = defineProps<BoardHeaderCardProps>();
             <span v-else>{{ props.title }}</span>
           </h1>
           <p v-if="props.description" class="ui-caption mt-1 line-clamp-2">{{ props.description }}</p>
-          <p v-else class="ui-caption mt-1">설명 없음</p>
+          <p v-else class="ui-caption mt-1">{{ t('board.defaults.noDescriptionShort') }}</p>
         </div>
       </div>
 

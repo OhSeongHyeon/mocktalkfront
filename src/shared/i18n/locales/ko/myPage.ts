@@ -1,0 +1,85 @@
+const myPage = {
+  header: {
+    eyebrow: '마이페이지',
+    title: '나의 프로필 관리',
+    description: '프로필 정보를 수정하고 내가 남긴 활동을 같은 화면에서 확인합니다.',
+  },
+  tabs: {
+    activity: '활동기록',
+    profile: '프로필 수정',
+  },
+  profile: {
+    imageAlt: '프로필 이미지',
+    defaultName: '사용자',
+    fields: {
+      loginId: '아이디',
+      userName: '이름',
+      email: '이메일',
+      displayName: '닉네임',
+      handle: '핸들',
+      password: '비밀번호',
+      passwordConfirm: '비밀번호 확인',
+      profileImage: '프로필 이미지',
+    },
+    imageHint: '프로필 이미지는 이미지 파일만 업로드할 수 있습니다.',
+    editTitle: '프로필 수정',
+    passwordPlaceholder: '변경할 때만 입력',
+    passwordConfirmPlaceholder: '비밀번호를 다시 입력',
+    clearImage: '선택 해제',
+    saved: '프로필이 저장되었습니다.',
+    deleteWarning: '계정 삭제는 되돌릴 수 없습니다. 신중히 진행해주세요.',
+    deleteButton: '계정 삭제',
+    errors: {
+      loadFailed: '프로필 조회에 실패했습니다.',
+      requiredFields: '이름, 이메일, 핸들은 필수입니다.',
+      passwordMismatch: '비밀번호 확인이 일치하지 않습니다.',
+      saveFailed: '프로필 저장에 실패했습니다.',
+    },
+  },
+  activity: {
+    tabs: {
+      boards: '내 게시판',
+      articles: '내 게시글',
+      comments: '내 댓글',
+      notifications: '알림목록',
+    },
+    deleteAllNotifications: '전체 삭제',
+    notificationHint: '알림을 눌러 상세 화면으로 이동하세요.',
+    stats: {
+      views: '조회 {count}',
+      comments: '댓글 {count}',
+      likes: '좋아요 {count}',
+      dislikes: '싫어요 {count}',
+    },
+    pagination: {
+      previousWindow: '이전 페이지 묶음',
+      nextWindow: '다음 페이지 묶음',
+    },
+    empty: {
+      boards: '운영 중인 게시판이 없습니다.',
+      articles: '작성한 게시글이 없습니다.',
+      comments: '작성한 댓글이 없습니다.',
+      notifications: '알림이 없습니다.',
+    },
+    errors: {
+      boards: '게시판 조회에 실패했습니다.',
+      articles: '게시글 조회에 실패했습니다.',
+      comments: '댓글 조회에 실패했습니다.',
+      notifications: '알림 조회에 실패했습니다.',
+      markReadFailed: '알림 읽음 처리에 실패했습니다.',
+      deleteFailed: '알림 삭제에 실패했습니다.',
+    },
+  },
+  deleteAccount: {
+    ariaLabel: '계정 삭제',
+    title: '계정 삭제',
+    description: '계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에',
+    descriptionSuffix: '를 입력하세요.',
+    confirmLabel: '재확인 문구',
+    confirmWord: '탈퇴',
+    confirmMismatch: '재확인 문구를 정확히 입력해주세요.',
+    failed: '계정 삭제에 실패했습니다.',
+  },
+} as const;
+
+export default myPage;

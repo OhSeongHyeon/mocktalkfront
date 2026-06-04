@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { formatKoreanDate } from '../../../shared/lib/date';
 import type { ArticleRecommendedItemResponse } from '../api/articleApi';
@@ -7,6 +8,8 @@ import type { ArticleRecommendedItemResponse } from '../api/articleApi';
 const props = defineProps<{
   article: ArticleRecommendedItemResponse;
 }>();
+
+const { t } = useI18n();
 
 const articlePath = computed(() => `/b/${props.article.boardSlug}/articles/${props.article.articleId}`);
 
@@ -21,7 +24,7 @@ const boardLabel = computed(() => {
     <div class="bbs-cols-6 md:grid">
       <div class="min-w-0">
         <span class="bbs-tag">{{ boardLabel }}</span>
-        <span v-if="article.personalized" class="bbs-tag bbs-tag-cat">맞춤</span>
+        <span v-if="article.personalized" class="bbs-tag bbs-tag-cat">{{ t('article.recommendedCard.personalized') }}</span>
         <span class="bbs-row-title">{{ article.title }}</span>
         <span v-if="article.commentCount > 0" class="bbs-cmt">[{{ article.commentCount }}]</span>
       </div>

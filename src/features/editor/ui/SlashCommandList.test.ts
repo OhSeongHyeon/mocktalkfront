@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
+import { i18n } from '../../../test/plugins';
 import type { SlashCommandItem } from '../lib/slashTypes';
 import SlashCommandList from './SlashCommandList.vue';
 
@@ -39,6 +40,7 @@ describe('features/editor/ui/SlashCommandList', () => {
         items: SLASH_ITEMS,
         command: onCommand,
       },
+      global: { plugins: [i18n] },
     });
     const exposed = wrapper.vm as unknown as { onKeyDown: (event: KeyboardEvent) => boolean };
 
@@ -61,6 +63,7 @@ describe('features/editor/ui/SlashCommandList', () => {
         items: [],
         command: vi.fn(),
       },
+      global: { plugins: [i18n] },
     });
     const exposed = wrapper.vm as unknown as { onKeyDown: (event: KeyboardEvent) => boolean };
 

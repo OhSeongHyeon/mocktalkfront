@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import BaseModal from '../shared/ui/BaseModal.vue';
@@ -18,8 +19,11 @@ import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
+const { t } = useI18n();
 const router = useRouter();
 const authStore = useAuthStore();
+
+const deleteConfirmWord = computed(() => t('myPage.deleteAccount.confirmWord'));
 
 const {
   activeTab,
@@ -119,7 +123,7 @@ const loadProfile = async () => {
       await router.push('/login');
       return false;
     }
-    profileError.value = error instanceof ApiError ? error.message : '프로필 조회에 실패했습니다.';
+    profileError.value = error instanceof ApiError ? error.message : t('myPage.profile.errors.loadFailed');
     return false;
   } finally {
     isProfileLoading.value = false;
@@ -148,11 +152,11 @@ const handleSubmit = async () => {
   profileError.value = '';
   saveMessage.value = '';
   if (!form.userName.trim() || !form.email.trim() || !form.handle.trim()) {
-    profileError.value = '이름, 이메일, 핸들은 필수입니다.';
+    profileError.value = t('myPage.profile.errors.requiredFields');
     return;
   }
   if (form.password.trim() && form.password.trim() !== form.passwordConfirm.trim()) {
-    profileError.value = '비밀번호 확인이 일치하지 않습니다.';
+    profileError.value = t('myPage.profile.errors.passwordMismatch');
     return;
   }
   isProfileSaving.value = true;
@@ -178,13 +182,13 @@ const handleSubmit = async () => {
     }
     form.profileImage = null;
     applyProfileSummary(data);
-    saveMessage.value = '프로필이 저장되었습니다.';
+    saveMessage.value = t('myPage.profile.saved');
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       await router.push('/login');
       return;
     }
-    profileError.value = error instanceof ApiError ? error.message : '프로필 저장에 실패했습니다.';
+    profileError.value = error instanceof ApiError ? error.message : t('myPage.profile.errors.saveFailed');
   } finally {
     isProfileSaving.value = false;
   }
@@ -204,8 +208,8 @@ const closeDeleteModal = () => {
 
 const confirmDelete = async () => {
   deleteError.value = '';
-  if (deleteConfirmText.value.trim() !== '탈퇴') {
-    deleteError.value = '재확인 문구를 정확히 입력해주세요.';
+  if (deleteConfirmText.value.trim() !== deleteConfirmWord.value) {
+    deleteError.value = t('myPage.deleteAccount.confirmMismatch');
     return;
   }
   isDeleting.value = true;
@@ -222,7 +226,7 @@ const confirmDelete = async () => {
       await router.push('/login');
       return;
     }
-    deleteError.value = error instanceof ApiError ? error.message : '계정 삭제에 실패했습니다.';
+    deleteError.value = error instanceof ApiError ? error.message : t('myPage.deleteAccount.failed');
   } finally {
     isDeleting.value = false;
   }
@@ -246,7 +250,7 @@ onBeforeUnmount(() => {
   <AppShell>
     <PageContainer width="auto">
       <div class="flex flex-col gap-4">
-        <PageHeader eyebrow="마이페이지" title="나의 프로필 관리" description="프로필 정보를 수정하고 내가 남긴 활동을 같은 화면에서 확인합니다.">
+        <PageHeader :eyebrow="t('myPage.header.eyebrow')" :title="t('myPage.header.title')" :description="t('myPage.header.description')">
           <template #actions>
             <div class="ui-tab-list">
               <button
@@ -255,10 +259,10 @@ onBeforeUnmount(() => {
                 :class="mainTab === 'activity' ? 'ui-tab-button-active' : ''"
                 @click="setMainTab('activity')"
               >
-                활동기록
+                {{ t('myPage.tabs.activity') }}
               </button>
               <button type="button" class="ui-tab-button" :class="mainTab === 'profile' ? 'ui-tab-button-active' : ''" @click="setMainTab('profile')">
-                프로필 수정
+                {{ t('myPage.tabs.profile') }}
               </button>
             </div>
           </template>
@@ -268,12 +272,12 @@ onBeforeUnmount(() => {
           <div class="ui-panel flex h-full flex-col gap-4 p-5">
             <div class="flex items-center gap-4">
               <div class="h-18 w-18 overflow-hidden rounded-[0.75rem] border border-line bg-surface-soft">
-                <img v-if="resolvedProfileImage" :src="resolvedProfileImage" alt="프로필 이미지" class="h-full w-full object-cover" />
-                <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-subtle">없음</div>
+                <img v-if="resolvedProfileImage" :src="resolvedProfileImage" :alt="t('myPage.profile.imageAlt')" class="h-full w-full object-cover" />
+                <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-subtle">{{ t('common.none') }}</div>
               </div>
               <div>
                 <p class="text-lg font-semibold text-ink">
-                  {{ profile?.displayName || profile?.userName || '사용자' }}
+                  {{ profile?.displayName || profile?.userName || t('myPage.profile.defaultName') }}
                 </p>
                 <p class="text-sm text-muted">@{{ profile?.handle || '-' }}</p>
               </div>
@@ -281,48 +285,48 @@ onBeforeUnmount(() => {
 
             <div class="grid gap-3 text-sm text-muted">
               <div class="flex items-center justify-between">
-                <span>아이디</span>
+                <span>{{ t('myPage.profile.fields.loginId') }}</span>
                 <span class="font-semibold text-ink">
                   {{ profile?.loginId || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
-                <span>이름</span>
+                <span>{{ t('myPage.profile.fields.userName') }}</span>
                 <span class="font-semibold text-ink">
                   {{ profile?.userName || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
-                <span>이메일</span>
+                <span>{{ t('myPage.profile.fields.email') }}</span>
                 <span class="font-semibold text-ink">
                   {{ profile?.email || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
-                <span>닉네임</span>
+                <span>{{ t('myPage.profile.fields.displayName') }}</span>
                 <span class="font-semibold text-ink">
                   {{ profile?.displayName || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
-                <span>핸들</span>
+                <span>{{ t('myPage.profile.fields.handle') }}</span>
                 <span class="font-semibold text-ink">
                   {{ profile?.handle || '-' }}
                 </span>
               </div>
             </div>
 
-            <div class="ui-sub-panel px-4 py-3 text-xs text-muted">프로필 이미지는 이미지 파일만 업로드할 수 있습니다.</div>
+            <div class="ui-sub-panel px-4 py-3 text-xs text-muted">{{ t('myPage.profile.imageHint') }}</div>
           </div>
 
           <form class="ui-panel flex flex-col gap-4 p-5" @submit.prevent="handleSubmit">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-black tracking-tight text-ink">프로필 수정</h2>
-              <span v-if="isProfileLoading" class="text-xs text-subtle">불러오는 중...</span>
+              <h2 class="text-lg font-black tracking-tight text-ink">{{ t('myPage.profile.editTitle') }}</h2>
+              <span v-if="isProfileLoading" class="text-xs text-subtle">{{ t('common.loading') }}</span>
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-login-id" class="text-sm font-semibold text-ink"> 아이디 </label>
+              <label for="mypage-login-id" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.loginId') }} </label>
               <input
                 id="mypage-login-id"
                 :value="profile?.loginId ?? ''"
@@ -334,12 +338,12 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-name" class="text-sm font-semibold text-ink"> 이름 </label>
+              <label for="mypage-name" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.userName') }} </label>
               <input id="mypage-name" v-model="form.userName" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-email" class="text-sm font-semibold text-ink"> 이메일 </label>
+              <label for="mypage-email" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.email') }} </label>
               <input
                 id="mypage-email"
                 v-model="form.email"
@@ -351,42 +355,42 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-nickname" class="text-sm font-semibold text-ink"> 닉네임 </label>
+              <label for="mypage-nickname" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.displayName') }} </label>
               <input id="mypage-nickname" v-model="form.displayName" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-handle" class="text-sm font-semibold text-ink"> 핸들 </label>
+              <label for="mypage-handle" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.handle') }} </label>
               <input id="mypage-handle" v-model="form.handle" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-password" class="text-sm font-semibold text-ink"> 비밀번호 </label>
+              <label for="mypage-password" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.password') }} </label>
               <input
                 id="mypage-password"
                 v-model="form.password"
                 type="password"
                 autocomplete="new-password"
-                placeholder="변경할 때만 입력"
+                :placeholder="t('myPage.profile.passwordPlaceholder')"
                 class="ui-input"
                 :disabled="isProfileLoading || isProfileSaving"
               />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-password-confirm" class="text-sm font-semibold text-ink"> 비밀번호 확인 </label>
+              <label for="mypage-password-confirm" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.passwordConfirm') }} </label>
               <input
                 id="mypage-password-confirm"
                 v-model="form.passwordConfirm"
                 type="password"
                 autocomplete="new-password"
-                placeholder="비밀번호를 다시 입력"
+                :placeholder="t('myPage.profile.passwordConfirmPlaceholder')"
                 class="ui-input"
                 :disabled="isProfileLoading || isProfileSaving"
               />
             </div>
             <div class="grid gap-2">
-              <label for="mypage-image" class="text-sm font-semibold text-ink"> 프로필 이미지 </label>
+              <label for="mypage-image" class="text-sm font-semibold text-ink"> {{ t('myPage.profile.fields.profileImage') }} </label>
               <div class="flex flex-wrap items-center gap-3">
                 <input
                   id="mypage-image"
@@ -403,7 +407,7 @@ onBeforeUnmount(() => {
                   :disabled="isProfileSaving"
                   @click="clearSelectedImage"
                 >
-                  선택 해제
+                  {{ t('myPage.profile.clearImage') }}
                 </button>
               </div>
             </div>
@@ -414,7 +418,7 @@ onBeforeUnmount(() => {
                 class="ui-button-accent h-11 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-70"
                 :disabled="isProfileLoading || isProfileSaving"
               >
-                저장
+                {{ t('common.save') }}
               </button>
               <span v-if="saveMessage" class="text-sm font-semibold text-success">
                 {{ saveMessage }}
@@ -424,14 +428,14 @@ onBeforeUnmount(() => {
             <div
               class="flex flex-wrap items-center justify-between gap-3 rounded-[0.55rem] border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-200"
             >
-              <div>계정 삭제는 되돌릴 수 없습니다. 신중히 진행해주세요.</div>
+              <div>{{ t('myPage.profile.deleteWarning') }}</div>
               <button
                 type="button"
                 class="ui-button-danger h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-70"
                 :disabled="isProfileSaving"
                 @click="openDeleteModal"
               >
-                계정 삭제
+                {{ t('myPage.profile.deleteButton') }}
               </button>
             </div>
 
@@ -445,19 +449,19 @@ onBeforeUnmount(() => {
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="ui-tab-list">
               <button type="button" class="ui-tab-button" :class="activeTab === 'boards' ? 'ui-tab-button-active' : ''" @click="setTab('boards')">
-                내 게시판
+                {{ t('myPage.activity.tabs.boards') }}
                 <span v-if="boardTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ boardTotalCount }}
                 </span>
               </button>
               <button type="button" class="ui-tab-button" :class="activeTab === 'articles' ? 'ui-tab-button-active' : ''" @click="setTab('articles')">
-                내 게시글
+                {{ t('myPage.activity.tabs.articles') }}
                 <span v-if="articleTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ articleTotalCount }}
                 </span>
               </button>
               <button type="button" class="ui-tab-button" :class="activeTab === 'comments' ? 'ui-tab-button-active' : ''" @click="setTab('comments')">
-                내 댓글
+                {{ t('myPage.activity.tabs.comments') }}
                 <span v-if="commentTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ commentTotalCount }}
                 </span>
@@ -468,7 +472,7 @@ onBeforeUnmount(() => {
                 :class="activeTab === 'notifications' ? 'ui-tab-button-active' : ''"
                 @click="setTab('notifications')"
               >
-                알림목록
+                {{ t('myPage.activity.tabs.notifications') }}
                 <span v-if="notificationTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ notificationTotalCount }}
                 </span>
@@ -483,7 +487,7 @@ onBeforeUnmount(() => {
                 :disabled="listLoading"
                 @click="handleDeleteAllNotifications"
               >
-                전체 삭제
+                {{ t('myPage.activity.deleteAllNotifications') }}
               </button>
             </div>
           </div>
@@ -497,14 +501,14 @@ onBeforeUnmount(() => {
                 :disabled="!currentList?.hasPrevious || listLoading"
                 @click="setPage(currentPage - 1)"
               >
-                이전
+                {{ t('common.previous') }}
               </button>
               <div v-if="showActivityPageNumbers" class="flex flex-wrap items-center gap-1">
                 <button
                   type="button"
                   class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!hasPreviousActivityPageWindow || listLoading"
-                  aria-label="이전 페이지 묶음"
+                  :aria-label="t('myPage.activity.pagination.previousWindow')"
                   @click="handlePreviousActivityPageWindow"
                 >
                   &laquo;
@@ -524,7 +528,7 @@ onBeforeUnmount(() => {
                   type="button"
                   class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!hasNextActivityPageWindow || listLoading"
-                  aria-label="다음 페이지 묶음"
+                  :aria-label="t('myPage.activity.pagination.nextWindow')"
                   @click="handleNextActivityPageWindow"
                 >
                   &raquo;
@@ -536,15 +540,15 @@ onBeforeUnmount(() => {
                 :disabled="!currentList?.hasNext || listLoading"
                 @click="setPage(currentPage + 1)"
               >
-                다음
+                {{ t('common.next') }}
               </button>
             </div>
             <span class="justify-self-center sm:justify-self-end">
-              페이지 {{ currentPage + 1 }}<span v-if="currentTotalPages > 0"> / {{ currentTotalPages }}</span>
+              {{ t('common.page') }} {{ currentPage + 1 }}<span v-if="currentTotalPages > 0"> / {{ currentTotalPages }}</span>
             </span>
           </div>
 
-          <div v-if="listLoading" class="text-sm text-muted">불러오는 중...</div>
+          <div v-if="listLoading" class="text-sm text-muted">{{ t('common.loading') }}</div>
           <p v-else-if="listError" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
             {{ listError }}
           </p>
@@ -570,14 +574,16 @@ onBeforeUnmount(() => {
                   <span>{{ item.boardName }}</span>
                   <span>{{ item.authorName }}</span>
                   <span>{{ formatActivityDate(item.createdAt) }}</span>
-                  <span v-if="item.notice" class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">공지</span>
+                  <span v-if="item.notice" class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">{{
+                    t('article.list.notice')
+                  }}</span>
                 </div>
                 <div class="font-semibold text-ink">{{ item.title }}</div>
                 <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
-                  <span>조회 {{ item.hit }}</span>
-                  <span>댓글 {{ item.commentCount }}</span>
-                  <span>좋아요 {{ item.likeCount }}</span>
-                  <span>싫어요 {{ item.dislikeCount }}</span>
+                  <span>{{ t('myPage.activity.stats.views', { count: item.hit }) }}</span>
+                  <span>{{ t('myPage.activity.stats.comments', { count: item.commentCount }) }}</span>
+                  <span>{{ t('myPage.activity.stats.likes', { count: item.likeCount }) }}</span>
+                  <span>{{ t('myPage.activity.stats.dislikes', { count: item.dislikeCount }) }}</span>
                 </div>
               </button>
             </div>
@@ -608,8 +614,10 @@ onBeforeUnmount(() => {
                   <div class="text-xs text-subtle">{{ formatActivityDate(item.createdAt) }}</div>
                 </div>
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-                  <p>알림을 눌러 상세 화면으로 이동하세요.</p>
-                  <button type="button" class="ui-button-ghost h-8 px-3 text-[11px]" @click.stop="handleDeleteNotification(item)">삭제</button>
+                  <p>{{ t('myPage.activity.notificationHint') }}</p>
+                  <button type="button" class="ui-button-ghost h-8 px-3 text-[11px]" @click.stop="handleDeleteNotification(item)">
+                    {{ t('common.delete') }}
+                  </button>
                 </div>
               </button>
             </div>
@@ -618,15 +626,16 @@ onBeforeUnmount(() => {
       </div>
     </PageContainer>
 
-    <BaseModal :open="isDeleteModalOpen" aria-label="계정 삭제" @close="closeDeleteModal">
-      <h3 class="bbs-row-title text-lg">계정 삭제</h3>
+    <BaseModal :open="isDeleteModalOpen" :aria-label="t('myPage.deleteAccount.ariaLabel')" @close="closeDeleteModal">
+      <h3 class="bbs-row-title text-lg">{{ t('myPage.deleteAccount.title') }}</h3>
       <p class="mt-2 text-sm text-muted">
-        계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
-        <span class="font-semibold text-red-500">탈퇴</span>를 입력하세요.
+        {{ t('myPage.deleteAccount.description') }}
+        <span class="font-semibold text-red-500">{{ deleteConfirmWord }}</span
+        >{{ t('myPage.deleteAccount.descriptionSuffix') }}
       </p>
       <div class="mt-4 grid gap-2">
-        <label for="delete-confirm" class="text-sm font-semibold text-ink"> 재확인 문구 </label>
-        <input id="delete-confirm" v-model="deleteConfirmText" type="text" placeholder="탈퇴" class="ui-input" :disabled="isDeleting" />
+        <label for="delete-confirm" class="text-sm font-semibold text-ink"> {{ t('myPage.deleteAccount.confirmLabel') }} </label>
+        <input id="delete-confirm" v-model="deleteConfirmText" type="text" :placeholder="deleteConfirmWord" class="ui-input" :disabled="isDeleting" />
       </div>
       <p
         v-if="deleteError"
@@ -636,14 +645,16 @@ onBeforeUnmount(() => {
         {{ deleteError }}
       </p>
       <div class="mt-5 flex items-center justify-end gap-2">
-        <button type="button" class="ui-button-ghost h-10 px-4 text-sm" :disabled="isDeleting" @click="closeDeleteModal">취소</button>
+        <button type="button" class="ui-button-ghost h-10 px-4 text-sm" :disabled="isDeleting" @click="closeDeleteModal">
+          {{ t('common.cancel') }}
+        </button>
         <button
           type="button"
           class="ui-button-danger h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-70"
           :disabled="isDeleting"
           @click="confirmDelete"
         >
-          삭제
+          {{ t('common.delete') }}
         </button>
       </div>
     </BaseModal>

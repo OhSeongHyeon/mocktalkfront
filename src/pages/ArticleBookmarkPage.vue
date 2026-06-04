@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import BookmarkList from '../widgets/article/BookmarkList.vue';
@@ -12,6 +13,7 @@ import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
+const { t } = useI18n();
 
 const isLoading = ref(false);
 const listError = ref('');
@@ -29,6 +31,9 @@ const deleteMode = ref<'selected' | 'all' | null>(null);
 
 const isInitialLoading = computed(() => isLoading.value && bookmarks.value.length === 0);
 const hasSelection = computed(() => selectedIds.value.length > 0);
+const deleteModalDescription = computed(() =>
+  deleteMode.value === 'all' ? t('article.bookmarkPage.deleteModal.deleteAll') : t('article.bookmarkPage.deleteModal.deleteSelected'),
+);
 
 const loadPage = async (pageIndex: number) => {
   if (isLoading.value) {
@@ -45,7 +50,7 @@ const loadPage = async (pageIndex: number) => {
     hasPrevious.value = data.hasPrevious;
     selectedIds.value = [];
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '북마크 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('article.bookmarkPage.loadFailed');
   } finally {
     isLoading.value = false;
   }
@@ -115,7 +120,7 @@ const confirmDelete = async () => {
     deleteMode.value = null;
     await loadPage(0);
   } catch (error) {
-    deleteError.value = error instanceof ApiError ? error.message : '북마크 삭제에 실패했습니다.';
+    deleteError.value = error instanceof ApiError ? error.message : t('article.bookmarkPage.deleteFailed');
   } finally {
     isDeleting.value = false;
   }
@@ -130,18 +135,18 @@ onMounted(() => {
   <AppShell>
     <PageContainer width="auto">
       <div class="space-y-6">
-        <PageHeader title="보관함" description="북마크한 게시글을 모아볼 수 있습니다." />
+        <PageHeader :title="t('article.bookmarkPage.title')" :description="t('article.bookmarkPage.description')" />
 
         <div class="ui-toolbar justify-between gap-3 px-4 py-3">
           <div class="flex items-center gap-2 text-xs text-muted">
-            <span class="ui-badge ui-badge-muted">선택 {{ selectedIds.length }}개</span>
+            <span class="ui-badge ui-badge-muted">{{ t('article.bookmarkPage.selectedCount', { count: selectedIds.length }) }}</span>
             <button
               type="button"
               class="ui-button-ghost h-8 px-3 text-xs"
               :disabled="!hasSelection || isLoading"
               @click="openDeleteModal('selected')"
             >
-              선택 삭제
+              {{ t('article.bookmarkPage.deleteSelected') }}
             </button>
           </div>
           <button
@@ -150,7 +155,7 @@ onMounted(() => {
             :disabled="bookmarks.length === 0 || isLoading"
             @click="openDeleteModal('all')"
           >
-            전체 삭제
+            {{ t('article.bookmarkPage.deleteAll') }}
           </button>
         </div>
 
@@ -160,7 +165,7 @@ onMounted(() => {
 
         <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
           <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-          북마크 목록을 불러오는 중입니다.
+          {{ t('article.bookmarkPage.loading') }}
         </div>
 
         <BookmarkList
@@ -182,9 +187,9 @@ onMounted(() => {
 
     <ConfirmModal
       :open="showDeleteModal"
-      title="북마크 삭제"
-      :description="deleteMode === 'all' ? '모든 북마크를 삭제할까요?' : '선택한 북마크를 삭제할까요?'"
-      confirm-label="삭제"
+      :title="t('article.bookmarkPage.deleteModal.title')"
+      :description="deleteModalDescription"
+      :confirm-label="t('article.bookmarkPage.deleteModal.confirm')"
       confirm-variant="danger"
       :confirm-disabled="isDeleting"
       :cancel-disabled="isDeleting"

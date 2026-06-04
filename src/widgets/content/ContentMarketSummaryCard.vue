@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { MarketOverviewItemResponse } from '../../entities/content';
+import { type AppLocale, i18n, toIntlLocaleTag } from '../../shared/i18n';
 
 const props = defineProps<{
   item: MarketOverviewItemResponse;
   active: boolean;
 }>();
+
+const { t } = useI18n();
+
+const intlLocale = computed(() => toIntlLocaleTag(i18n.global.locale.value as AppLocale));
 
 const cardClass = computed(() => {
   if (props.active) {
@@ -26,8 +32,10 @@ const changeToneClass = computed(() => {
   return props.active ? 'text-ink dark:text-ink' : 'text-muted';
 });
 
+const marketGroupLabel = computed(() => (props.item.marketGroup === 'FX' ? t('content.market.group.fx') : t('content.market.group.metal')));
+
 const formattedPrice = computed(() => {
-  return new Intl.NumberFormat('ko-KR', {
+  return new Intl.NumberFormat(intlLocale.value, {
     maximumFractionDigits: props.item.marketGroup === 'FX' ? 2 : 0,
   }).format(props.item.priceValue);
 });
@@ -35,7 +43,7 @@ const formattedPrice = computed(() => {
 const formattedChange = computed(() => {
   const value = props.item.changeValue;
   if (value === null) {
-    return '변화 데이터 없음';
+    return t('content.market.noChangeData');
   }
   const sign = value > 0 ? '+' : '';
   const percent = props.item.changeRate === null ? '' : ` (${sign}${props.item.changeRate.toFixed(3)}%)`;
@@ -56,7 +64,7 @@ const formattedChange = computed(() => {
         class="rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] uppercase"
         :class="active ? 'bg-on-strong/15 text-on-strong' : 'bg-surface-soft text-muted'"
       >
-        {{ item.marketGroup === 'FX' ? '환율' : '금 시세' }}
+        {{ marketGroupLabel }}
       </span>
     </div>
     <div class="mt-5 flex items-end justify-between gap-4">

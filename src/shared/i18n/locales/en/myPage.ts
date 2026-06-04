@@ -1,0 +1,85 @@
+const myPage = {
+  header: {
+    eyebrow: 'My page',
+    title: 'Profile & activity',
+    description: 'Edit your profile and review your activity on one screen.',
+  },
+  tabs: {
+    activity: 'Activity',
+    profile: 'Edit profile',
+  },
+  profile: {
+    imageAlt: 'Profile image',
+    defaultName: 'User',
+    fields: {
+      loginId: 'Login ID',
+      userName: 'Name',
+      email: 'Email',
+      displayName: 'Display name',
+      handle: 'Handle',
+      password: 'Password',
+      passwordConfirm: 'Confirm password',
+      profileImage: 'Profile image',
+    },
+    imageHint: 'Only image files can be uploaded for your profile photo.',
+    editTitle: 'Edit profile',
+    passwordPlaceholder: 'Enter only when changing',
+    passwordConfirmPlaceholder: 'Re-enter password',
+    clearImage: 'Clear selection',
+    saved: 'Profile saved.',
+    deleteWarning: 'Account deletion cannot be undone. Proceed carefully.',
+    deleteButton: 'Delete account',
+    errors: {
+      loadFailed: 'Failed to load profile.',
+      requiredFields: 'Name, email, and handle are required.',
+      passwordMismatch: 'Password confirmation does not match.',
+      saveFailed: 'Failed to save profile.',
+    },
+  },
+  activity: {
+    tabs: {
+      boards: 'My boards',
+      articles: 'My posts',
+      comments: 'My comments',
+      notifications: 'Notifications',
+    },
+    deleteAllNotifications: 'Delete all',
+    notificationHint: 'Open a notification to go to the related screen.',
+    stats: {
+      views: '{count} views',
+      comments: '{count} comments',
+      likes: '{count} likes',
+      dislikes: '{count} dislikes',
+    },
+    pagination: {
+      previousWindow: 'Previous page group',
+      nextWindow: 'Next page group',
+    },
+    empty: {
+      boards: 'You are not operating any boards.',
+      articles: 'You have not written any posts.',
+      comments: 'You have not written any comments.',
+      notifications: 'No notifications.',
+    },
+    errors: {
+      boards: 'Failed to load boards.',
+      articles: 'Failed to load posts.',
+      comments: 'Failed to load comments.',
+      notifications: 'Failed to load notifications.',
+      markReadFailed: 'Failed to mark notification as read.',
+      deleteFailed: 'Failed to delete notification.',
+    },
+  },
+  deleteAccount: {
+    ariaLabel: 'Delete account',
+    title: 'Delete account',
+    description: 'Deleted accounts cannot be recovered. To continue, type',
+    descriptionSuffix: 'in the field below.',
+    confirmLabel: 'Confirmation phrase',
+    confirmWord: '탈퇴',
+    confirmMismatch: 'Enter the confirmation phrase exactly.',
+    failed: 'Failed to delete account.',
+  },
+} as const;
+
+export default myPage;

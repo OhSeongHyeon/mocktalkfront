@@ -12,6 +12,7 @@ import {
 import type { NotificationResponse } from '../features/notification';
 import { subscribeNotificationRealtime } from '../features/realtime';
 import type { NotificationRealtimeSubscription } from '../features/realtime';
+import { translate } from '../shared/i18n/translate';
 import { useAuthStore } from './auth';
 
 const DEFAULT_NOTIFICATION_PAGE_SIZE = 5;
@@ -65,12 +66,12 @@ const useNotificationStore = defineStore('notification', () => {
       notificationListDirty.value = false;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        notificationError.value = '로그인이 필요합니다.';
+        notificationError.value = translate('notification.loginRequired');
         notifications.value = [];
         notificationUnreadCount.value = 0;
         return;
       }
-      notificationError.value = error instanceof ApiError ? error.message : '알림을 불러오지 못했습니다.';
+      notificationError.value = error instanceof ApiError ? error.message : translate('notification.loadFailed');
     } finally {
       notificationLoading.value = false;
     }
@@ -100,7 +101,7 @@ const useNotificationStore = defineStore('notification', () => {
       await refreshUnreadCount();
       notificationListDirty.value = false;
     } catch (error) {
-      notificationError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
+      notificationError.value = error instanceof ApiError ? error.message : translate('notification.markReadFailed');
     }
   };
 
@@ -114,7 +115,7 @@ const useNotificationStore = defineStore('notification', () => {
       await refreshUnreadCount();
       notificationListDirty.value = false;
     } catch (error) {
-      notificationError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
+      notificationError.value = error instanceof ApiError ? error.message : translate('notification.markReadFailed');
     }
   };
 
@@ -126,7 +127,7 @@ const useNotificationStore = defineStore('notification', () => {
       notificationUnreadCount.value = 0;
       notificationListDirty.value = false;
     } catch (error) {
-      notificationError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
+      notificationError.value = error instanceof ApiError ? error.message : translate('notification.deleteFailed');
     }
   };
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -7,6 +8,8 @@ import type { ArticleImportExecuteResponse, ArticleImportPreviewResponse } from 
 import { ApiError } from '../shared/lib/http/api';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
+
+const { t, tm } = useI18n();
 
 const selectedZipFile = ref<File | null>(null);
 const fileInputKey = ref(0);
@@ -18,32 +21,9 @@ const previewResult = ref<ArticleImportPreviewResponse | null>(null);
 const executeResult = ref<ArticleImportExecuteResponse | null>(null);
 const autoCreateMissingCategories = ref(true);
 
-const importSteps = [
-  '1. zip 안에는 여러 .md/.markdown 파일을 넣고, 필요하면 manifest.yml 또는 manifest.yaml을 같이 넣습니다.',
-  '2. manifest가 없으면 zip 안의 Markdown 파일을 자동 스캔해 미리보기 후보를 만듭니다.',
-  '3. 상대경로 이미지 Markdown 문법과 HTML video/source 태그는 현재 Markdown 파일 위치 기준으로 해석합니다.',
-  '4. !youtube[...] 문법은 미리보기에서 검사하고, 해석에 성공하면 렌더 시 임베드로 표시됩니다.',
-  '5. 카테고리 자동 생성이 켜져 있으면 없는 카테고리는 미리보기에서 생성 예정으로 표시됩니다.',
-  '6. 미리보기에서 실행 가능한 항목이 있을 때만 일괄 생성을 실행합니다.',
-  '7. 실행 결과에서 생성 성공/실패와 업로드된 본문 assets 수를 다시 확인합니다.',
-];
-
-const metadataRules = [
-  'title: manifest 항목 > Markdown frontmatter > 파일명 순서로 결정됩니다.',
-  'boardSlug: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
-  'categoryName: manifest 항목 > Markdown frontmatter > defaults 순서로 결정됩니다.',
-  'visibility: manifest 항목 > Markdown frontmatter > defaults > PUBLIC 순서로 결정됩니다.',
-  '저장 시 title, boardSlug, categoryName, visibility는 최종 적용값 기준으로 frontmatter에 다시 정리됩니다.',
-  'tags, summary, 미지원 사용자 정의 frontmatter 키는 지우지 않고 content_source 원본에 그대로 보존합니다.',
-];
-
-const unsupportedNotes = [
-  'frontmatter의 tags, summary, 미지원 필드는 content_source 원본에 보존되며 별도 UI에는 아직 자동 반영되지 않습니다.',
-  '첨부파일은 기존처럼 별도 업로드 대상이며, 대량 임포트에서 자동 업로드하지 않습니다.',
-  '일반 iframe/embed 외부 임베드는 허용하지 않고, Markdown 유튜브는 !youtube[...] 문법만 지원합니다.',
-  '로컬 이미지/동영상 assets는 파일당 최대 50MB까지 허용합니다.',
-  '상대경로는 현재 Markdown 파일 위치 기준으로 계산하므로 ./assets 경로가 항상 맞는 것은 아닙니다.',
-];
+const importSteps = computed(() => (tm('admin.articleImports.steps') as string[]) ?? []);
+const metadataRules = computed(() => (tm('admin.articleImports.metadataRules') as string[]) ?? []);
+const unsupportedNotes = computed(() => (tm('admin.articleImports.limitations') as string[]) ?? []);
 
 const sampleZipStructure = `batch-import.zip
 ├─ manifest.yml # 선택
@@ -83,23 +63,32 @@ visibility: "PUBLIC"
 <video controls src="../assets/demo.mp4"></video>`;
 
 const formatPreviewAssetSummary = (item: ArticleImportPreviewResponse['items'][number]) => {
-  const parts = [`이미지 ${item.relativeImageCount}`, `동영상 ${item.relativeVideoCount}`, `유튜브 ${item.youtubeEmbedCount}`];
+  const parts = [
+    t('admin.articleImports.assetCounts', {
+      images: item.relativeImageCount,
+      videos: item.relativeVideoCount,
+      youtube: item.youtubeEmbedCount,
+    }),
+  ];
   const issues: string[] = [];
   if (item.missingAssetCount > 0) {
-    issues.push(`누락 ${item.missingAssetCount}`);
+    issues.push(t('admin.articleImports.missingAssets', { count: item.missingAssetCount }));
   }
   if (item.oversizedAssetCount > 0) {
-    issues.push(`용량초과 ${item.oversizedAssetCount}`);
+    issues.push(t('admin.articleImports.oversizedAssets', { count: item.oversizedAssetCount }));
   }
   if (item.unsupportedAssetCount > 0) {
-    issues.push(`미지원 ${item.unsupportedAssetCount}`);
+    issues.push(t('admin.articleImports.unsupportedAssets', { count: item.unsupportedAssetCount }));
   }
   return issues.length > 0 ? `${parts.join(' · ')} / ${issues.join(' · ')}` : parts.join(' · ');
 };
 
-const formatExecuteAssetSummary = (item: ArticleImportExecuteResponse['items'][number]) => {
-  return `이미지 ${item.uploadedImageCount} · 동영상 ${item.uploadedVideoCount} · 유튜브 ${item.youtubeEmbedCount}`;
-};
+const formatExecuteAssetSummary = (item: ArticleImportExecuteResponse['items'][number]) =>
+  t('admin.articleImports.assetSummary', {
+    images: item.uploadedImageCount,
+    videos: item.uploadedVideoCount,
+    youtube: item.youtubeEmbedCount,
+  });
 
 const resolveCreatedArticlePath = (item: ArticleImportExecuteResponse['items'][number]) => {
   if (!item.created || !item.articleId || !item.boardSlug) {
@@ -115,7 +104,7 @@ const resolveExecuteCardClass = (item: ArticleImportExecuteResponse['items'][num
   return 'border-rose-200 bg-rose-50/40 dark:border-rose-900/60 dark:bg-rose-950/10';
 };
 
-const selectedFileName = computed(() => selectedZipFile.value?.name ?? '선택된 zip 파일이 없습니다.');
+const selectedFileName = computed(() => selectedZipFile.value?.name ?? t('admin.articleImports.noZipSelected'));
 
 const canExecute = computed(() => {
   return Boolean(selectedZipFile.value && previewResult.value?.canExecute && !isPreviewLoading.value && !isExecuteLoading.value);
@@ -152,7 +141,7 @@ const onFileChange = (event: Event) => {
 
 const runPreview = async () => {
   if (!selectedZipFile.value) {
-    actionErrorMessage.value = '미리볼 zip 파일을 먼저 선택해 주세요.';
+    actionErrorMessage.value = t('admin.articleImports.errors.zipRequiredPreview');
     return;
   }
   actionErrorMessage.value = '';
@@ -163,7 +152,7 @@ const runPreview = async () => {
   try {
     previewResult.value = await previewArticleImport(selectedZipFile.value, autoCreateMissingCategories.value);
   } catch (error) {
-    actionErrorMessage.value = resolveErrorMessage(error, '임포트 미리보기에 실패했습니다.');
+    actionErrorMessage.value = resolveErrorMessage(error, t('admin.articleImports.errors.previewFailed'));
   } finally {
     isPreviewLoading.value = false;
   }
@@ -171,11 +160,11 @@ const runPreview = async () => {
 
 const runExecute = async () => {
   if (!selectedZipFile.value) {
-    actionErrorMessage.value = '실행할 zip 파일을 먼저 선택해 주세요.';
+    actionErrorMessage.value = t('admin.articleImports.errors.zipRequiredExecute');
     return;
   }
   if (!previewResult.value?.canExecute) {
-    actionErrorMessage.value = '먼저 미리보기 결과에서 실행 가능한 항목이 있는지 확인해 주세요.';
+    actionErrorMessage.value = t('admin.articleImports.errors.noExecutable');
     return;
   }
   actionErrorMessage.value = '';
@@ -184,9 +173,9 @@ const runExecute = async () => {
   try {
     const response = await executeArticleImport(selectedZipFile.value, autoCreateMissingCategories.value);
     executeResult.value = response;
-    actionSuccessMessage.value = `총 ${response.successCount}건 생성, ${response.failedCount}건 실패했습니다.`;
+    actionSuccessMessage.value = t('admin.articleImports.success.executed', { success: response.successCount, failed: response.failedCount });
   } catch (error) {
-    actionErrorMessage.value = resolveErrorMessage(error, '대량 임포트 실행에 실패했습니다.');
+    actionErrorMessage.value = resolveErrorMessage(error, t('admin.articleImports.errors.executeFailed'));
   } finally {
     isExecuteLoading.value = false;
   }
@@ -205,24 +194,19 @@ const resolveStatusBadgeClass = (executable: boolean) => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page">게시글 대량 임포트</h1>
-            <p class="text-sm text-muted">
-              <code class="font-mono text-[0.95em]">여러 .md/.markdown + 선택적 manifest + 본문 assets + zip</code>
-              구조를 미리 검증하고 일괄 생성합니다.
-            </p>
-            <p class="mt-1 text-sm text-muted">
-              Markdown 원본과 frontmatter는 <code class="font-mono text-[0.95em]">content_source</code>에 함께 보존됩니다.
-            </p>
+            <h1 class="ui-heading-page">{{ t('admin.articleImports.title') }}</h1>
+            <p class="text-sm text-muted">{{ t('admin.articleImports.description') }}</p>
+            <p class="mt-1 text-sm text-muted">{{ t('admin.articleImports.contentSourceNote') }}</p>
           </div>
         </div>
 
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 class="text-lg font-semibold text-ink">사용 가이드</h2>
+              <h2 class="text-lg font-semibold text-ink">{{ t('admin.articleImports.guideTitle') }}</h2>
               <p class="mt-1 text-sm text-muted">
-                이 화면은 <code class="font-mono text-[0.95em]">ADMIN</code>, <code class="font-mono text-[0.95em]">MANAGER</code> 전용입니다.
-                <span class="mt-1 block">기본값은 <code class="font-mono text-[0.95em]">카테고리 자동 생성 켜짐</code>입니다.</span>
+                {{ t('admin.articleImports.guideRole') }}
+                <span class="mt-1 block">{{ t('admin.articleImports.guideAutoCategory') }}</span>
               </p>
             </div>
             <span class="rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-muted dark:text-subtle">
@@ -232,48 +216,41 @@ const resolveStatusBadgeClass = (executable: boolean) => {
 
           <div class="mt-5 grid gap-4 xl:grid-cols-2">
             <div class="ui-card">
-              <h3 class="text-sm font-semibold text-ink">권장 zip 구조</h3>
+              <h3 class="text-sm font-semibold text-ink">{{ t('admin.articleImports.zipStructureTitle') }}</h3>
               <pre class="ui-code-block ui-scrollbar mt-3 rounded-ui"><code>{{ sampleZipStructure }}</code></pre>
-              <p class="mt-3 text-xs leading-6 text-muted">
-                <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의 Markdown 파일을 자동 스캔합니다.
-              </p>
+              <p class="mt-3 text-xs leading-6 text-muted">{{ t('admin.articleImports.zipStructureHint') }}</p>
             </div>
 
             <div class="ui-card">
-              <h3 class="text-sm font-semibold text-ink">실행 순서</h3>
+              <h3 class="text-sm font-semibold text-ink">{{ t('admin.articleImports.stepsTitle') }}</h3>
               <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                 <li v-for="step in importSteps" :key="step">{{ step }}</li>
               </ul>
             </div>
 
             <div class="ui-card">
-              <h3 class="text-sm font-semibold text-ink">메타데이터 우선순위</h3>
+              <h3 class="text-sm font-semibold text-ink">{{ t('admin.articleImports.metadataTitle') }}</h3>
               <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                 <li v-for="rule in metadataRules" :key="rule">{{ rule }}</li>
               </ul>
             </div>
 
             <div class="ui-card">
-              <h3 class="text-sm font-semibold text-ink">manifest 예시</h3>
+              <h3 class="text-sm font-semibold text-ink">{{ t('admin.articleImports.manifestExampleTitle') }}</h3>
               <pre class="ui-code-block ui-scrollbar mt-3"><code>{{ sampleManifest }}</code></pre>
             </div>
 
             <div class="ui-card">
-              <h3 class="text-sm font-semibold text-ink">Markdown 예시</h3>
+              <h3 class="text-sm font-semibold text-ink">{{ t('admin.articleImports.markdownExampleTitle') }}</h3>
               <pre class="ui-code-block ui-scrollbar mt-3"><code>{{ sampleMarkdown }}</code></pre>
-              <p class="mt-3 text-xs leading-6 text-muted">
-                저장 시 <code class="font-mono text-[0.95em]">title</code>, <code class="font-mono text-[0.95em]">boardSlug</code>,
-                <code class="font-mono text-[0.95em]">categoryName</code>, <code class="font-mono text-[0.95em]">visibility</code>는 현재 적용값으로
-                다시 정리되고, 나머지 frontmatter는 원본 그대로 보존됩니다.
-              </p>
+              <p class="mt-3 text-xs leading-6 text-muted">{{ t('admin.articleImports.markdownSaveNote') }}</p>
             </div>
           </div>
 
           <div class="ui-card mt-4 border-amber-200 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/20">
-            <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">현재 제한 사항</h3>
+            <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">{{ t('admin.articleImports.limitationsTitle') }}</h3>
             <ul class="mt-3 space-y-2 text-sm leading-6 text-amber-800 dark:text-amber-200">
               <li v-for="note in unsupportedNotes" :key="note">{{ note }}</li>
-              <li>카테고리 자동 생성이 켜져 있으면 없는 카테고리는 오류 대신 생성 예정으로 처리하고, 실행 시 실제로 생성합니다.</li>
             </ul>
           </div>
         </section>
@@ -281,13 +258,9 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="space-y-2">
-              <p class="text-sm font-semibold text-ink">업로드 파일</p>
+              <p class="text-sm font-semibold text-ink">{{ t('admin.articleImports.uploadTitle') }}</p>
               <p class="text-sm text-muted">{{ selectedFileName }}</p>
-              <p class="text-xs text-subtle">
-                <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의
-                <code class="font-mono text-[0.95em]">.md</code>/<code class="font-mono text-[0.95em]">.markdown</code>
-                파일을 자동 스캔합니다.
-              </p>
+              <p class="text-xs text-subtle">{{ t('admin.articleImports.zipStructureHint') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
               <label class="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-ink">
@@ -296,12 +269,12 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                   type="checkbox"
                   class="h-4 w-4 rounded border-line text-emerald-500 focus:ring-emerald-500 dark:border-line"
                 />
-                <span>카테고리 자동 생성</span>
+                <span>{{ t('admin.articleImports.autoCreateCategory') }}</span>
               </label>
               <label
                 class="inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
               >
-                zip 선택
+                {{ t('admin.articleImports.selectZip') }}
                 <input
                   :key="fileInputKey"
                   type="file"
@@ -316,7 +289,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 :disabled="!selectedZipFile || isPreviewLoading || isExecuteLoading"
                 @click="runPreview"
               >
-                {{ isPreviewLoading ? '분석 중...' : '미리보기' }}
+                {{ isPreviewLoading ? t('admin.articleImports.previewSubmitting') : t('admin.articleImports.preview') }}
               </button>
               <button
                 type="button"
@@ -324,7 +297,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 :disabled="!canExecute"
                 @click="runExecute"
               >
-                {{ isExecuteLoading ? '생성 중...' : '일괄 생성' }}
+                {{ isExecuteLoading ? t('admin.articleImports.executeSubmitting') : t('admin.articleImports.bulkCreate') }}
               </button>
               <button
                 type="button"
@@ -332,7 +305,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 :disabled="isPreviewLoading || isExecuteLoading"
                 @click="resetSelection"
               >
-                초기화
+                {{ t('admin.common.reset') }}
               </button>
             </div>
           </div>
@@ -348,13 +321,19 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section v-if="previewResult" class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-ink">미리보기 결과</h2>
+              <h2 class="text-lg font-semibold text-ink">{{ t('admin.articleImports.previewResultTitle') }}</h2>
               <p class="text-sm text-muted">
-                총 {{ previewResult.totalCount }}건 중 {{ previewResult.executableCount }}건 실행 가능, {{ previewResult.invalidCount }}건 검토 필요
+                {{
+                  t('admin.articleImports.previewSummary', {
+                    total: previewResult.totalCount,
+                    executable: previewResult.executableCount,
+                    invalid: previewResult.invalidCount,
+                  })
+                }}
               </p>
             </div>
             <span class="rounded-full border px-3 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(previewResult.canExecute)">
-              {{ previewResult.canExecute ? '실행 가능' : '실행 불가' }}
+              {{ previewResult.canExecute ? t('admin.articleImports.executable') : t('admin.articleImports.notExecutable') }}
             </span>
           </div>
 
@@ -362,13 +341,13 @@ const resolveStatusBadgeClass = (executable: boolean) => {
             <table class="min-w-full divide-y divide-[color:var(--line-subtle)] text-sm">
               <thead>
                 <tr class="text-left text-xs font-semibold tracking-[0.12em] text-subtle uppercase">
-                  <th class="px-3 py-3">파일</th>
-                  <th class="px-3 py-3">제목</th>
-                  <th class="px-3 py-3">게시판</th>
-                  <th class="px-3 py-3">카테고리</th>
-                  <th class="px-3 py-3">공개 범위</th>
-                  <th class="px-3 py-3">본문 assets</th>
-                  <th class="px-3 py-3">상태</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableFile') }}</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableTitle') }}</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableBoard') }}</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableCategory') }}</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableVisibility') }}</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableAssets') }}</th>
+                  <th class="px-3 py-3">{{ t('admin.articleImports.tableStatus') }}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[color:var(--line-subtle)]">
@@ -383,7 +362,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                   </td>
                   <td class="px-3 py-4 align-top">
                     <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(item.executable)">
-                      {{ item.executable ? '실행 가능' : '확인 필요' }}
+                      {{ item.executable ? t('admin.articleImports.executable') : t('admin.articleImports.needsReview') }}
                     </span>
                     <ul v-if="item.warnings.length > 0" class="mt-2 space-y-1 text-xs text-amber-600 dark:text-amber-300">
                       <li v-for="warning in item.warnings" :key="`${item.filePath}-${warning}`">{{ warning }}</li>
@@ -401,9 +380,15 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section v-if="executeResult" class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-ink">실행 결과</h2>
+              <h2 class="text-lg font-semibold text-ink">{{ t('admin.articleImports.executeResultTitle') }}</h2>
               <p class="text-sm text-muted">
-                총 {{ executeResult.totalCount }}건 중 {{ executeResult.successCount }}건 생성, {{ executeResult.failedCount }}건 실패
+                {{
+                  t('admin.articleImports.executeSummary', {
+                    total: executeResult.totalCount,
+                    success: executeResult.successCount,
+                    failed: executeResult.failedCount,
+                  })
+                }}
               </p>
             </div>
           </div>
@@ -425,7 +410,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                       v-if="resolveCreatedArticlePath(item)"
                       class="rounded-full border border-emerald-200 bg-surface px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:text-emerald-300"
                     >
-                      클릭해서 글 보기
+                      {{ t('admin.articleImports.viewArticle') }}
                     </span>
                   </div>
                   <p class="mt-1 text-xs text-muted">
@@ -436,7 +421,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                   </p>
                 </div>
                 <span class="rounded-full border px-2.5 py-1 text-xs font-semibold" :class="resolveStatusBadgeClass(item.created)">
-                  {{ item.created ? `생성 완료 #${item.articleId}` : '생성 실패' }}
+                  {{ item.created ? t('admin.articleImports.createdSuccess', { id: item.articleId }) : t('admin.articleImports.createFailed') }}
                 </span>
               </div>
               <ul v-if="item.warnings.length > 0" class="mt-3 space-y-1 text-xs text-amber-600 dark:text-amber-300">

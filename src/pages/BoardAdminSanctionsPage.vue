@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -16,6 +17,7 @@ import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
@@ -44,7 +46,7 @@ const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus
 const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMember(board.value.memberStatus) : false));
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
-const boardName = computed(() => board.value?.boardName ?? '게시판');
+const boardName = computed(() => board.value?.boardName ?? t('admin.common.defaultBoardName'));
 
 const formatDate = (value: string | null) => {
   if (!value) {
@@ -56,12 +58,12 @@ const formatDate = (value: string | null) => {
 
 const resolveStatusLabel = (sanction: SanctionResponse) => {
   if (sanction.revokedAt) {
-    return '해제';
+    return t('admin.common.revoked');
   }
   if (sanction.endsAt && new Date(sanction.endsAt).getTime() < Date.now()) {
-    return '종료';
+    return t('admin.common.ended');
   }
-  return '활성';
+  return t('admin.common.active');
 };
 
 const statusBadgeClass = (sanction: SanctionResponse) => {
@@ -79,10 +81,10 @@ const loadBoard = async () => {
   try {
     board.value = await getBoardBySlug(boardSlug.value);
     if (!hasPermission.value) {
-      boardError.value = '게시판 관리자 권한이 없습니다.';
+      boardError.value = t('admin.common.noBoardAdmin');
     }
   } catch (error) {
-    boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : t('admin.common.loadBoardFailed');
   }
 };
 
@@ -97,7 +99,7 @@ const loadSanctions = async () => {
     sanctions.value = response.items;
     totalPages.value = response.totalPages;
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '제재 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.sanctions.errors.loadList');
   } finally {
     isLoading.value = false;
   }
@@ -110,11 +112,11 @@ const submitSanction = async () => {
   listError.value = '';
   const userId = Number(form.value.userId);
   if (!userId) {
-    listError.value = '대상 회원번호를 입력해주세요.';
+    listError.value = t('admin.sanctions.errors.userIdRequired');
     return;
   }
   if (!form.value.reason.trim()) {
-    listError.value = '제재 사유를 입력해주세요.';
+    listError.value = t('admin.sanctions.errors.reasonRequired');
     return;
   }
 
@@ -132,7 +134,7 @@ const submitSanction = async () => {
     form.value.reportId = '';
     await loadSanctions();
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '제재 등록에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.sanctions.errors.registerFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -153,7 +155,7 @@ const submitRevoke = async () => {
     return;
   }
   if (!revokeReason.value.trim()) {
-    listError.value = '해제 사유를 입력해주세요.';
+    listError.value = t('admin.sanctions.errors.revokeReasonRequired');
     return;
   }
   isSubmitting.value = true;
@@ -162,7 +164,7 @@ const submitRevoke = async () => {
     closeRevokeModal();
     await loadSanctions();
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '제재 해제에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.sanctions.errors.revokeFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -197,27 +199,31 @@ onMounted(async () => {
         </div>
 
         <div v-if="board && hasPermission" class="space-y-6">
-          <PageHeader eyebrow="Board Sanctions" :title="`${boardName} 제재 관리`" description="게시판 범위 제재만 따로 등록하고 해제할 수 있습니다.">
+          <PageHeader
+            eyebrow="Board Sanctions"
+            :title="t('admin.sanctions.board.title', { boardName })"
+            :description="t('admin.sanctions.board.description')"
+          >
             <template #meta>
-              <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-              <span class="ui-badge ui-badge-accent">표시 {{ sanctions.length }}건</span>
-              <span class="text-xs text-muted">범위 BOARD · {{ boardName }}</span>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.common.currentPage', { current: page + 1, total: Math.max(totalPages, 1) }) }}</span>
+              <span class="ui-badge ui-badge-accent">{{ t('admin.common.displayCount', { count: sanctions.length }) }}</span>
+              <span class="text-xs text-muted">{{ t('admin.sanctions.board.scopeBadge', { boardName }) }}</span>
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Board</p>
                 <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-muted">이 게시판에만 적용되는 제재 큐입니다.</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.sanctions.board.queueHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Register</p>
-                <p class="bbs-row-title mt-2 text-sm">회원번호 + 제재 사유</p>
-                <p class="mt-1 text-xs text-muted">게시판 범위는 별도 boardId 입력 없이 현재 게시판에 연결됩니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.sanctions.registerHintUserReason') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.sanctions.board.registerHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Revoke</p>
-                <p class="bbs-row-title mt-2 text-sm">해제 사유 필수</p>
-                <p class="mt-1 text-xs text-muted">활성 상태 제재만 해제 버튼이 활성화됩니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.sanctions.revokeHint') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.sanctions.board.revokeHint') }}</p>
               </div>
             </div>
           </PageHeader>
@@ -230,15 +236,15 @@ onMounted(async () => {
             <section class="ui-panel p-5">
               <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
-                  <h2 class="bbs-row-title text-lg">제재 목록</h2>
-                  <p class="mt-1 text-sm text-muted">게시판 범위 제재를 시간순으로 확인합니다.</p>
+                  <h2 class="bbs-row-title text-lg">{{ t('admin.sanctions.listTitle') }}</h2>
+                  <p class="mt-1 text-sm text-muted">{{ t('admin.sanctions.board.listDescription') }}</p>
                 </div>
-                <span class="ui-badge ui-badge-muted">총 {{ sanctions.length }}건</span>
+                <span class="ui-badge ui-badge-muted">{{ t('admin.common.totalCount', { count: sanctions.length }) }}</span>
               </div>
 
               <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
                 <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-                불러오는 중...
+                {{ t('common.loading') }}
               </div>
 
               <div v-else class="mt-4 flex flex-col gap-3">
@@ -252,10 +258,13 @@ onMounted(async () => {
                       </div>
                       <div class="mt-2 flex flex-wrap items-center gap-2">
                         <span class="bbs-row-title text-sm">#{{ sanction.id }}</span>
-                        <span class="text-sm text-muted">대상 {{ sanction.userId }}</span>
+                        <span class="text-sm text-muted">{{ t('admin.common.target') }} {{ sanction.userId }}</span>
                         <span class="text-xs text-subtle">{{ boardName }}</span>
                       </div>
-                      <p class="mt-2 text-xs text-muted">시작 {{ formatDate(sanction.startsAt) }} · 종료 {{ formatDate(sanction.endsAt) }}</p>
+                      <p class="mt-2 text-xs text-muted">
+                        {{ t('admin.common.startsAt') }} {{ formatDate(sanction.startsAt) }} · {{ t('admin.common.endsAt') }}
+                        {{ formatDate(sanction.endsAt) }}
+                      </p>
                     </div>
 
                     <div class="flex items-center justify-start md:justify-end">
@@ -265,19 +274,19 @@ onMounted(async () => {
                         :disabled="!canRevoke(sanction)"
                         @click="openRevokeModal(sanction)"
                       >
-                        해제
+                        {{ t('admin.common.revoke') }}
                       </button>
                     </div>
                   </div>
-                  <div class="text-xs text-subtle">해제 시각 {{ formatDate(sanction.revokedAt) }}</div>
+                  <div class="text-xs text-subtle">{{ t('admin.common.revokedAt') }} {{ formatDate(sanction.revokedAt) }}</div>
                 </div>
 
-                <div v-if="sanctions.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 제재가 없습니다.</div>
+                <div v-if="sanctions.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ t('admin.sanctions.board.empty') }}</div>
               </div>
 
               <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
                 <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
-                  이전
+                  {{ t('common.previous') }}
                 </button>
                 <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
                 <button
@@ -286,7 +295,7 @@ onMounted(async () => {
                   :disabled="page + 1 >= totalPages"
                   @click="movePage(1)"
                 >
-                  다음
+                  {{ t('common.next') }}
                 </button>
               </div>
             </section>
@@ -295,7 +304,7 @@ onMounted(async () => {
               <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
                   <p class="ui-eyebrow">Create</p>
-                  <h2 class="bbs-row-title mt-1 text-lg">제재 등록</h2>
+                  <h2 class="bbs-row-title mt-1 text-lg">{{ t('admin.sanctions.registerTitle') }}</h2>
                 </div>
               </div>
 
@@ -303,16 +312,16 @@ onMounted(async () => {
                 <div class="ui-data-panel p-4 md:col-span-2">
                   <p class="ui-eyebrow">Scope</p>
                   <p class="bbs-row-title mt-2 text-sm">BOARD · {{ boardName }}</p>
-                  <p class="mt-1 text-xs text-muted">현재 게시판에 자동 연결됩니다.</p>
+                  <p class="mt-1 text-xs text-muted">{{ t('admin.sanctions.board.autoLinkHint') }}</p>
                 </div>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  대상 회원번호
-                  <input v-model="form.userId" type="number" class="ui-input" placeholder="예: 7" />
+                  {{ t('admin.sanctions.targetUserId') }}
+                  <input v-model="form.userId" type="number" class="ui-input" :placeholder="t('admin.common.exampleNumber')" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  제재 유형
+                  {{ t('admin.sanctions.sanctionType') }}
                   <select v-model="form.sanctionType" class="ui-select">
                     <option value="MUTE">MUTE</option>
                     <option value="SUSPEND">SUSPEND</option>
@@ -321,30 +330,30 @@ onMounted(async () => {
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink md:col-span-2">
-                  제재 사유
-                  <textarea v-model="form.reason" rows="4" class="ui-textarea" placeholder="사유를 입력하세요."></textarea>
+                  {{ t('admin.sanctions.sanctionReason') }}
+                  <textarea v-model="form.reason" rows="4" class="ui-textarea" :placeholder="t('admin.common.sanctionReasonPlaceholder')"></textarea>
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  종료 일시
+                  {{ t('admin.sanctions.endsAt') }}
                   <input v-model="form.endsAt" type="datetime-local" class="ui-input" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  연계 신고 번호
-                  <input v-model="form.reportId" type="number" class="ui-input" placeholder="선택" />
+                  {{ t('admin.sanctions.linkedReportId') }}
+                  <input v-model="form.reportId" type="number" class="ui-input" :placeholder="t('admin.common.optional')" />
                 </label>
               </div>
 
               <div class="ui-toolbar mt-5 justify-between text-xs text-muted">
-                <span>등록 즉시 목록을 다시 조회합니다.</span>
+                <span>{{ t('admin.common.refreshListOnRegister') }}</span>
                 <button
                   type="button"
                   class="ui-button-accent h-11 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="isSubmitting"
                   @click="submitSanction"
                 >
-                  {{ isSubmitting ? '등록 중...' : '제재 등록' }}
+                  {{ isSubmitting ? t('admin.common.registerSubmitting') : t('admin.common.registerSanction') }}
                 </button>
               </div>
             </section>
@@ -353,19 +362,24 @@ onMounted(async () => {
       </div>
     </PageContainer>
 
-    <BaseModal :open="Boolean(revokeTarget)" overlay-class="bg-[var(--surface-overlay)]" aria-label="제재 해제" @close="closeRevokeModal">
-      <h3 class="bbs-row-title text-lg">제재 해제</h3>
-      <p class="mt-2 text-sm text-muted">제재 #{{ revokeTarget?.id ?? '' }} 해제 사유를 입력하세요.</p>
-      <textarea v-model="revokeReason" rows="4" class="ui-textarea mt-4" placeholder="해제 사유"></textarea>
+    <BaseModal
+      :open="Boolean(revokeTarget)"
+      overlay-class="bg-[var(--surface-overlay)]"
+      :aria-label="t('admin.sanctions.revokeModalAria')"
+      @close="closeRevokeModal"
+    >
+      <h3 class="bbs-row-title text-lg">{{ t('admin.sanctions.revokeTitle') }}</h3>
+      <p class="mt-2 text-sm text-muted">{{ t('admin.sanctions.revokeDescription', { id: revokeTarget?.id ?? '' }) }}</p>
+      <textarea v-model="revokeReason" rows="4" class="ui-textarea mt-4" :placeholder="t('admin.common.revokeReasonPlaceholder')"></textarea>
       <div class="mt-4 flex justify-end gap-2">
-        <button type="button" class="ui-button-ghost h-10 px-4 text-xs" @click="closeRevokeModal">취소</button>
+        <button type="button" class="ui-button-ghost h-10 px-4 text-xs" @click="closeRevokeModal">{{ t('common.cancel') }}</button>
         <button
           type="button"
           class="ui-button-danger h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="isSubmitting"
           @click="submitRevoke"
         >
-          해제
+          {{ t('admin.common.revoke') }}
         </button>
       </div>
     </BaseModal>

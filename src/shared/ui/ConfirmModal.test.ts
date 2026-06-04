@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { i18n } from '../../test/plugins';
 import ConfirmModal from './ConfirmModal.vue';
 
 describe('shared/ui/ConfirmModal', () => {
@@ -11,6 +12,9 @@ describe('shared/ui/ConfirmModal', () => {
         open: true,
         title: '삭제 확인',
         description: '정말 삭제할까요?',
+      },
+      global: {
+        plugins: [i18n],
       },
     });
     const buttons = wrapper.findAll('button');
@@ -35,6 +39,9 @@ describe('shared/ui/ConfirmModal', () => {
         confirmVariant: 'danger',
         confirmDisabled: true,
         cancelDisabled: true,
+      },
+      global: {
+        plugins: [i18n],
       },
     });
     const buttons = wrapper.findAll('button');

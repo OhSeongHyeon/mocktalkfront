@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { ArticleSummaryResponse } from '../../entities/board';
+import { toIntlLocaleTag } from '../../shared/i18n';
 
 type ArticleListOrder = 'LATEST' | 'OLDEST';
 
@@ -22,6 +24,7 @@ interface ArticleListProps {
 }
 
 const props = defineProps<ArticleListProps>();
+const { t, locale } = useI18n();
 const emit = defineEmits<{
   (event: 'select', articleId: number): void;
   (event: 'update:order', order: ArticleListOrder): void;
@@ -36,7 +39,7 @@ const orderOptions = computed(() => props.orderOptions ?? []);
 const showOrderControl = computed(() => orderOptions.value.length > 0 && props.order !== undefined);
 const pageSizeOptions = computed(() => props.pageSizeOptions ?? []);
 const showPageSizeControl = computed(() => pageSizeOptions.value.length > 0 && props.pageSize !== undefined);
-const emptyMessage = computed(() => props.emptyMessage ?? '게시글이 없습니다.');
+const emptyMessage = computed(() => props.emptyMessage ?? t('article.list.empty'));
 const currentPage = computed(() => props.page ?? 0);
 const totalPages = computed(() => props.totalPages ?? 0);
 const canGoPrevious = computed(() => {
@@ -68,9 +71,9 @@ const hasPreviousPageWindow = computed(() => pageWindowStart.value > 0);
 const hasNextPageWindow = computed(() => pageWindowEnd.value < totalPages.value);
 const pageSummaryText = computed(() => {
   if (totalPages.value > 0) {
-    return `페이지 ${currentPage.value + 1} / ${totalPages.value}`;
+    return t('article.list.pageSummary', { current: currentPage.value + 1, total: totalPages.value });
   }
-  return `페이지 ${currentPage.value + 1}`;
+  return t('article.list.pageSummarySingle', { current: currentPage.value + 1 });
 });
 
 const formatDate = (value: string) => {
@@ -78,12 +81,14 @@ const formatDate = (value: string) => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleDateString('ko-KR', {
+  return date.toLocaleDateString(toIntlLocaleTag(locale.value), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   });
 };
+
+const resolveOrderLabel = (order: ArticleListOrder) => (order === 'LATEST' ? t('article.list.sortLatest') : t('article.list.sortOldest'));
 
 const resolveCategoryName = (article: ArticleSummaryResponse) => {
   const trimmed = article.categoryName?.trim();
@@ -162,7 +167,7 @@ const handleNextPageWindow = () => {
 <template>
   <section v-if="showPinned" class="bbs-box mt-3">
     <div class="bbs-toolbar">
-      <span class="bbs-toolbar-title">공지</span>
+      <span class="bbs-toolbar-title">{{ t('article.list.notice') }}</span>
       <span class="bbs-meta">{{ pinnedList.length }}</span>
     </div>
     <a
@@ -174,7 +179,7 @@ const handleNextPageWindow = () => {
     >
       <div class="bbs-cols-6 md:grid">
         <div class="min-w-0">
-          <span class="bbs-tag bbs-tag-notice">공지</span>
+          <span class="bbs-tag bbs-tag-notice">{{ t('article.list.notice') }}</span>
           <span v-if="resolveCategoryName(article)" class="bbs-tag bbs-tag-cat">{{ resolveCategoryName(article) }}</span>
           <span class="bbs-row-title">{{ article.title }}</span>
           <span v-if="article.commentCount > 0" class="bbs-cmt">[{{ article.commentCount }}]</span>
@@ -190,15 +195,27 @@ const handleNextPageWindow = () => {
 
   <section class="bbs-box mt-3">
     <div class="bbs-toolbar">
-      <span class="bbs-toolbar-title">게시글</span>
+      <span class="bbs-toolbar-title">{{ t('article.list.posts') }}</span>
       <div class="flex flex-wrap items-center gap-2">
-        <select v-if="showOrderControl" aria-label="정렬" class="ui-input h-8 px-2 text-xs" :value="order" @change="handleOrderChange">
+        <select
+          v-if="showOrderControl"
+          :aria-label="t('article.list.sortAriaLabel')"
+          class="ui-input h-8 px-2 text-xs"
+          :value="order"
+          @change="handleOrderChange"
+        >
           <option v-for="option in orderOptions" :key="option" :value="option">
-            {{ option === 'LATEST' ? '최신' : '과거' }}
+            {{ resolveOrderLabel(option) }}
           </option>
         </select>
-        <select v-if="showPageSizeControl" aria-label="표시 개수" class="ui-input h-8 px-2 text-xs" :value="pageSize" @change="handlePageSizeChange">
-          <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ option }}개</option>
+        <select
+          v-if="showPageSizeControl"
+          :aria-label="t('article.list.pageSizeAriaLabel')"
+          class="ui-input h-8 px-2 text-xs"
+          :value="pageSize"
+          @change="handlePageSizeChange"
+        >
+          <option v-for="option in pageSizeOptions" :key="option" :value="option">{{ t('article.list.pageSizeSuffix', { count: option }) }}</option>
         </select>
       </div>
     </div>
@@ -207,17 +224,17 @@ const handleNextPageWindow = () => {
 
     <template v-else>
       <div class="bbs-table-head bbs-cols-6">
-        <span>제목</span>
-        <span class="text-center">글쓴이</span>
-        <span class="text-center">날짜</span>
-        <span class="text-center">댓글</span>
-        <span class="text-center">추천</span>
-        <span class="text-center">조회</span>
+        <span>{{ t('article.list.columnTitle') }}</span>
+        <span class="text-center">{{ t('article.list.columnAuthor') }}</span>
+        <span class="text-center">{{ t('article.list.columnDate') }}</span>
+        <span class="text-center">{{ t('article.list.columnComments') }}</span>
+        <span class="text-center">{{ t('article.list.columnLikes') }}</span>
+        <span class="text-center">{{ t('article.list.columnViews') }}</span>
       </div>
       <a v-for="article in articles" :key="article.id" :href="resolveHref(article)" class="bbs-row" @click="handleArticleClick($event, article.id)">
         <div class="bbs-cols-6 md:grid">
           <div class="min-w-0">
-            <span v-if="article.notice" class="bbs-tag bbs-tag-notice">공지</span>
+            <span v-if="article.notice" class="bbs-tag bbs-tag-notice">{{ t('article.list.notice') }}</span>
             <span v-if="resolveCategoryName(article)" class="bbs-tag bbs-tag-cat">{{ resolveCategoryName(article) }}</span>
             <span class="bbs-row-title">{{ article.title }}</span>
             <span v-if="article.commentCount > 0" class="bbs-cmt">[{{ article.commentCount }}]</span>
@@ -240,14 +257,14 @@ const handleNextPageWindow = () => {
           :disabled="!canGoPrevious || isLoading"
           @click="handlePageChange(currentPage - 1)"
         >
-          이전
+          {{ t('article.list.previous') }}
         </button>
         <div v-if="showPageNumbers" class="flex flex-wrap items-center gap-1">
           <button
             type="button"
             class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="!hasPreviousPageWindow || isLoading"
-            aria-label="이전 페이지 묶음"
+            :aria-label="t('article.list.previousPageWindow')"
             @click="handlePreviousPageWindow"
           >
             &laquo;
@@ -267,7 +284,7 @@ const handleNextPageWindow = () => {
             type="button"
             class="ui-button-ghost h-9 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="!hasNextPageWindow || isLoading"
-            aria-label="다음 페이지 묶음"
+            :aria-label="t('article.list.nextPageWindow')"
             @click="handleNextPageWindow"
           >
             &raquo;
@@ -279,7 +296,7 @@ const handleNextPageWindow = () => {
           :disabled="!canGoNext || isLoading"
           @click="handlePageChange(currentPage + 1)"
         >
-          다음
+          {{ t('article.list.next') }}
         </button>
       </div>
     </div>

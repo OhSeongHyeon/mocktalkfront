@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import '../../../shared/styles/mermaid.css';
 import '../../../shared/styles/ui-content.css';
 import './article-content-editor.css';
@@ -44,6 +45,7 @@ const emit = defineEmits<{
 }>();
 const authStore = useAuthStore();
 const { isAuthenticated } = storeToRefs(authStore);
+const { t } = useI18n();
 
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
@@ -231,7 +233,7 @@ const requestMarkdownPreview = async (source: string) => {
     if (requestId !== previewRequestSequence) {
       return;
     }
-    previewErrorMessage.value = error instanceof ApiError ? error.message : '미리보기를 불러오지 못했습니다.';
+    previewErrorMessage.value = error instanceof ApiError ? error.message : t('editor.markdown.preview.loadFailed');
   } finally {
     if (requestId === previewRequestSequence) {
       isPreviewLoading.value = false;
@@ -282,7 +284,7 @@ const switchToMarkdownMode = async () => {
 
     setMarkdownMode(nextMarkdownSource);
   } catch (error) {
-    previewErrorMessage.value = error instanceof ApiError ? error.message : 'Markdown 모드로 전환하지 못했습니다.';
+    previewErrorMessage.value = error instanceof ApiError ? error.message : t('editor.mode.switchToMarkdownFailed');
   } finally {
     isModeSwitching.value = false;
   }
@@ -310,7 +312,7 @@ const switchToWysiwygMode = async () => {
     emit('update:modelValue', nextHtmlSource);
     viewMode.value = 'wysiwyg';
   } catch (error) {
-    previewErrorMessage.value = error instanceof ApiError ? error.message : 'WYSIWYG 모드로 전환하지 못했습니다.';
+    previewErrorMessage.value = error instanceof ApiError ? error.message : t('editor.mode.switchToWysiwygFailed');
   } finally {
     isModeSwitching.value = false;
   }
@@ -387,13 +389,16 @@ const addBulletList = () => prefixSelectedLines('- ');
 const addOrderedList = () => prefixSelectedLines('1. ');
 const addTaskList = () => prefixSelectedLines('- [ ] ');
 const addBlockquote = () => prefixSelectedLines('> ');
-const addCodeBlock = () => wrapSelection('```text\n', '\n```', '코드');
-const addLink = () => wrapSelection('[', '](https://example.com)', '링크 텍스트');
-const addTable = () => insertBlock('\n\n| 항목 | 값 |\n| --- | --- |\n| 예시 | 내용 |\n\n');
-const addMermaidBlock = () => wrapSelection('```mermaid\n', '\n```', 'graph TD\n A[시작] --> B[다음]');
+const addCodeBlock = () => wrapSelection('```text\n', '\n```', t('editor.markdown.placeholders.code'));
+const addLink = () => wrapSelection('[', '](https://example.com)', t('editor.markdown.placeholders.linkText'));
+const addTable = () =>
+  insertBlock(
+    `\n\n| ${t('editor.markdown.table.headerItem')} | ${t('editor.markdown.table.headerValue')} |\n| --- | --- |\n| ${t('editor.markdown.table.exampleLabel')} | ${t('editor.markdown.table.exampleContent')} |\n\n`,
+  );
+const addMermaidBlock = () => wrapSelection('```mermaid\n', '\n```', t('editor.markdown.placeholders.mermaid'));
 const addYouTubeEmbed = () => wrapSelection('!youtube[', ']', 'https://youtu.be/dQw4w9WgXcQ');
-const addBold = () => wrapSelection('**', '**', '굵은 텍스트');
-const addItalic = () => wrapSelection('*', '*', '기울임 텍스트');
+const addBold = () => wrapSelection('**', '**', t('editor.markdown.placeholders.bold'));
+const addItalic = () => wrapSelection('*', '*', t('editor.markdown.placeholders.italic'));
 
 const markdownLineNumbers = computed(() => {
   const lineCount = Math.max(1, markdownSource.value.split('\n').length);
@@ -406,8 +411,12 @@ const markdownWordCount = computed(() => {
   return trimmed ? trimmed.split(/\s+/u).length : 0;
 });
 
-const markdownStatusText = computed(
-  () => `행 ${markdownLineNumbers.value.length} · 단어 ${markdownWordCount.value} · 글자 ${markdownCharacterCount.value}`,
+const markdownStatusText = computed(() =>
+  t('editor.markdown.panel.status', {
+    lines: markdownLineNumbers.value.length,
+    words: markdownWordCount.value,
+    chars: markdownCharacterCount.value,
+  }),
 );
 const isMarkdownSplitMode = computed(() => markdownPreviewMode.value === 'split');
 const markdownPreviewShellStyle = computed(() => {
@@ -438,7 +447,7 @@ const resolveUploadKind = (file: File): UploadKind | null => {
 };
 
 const insertUploadedMarkdown = (kind: UploadKind, url: string) => {
-  const snippet = kind === 'image' ? `\n![이미지](${url})\n` : `\n<video controls src="${url}"></video>\n`;
+  const snippet = kind === 'image' ? `\n![${t('editor.upload.markdownImageAlt')}](${url})\n` : `\n<video controls src="${url}"></video>\n`;
   insertBlock(snippet);
 };
 
@@ -460,8 +469,8 @@ const { uploads, uploadInProgressCount, handleFiles, retryUpload, cancelUpload, 
   onError: (message) => {
     previewErrorMessage.value = message;
   },
-  unsupportedFileMessage: '이미지 또는 MP4/WebM 영상만 업로드할 수 있습니다.',
-  maxSizeExceededMessage: '파일 사이즈 제한 50MB',
+  unsupportedFileMessage: t('editor.upload.unsupportedFile'),
+  maxSizeExceededMessage: t('editor.upload.maxSizeExceeded'),
 });
 
 const openMarkdownImagePicker = () => {
@@ -571,11 +580,11 @@ const resolveImportMetadataPayload = (result: MarkdownImportResult) => {
 };
 
 const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownImportFeedbackTone; messages: string[] } => {
-  const messages: string[] = ['Markdown 파일을 불러왔습니다.'];
+  const messages: string[] = [t('editor.markdown.import.loaded')];
   const warnings = [...result.warnings];
 
   if (result.metadata.title) {
-    messages.push('제목을 자동 반영했습니다.');
+    messages.push(t('editor.markdown.import.titleApplied'));
   }
 
   const nextVisibility = result.metadata.visibility?.trim().toUpperCase();
@@ -585,26 +594,31 @@ const resolveImportFeedback = (result: MarkdownImportResult): { tone: MarkdownIm
       props.allowBoardSlugImport && result.metadata.boardSlug && props.boardSlug && result.metadata.boardSlug !== props.boardSlug,
     );
     if (canDeferVisibility || allowedVisibilities.length === 0 || allowedVisibilities.includes(nextVisibility)) {
-      messages.push('공개 범위를 자동 반영했습니다.');
+      messages.push(t('editor.markdown.import.visibilityApplied'));
     } else {
-      warnings.push(`frontmatter의 visibility(${nextVisibility})는 현재 글에서 사용할 수 없어 적용하지 않았습니다.`);
+      warnings.push(t('editor.markdown.import.visibilitySkipped', { visibility: nextVisibility }));
     }
   }
 
   if (result.metadata.boardSlug && props.boardSlug && result.metadata.boardSlug !== props.boardSlug) {
     if (props.allowBoardSlugImport) {
-      messages.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})를 반영해 게시판을 조정합니다.`);
+      messages.push(t('editor.markdown.import.boardSlugApplied', { boardSlug: result.metadata.boardSlug }));
     } else {
-      warnings.push(`frontmatter의 boardSlug(${result.metadata.boardSlug})는 현재 게시판(${props.boardSlug})과 달라 적용하지 않았습니다.`);
+      warnings.push(
+        t('editor.markdown.import.boardSlugSkipped', {
+          boardSlug: result.metadata.boardSlug,
+          currentBoardSlug: props.boardSlug,
+        }),
+      );
     }
   }
 
   if (result.metadata.tags.length > 0 || result.metadata.summary) {
-    warnings.push('태그와 요약은 frontmatter 원본에 보존되며 별도 UI에는 아직 반영되지 않습니다.');
+    warnings.push(t('editor.markdown.import.tagsSummaryPreserved'));
   }
 
   if (result.unsupportedFields.length > 0) {
-    warnings.push(`지원하지 않는 frontmatter 필드(${result.unsupportedFields.join(', ')})도 원본에 그대로 보존됩니다.`);
+    warnings.push(t('editor.markdown.import.unsupportedFields', { fields: result.unsupportedFields.join(', ') }));
   }
 
   return {
@@ -745,47 +759,55 @@ onBeforeUnmount(() => {
   <div class="ui-panel shadow-sm dark:border-line">
     <div class="space-y-3 border-b border-line bg-surface-soft/70 px-4 py-3 dark:border-line">
       <div class="flex flex-wrap items-center gap-2">
-        <button type="button" :class="tabClass(viewMode === 'markdown')" :disabled="isModeSwitching" @click="switchToMarkdownMode">Markdown</button>
-        <button type="button" :class="tabClass(viewMode === 'wysiwyg')" :disabled="isModeSwitching" @click="switchToWysiwygMode">WYSIWYG</button>
+        <button type="button" :class="tabClass(viewMode === 'markdown')" :disabled="isModeSwitching" @click="switchToMarkdownMode">
+          {{ t('editor.mode.markdown') }}
+        </button>
+        <button type="button" :class="tabClass(viewMode === 'wysiwyg')" :disabled="isModeSwitching" @click="switchToWysiwygMode">
+          {{ t('editor.mode.wysiwygLabel') }}
+        </button>
         <span
           v-if="isModeSwitching"
           class="inline-flex h-8 items-center rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300"
         >
-          모드 변환 중
+          {{ t('editor.mode.switching') }}
         </span>
         <span
           v-if="uploadInProgressCount > 0 && viewMode === 'markdown'"
           class="inline-flex h-8 items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
         >
-          업로드 {{ uploadInProgressCount }}건 진행중
+          {{ t('editor.upload.inProgress', { count: uploadInProgressCount }) }}
         </span>
       </div>
 
       <template v-if="viewMode === 'markdown'">
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" :class="previewModeButtonClass(markdownPreviewMode === 'write')" @click="markdownPreviewMode = 'write'">작성</button>
-          <button type="button" :class="previewModeButtonClass(markdownPreviewMode === 'split')" @click="markdownPreviewMode = 'split'">분할</button>
+          <button type="button" :class="previewModeButtonClass(markdownPreviewMode === 'write')" @click="markdownPreviewMode = 'write'">
+            {{ t('editor.markdown.preview.write') }}
+          </button>
+          <button type="button" :class="previewModeButtonClass(markdownPreviewMode === 'split')" @click="markdownPreviewMode = 'split'">
+            {{ t('editor.markdown.preview.split') }}
+          </button>
           <button type="button" :class="previewModeButtonClass(markdownPreviewMode === 'preview')" @click="markdownPreviewMode = 'preview'">
-            미리보기
+            {{ t('editor.markdown.preview.preview') }}
           </button>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" :class="actionButtonClass" @click="addHeading(1)">H1</button>
           <button type="button" :class="actionButtonClass" @click="addHeading(2)">H2</button>
-          <button type="button" :class="actionButtonClass" @click="addBold">굵게</button>
-          <button type="button" :class="actionButtonClass" @click="addItalic">기울임</button>
-          <button type="button" :class="actionButtonClass" @click="addLink">링크</button>
-          <button type="button" :class="actionButtonClass" @click="addBulletList">글머리</button>
-          <button type="button" :class="actionButtonClass" @click="addOrderedList">번호</button>
-          <button type="button" :class="actionButtonClass" @click="addTaskList">체크</button>
-          <button type="button" :class="actionButtonClass" @click="addBlockquote">인용</button>
-          <button type="button" :class="actionButtonClass" @click="addCodeBlock">코드</button>
-          <button type="button" :class="actionButtonClass" @click="addTable">표</button>
-          <button type="button" :class="actionButtonClass" @click="addMermaidBlock">Mermaid</button>
-          <button type="button" :class="actionButtonClass" @click="addYouTubeEmbed">유튜브</button>
-          <button type="button" :class="actionButtonClass" @click="openMarkdownImagePicker">이미지 업로드</button>
-          <button type="button" :class="actionButtonClass" @click="openMarkdownVideoPicker">영상 업로드</button>
-          <button type="button" :class="actionButtonClass" @click="openMarkdownImportPicker">MD 불러오기</button>
+          <button type="button" :class="actionButtonClass" @click="addBold">{{ t('editor.markdown.toolbar.bold') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addItalic">{{ t('editor.markdown.toolbar.italic') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addLink">{{ t('editor.markdown.toolbar.link') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addBulletList">{{ t('editor.markdown.toolbar.bulletList') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addOrderedList">{{ t('editor.markdown.toolbar.orderedList') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addTaskList">{{ t('editor.markdown.toolbar.taskList') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addBlockquote">{{ t('editor.markdown.toolbar.blockquote') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addCodeBlock">{{ t('editor.markdown.toolbar.codeBlock') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addTable">{{ t('editor.markdown.toolbar.table') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addMermaidBlock">{{ t('editor.markdown.toolbar.mermaid') }}</button>
+          <button type="button" :class="actionButtonClass" @click="addYouTubeEmbed">{{ t('editor.markdown.toolbar.youtube') }}</button>
+          <button type="button" :class="actionButtonClass" @click="openMarkdownImagePicker">{{ t('editor.markdown.toolbar.imageUpload') }}</button>
+          <button type="button" :class="actionButtonClass" @click="openMarkdownVideoPicker">{{ t('editor.markdown.toolbar.videoUpload') }}</button>
+          <button type="button" :class="actionButtonClass" @click="openMarkdownImportPicker">{{ t('editor.markdown.toolbar.importMd') }}</button>
         </div>
       </template>
     </div>
@@ -818,28 +840,28 @@ onBeforeUnmount(() => {
           @drop.prevent="onMarkdownDrop"
         >
           <div class="mb-3 flex items-center justify-between gap-3 text-xs font-semibold text-muted">
-            <span>Markdown으로 작성하고, 오른쪽에서 실제 렌더 결과를 확인합니다.</span>
-            <span class="text-[11px]">이미지/영상 드래그 앤 드롭 가능</span>
+            <span>{{ t('editor.markdown.panel.splitHint') }}</span>
+            <span class="text-[11px]">{{ t('editor.markdown.panel.dragDropHint') }}</span>
           </div>
           <div class="mb-3 rounded-xl border border-line bg-surface/80 px-3 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
-            유튜브 임베드 문법:
+            {{ t('editor.markdown.panel.youtubeSyntax') }}
             <code class="mx-1 rounded bg-surface-soft px-1.5 py-0.5 text-[11px] font-semibold text-ink">!youtube[dQw4w9WgXcQ]</code>
-            또는
+            {{ t('editor.markdown.panel.or') }}
             <code class="mx-1 rounded bg-surface-soft px-1.5 py-0.5 text-[11px] font-semibold text-ink">!youtube[https://youtu.be/dQw4w9WgXcQ]</code>
           </div>
 
           <div class="gap-4" :class="isMarkdownSplitMode ? 'grid lg:grid-cols-2 lg:items-stretch' : 'block'">
             <div v-if="markdownPreviewMode !== 'preview'" class="space-y-2" :class="isMarkdownSplitMode ? 'min-h-0' : ''">
-              <label class="block text-xs font-semibold text-muted">Markdown 작성</label>
+              <label class="block text-xs font-semibold text-muted">{{ t('editor.markdown.panel.writeLabel') }}</label>
               <div ref="markdownEditorShellRef" class="ui-markdown-editor-shell">
                 <div class="ui-markdown-editor-head">
                   <div>
-                    <p class="text-xs font-extrabold tracking-[0.12em] text-muted">SOURCE</p>
-                    <p class="mt-1 text-sm font-semibold text-ink">Markdown 작업영역</p>
+                    <p class="text-xs font-extrabold tracking-[0.12em] text-muted">{{ t('editor.markdown.panel.source') }}</p>
+                    <p class="mt-1 text-sm font-semibold text-ink">{{ t('editor.markdown.panel.workspace') }}</p>
                   </div>
                   <div class="text-right">
                     <p class="text-xs font-semibold text-muted">{{ markdownStatusText }}</p>
-                    <p class="mt-1 text-[11px] text-subtle">Tab 들여쓰기 · Ctrl/Cmd+B/I/K 지원</p>
+                    <p class="mt-1 text-[11px] text-subtle">{{ t('editor.markdown.panel.editorHints') }}</p>
                   </div>
                 </div>
                 <div class="ui-markdown-editor-grid">
@@ -855,29 +877,29 @@ onBeforeUnmount(() => {
                     :value="markdownSource"
                     class="ui-markdown-editor-input"
                     spellcheck="false"
-                    :placeholder="placeholder ?? '본문을 입력하세요.'"
+                    :placeholder="placeholder ?? t('editor.placeholder.body')"
                     @input="onMarkdownInput"
                     @scroll="onMarkdownScroll"
                     @keydown="onMarkdownKeydown"
                   ></textarea>
                 </div>
                 <div class="ui-markdown-editor-status">
-                  <span>표, Mermaid, 코드블록은 실제 게시글과 같은 서버 렌더 규칙을 사용합니다.</span>
-                  <span class="hidden sm:inline">Mermaid 지원: `graph/flowchart`, `sequenceDiagram`, `erDiagram`</span>
-                  <span class="hidden xl:inline">유튜브 지원: `!youtube[URL 또는 VIDEO_ID]`</span>
+                  <span>{{ t('editor.markdown.panel.footerServerRender') }}</span>
+                  <span class="hidden sm:inline">{{ t('editor.markdown.panel.footerMermaid') }}</span>
+                  <span class="hidden xl:inline">{{ t('editor.markdown.panel.footerYoutube') }}</span>
                 </div>
               </div>
             </div>
 
             <div v-if="markdownPreviewMode !== 'write'" class="space-y-2" :class="isMarkdownSplitMode ? 'min-h-0' : ''">
               <div class="flex items-center justify-between gap-2">
-                <label class="block text-xs font-semibold text-muted">미리보기</label>
-                <span v-if="isPreviewLoading" class="text-[11px] font-semibold text-success">렌더링 중...</span>
+                <label class="block text-xs font-semibold text-muted">{{ t('editor.markdown.preview.label') }}</label>
+                <span v-if="isPreviewLoading" class="text-[11px] font-semibold text-success">{{ t('editor.markdown.preview.loading') }}</span>
               </div>
               <div class="ui-markdown-preview-shell" :style="markdownPreviewShellStyle">
                 <div class="ui-markdown-preview-body ui-scrollbar">
                   <p v-if="previewErrorMessage" class="text-sm font-semibold text-danger">{{ previewErrorMessage }}</p>
-                  <p v-else-if="!previewHtml" class="text-sm text-subtle">미리보기가 여기에 표시됩니다.</p>
+                  <p v-else-if="!previewHtml" class="text-sm text-subtle">{{ t('editor.markdown.preview.empty') }}</p>
                   <div v-else ref="markdownPreviewRef" class="ui-content max-w-none" v-html="previewHtml"></div>
                 </div>
               </div>
@@ -886,13 +908,15 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-if="uploads.length > 0" class="rounded-ui border border-line bg-surface p-3 shadow-sm dark:border-line">
-          <p class="text-xs font-semibold text-muted">업로드 큐</p>
+          <p class="text-xs font-semibold text-muted">{{ t('editor.upload.queue') }}</p>
           <div class="mt-2 space-y-2">
             <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-line px-3 py-2 text-xs dark:border-line">
               <div class="flex items-center justify-between gap-3">
                 <div class="min-w-0">
                   <p class="truncate font-semibold text-ink">{{ item.file.name }}</p>
-                  <p class="text-[11px] text-muted">{{ item.kind === 'image' ? '이미지' : '영상' }} · {{ item.message }}</p>
+                  <p class="text-[11px] text-muted">
+                    {{ item.kind === 'image' ? t('editor.upload.kind.image') : t('editor.upload.kind.video') }} · {{ item.message }}
+                  </p>
                 </div>
                 <div class="flex items-center gap-2">
                   <button
@@ -901,7 +925,7 @@ onBeforeUnmount(() => {
                     class="rounded border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:border-rose-300 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                     @click="cancelUpload(item.id)"
                   >
-                    취소
+                    {{ t('editor.upload.cancel') }}
                   </button>
                   <button
                     v-if="item.status === 'error' || item.status === 'canceled'"
@@ -909,7 +933,7 @@ onBeforeUnmount(() => {
                     class="rounded border border-amber-200 px-2 py-1 text-[11px] font-semibold text-amber-700 hover:border-amber-300 hover:bg-amber-50 dark:border-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-950/40"
                     @click="retryUpload(item.id)"
                   >
-                    재시도
+                    {{ t('editor.upload.retry') }}
                   </button>
                   <button
                     v-if="item.status !== 'uploading'"
@@ -917,7 +941,7 @@ onBeforeUnmount(() => {
                     class="rounded border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:border-line hover:bg-surface-soft dark:text-subtle"
                     @click="removeUpload(item.id)"
                   >
-                    지우기
+                    {{ t('editor.upload.remove') }}
                   </button>
                 </div>
               </div>
@@ -943,20 +967,20 @@ onBeforeUnmount(() => {
     </template>
 
     <div class="border-t border-line bg-surface-soft/60 px-4 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
-      Markdown 글은 저장 전 서버 미리보기 렌더를 거치고, WYSIWYG 글은 sanitize된 HTML 기준으로 저장됩니다.
+      {{ t('editor.mode.footer') }}
     </div>
 
     <input ref="markdownImportInputRef" type="file" accept=".md,.markdown,text/markdown,text/plain" class="hidden" @change="onMarkdownImportPicked" />
     <input ref="markdownImageInputRef" type="file" accept="image/*" class="hidden" multiple @change="onMarkdownImagePicked" />
     <input ref="markdownVideoInputRef" type="file" accept="video/mp4,video/webm" class="hidden" multiple @change="onMarkdownVideoPicked" />
 
-    <BaseModal :open="isMarkdownSwitchConfirmOpen" aria-label="Markdown 전환 안내" @close="isMarkdownSwitchConfirmOpen = false">
+    <BaseModal :open="isMarkdownSwitchConfirmOpen" :aria-label="t('editor.markdown.switch.modalAria')" @close="isMarkdownSwitchConfirmOpen = false">
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-ink">Markdown 전환 안내</h2>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">{{ t('editor.markdown.switch.title') }}</h2>
             <p class="mt-1 text-sm text-muted">
-              현재 본문에는 Markdown에서 완전히 표현되지 않을 수 있는 요소가 있습니다. 일부 스타일이나 고급 요소는 전환 과정에서 단순화될 수 있습니다.
+              {{ t('editor.markdown.switch.description') }}
             </p>
           </div>
           <div class="flex items-center justify-end gap-2">
@@ -965,26 +989,26 @@ onBeforeUnmount(() => {
               class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
               @click="isMarkdownSwitchConfirmOpen = false"
             >
-              취소
+              {{ t('editor.upload.cancel') }}
             </button>
             <button
               type="button"
               class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600"
               @click="setMarkdownMode(pendingMarkdownSource)"
             >
-              변환 후 계속
+              {{ t('editor.markdown.switch.continue') }}
             </button>
           </div>
         </div>
       </template>
     </BaseModal>
 
-    <BaseModal :open="isMarkdownImportConfirmOpen" aria-label="Markdown 덮어쓰기 확인" @close="isMarkdownImportConfirmOpen = false">
+    <BaseModal :open="isMarkdownImportConfirmOpen" :aria-label="t('editor.markdown.import.modalAria')" @close="isMarkdownImportConfirmOpen = false">
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-ink">현재 초안을 덮어쓸까요?</h2>
-            <p class="mt-1 text-sm text-muted">MD 파일을 불러오면 현재 Markdown 본문이 새 내용으로 교체됩니다.</p>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">{{ t('editor.markdown.import.overwriteTitle') }}</h2>
+            <p class="mt-1 text-sm text-muted">{{ t('editor.markdown.import.overwriteDescription') }}</p>
           </div>
           <div class="flex items-center justify-end gap-2">
             <button
@@ -992,7 +1016,7 @@ onBeforeUnmount(() => {
               class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
               @click="isMarkdownImportConfirmOpen = false"
             >
-              취소
+              {{ t('editor.upload.cancel') }}
             </button>
             <button
               type="button"
@@ -1000,7 +1024,7 @@ onBeforeUnmount(() => {
               :disabled="!pendingImportedMarkdown"
               @click="pendingImportedMarkdown ? applyImportedMarkdown(pendingImportedMarkdown) : undefined"
             >
-              덮어쓰기
+              {{ t('editor.markdown.import.overwrite') }}
             </button>
           </div>
         </div>

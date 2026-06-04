@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import ArticleFeedCard from '../../entities/article/ui/ArticleFeedCard.vue';
 import ArticleRecommendedCard from '../../entities/article/ui/ArticleRecommendedCard.vue';
@@ -14,6 +15,8 @@ import {
 } from '../../entities/article';
 import { ApiError } from '../../shared/lib/http/api';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
+
+const { t } = useI18n();
 
 const RECENT_ARTICLE_BATCH_SIZE = 15;
 const TRENDING_ARTICLE_LIMIT = 9;
@@ -38,9 +41,10 @@ const loadMoreError = ref('');
 const trendingError = ref('');
 const recommendedError = ref('');
 
-const resolveErrorMessage = (error: unknown) => (error instanceof ApiError ? error.message : '공개 최신글을 불러오지 못했습니다.');
-const resolveTrendingErrorMessage = (error: unknown) => (error instanceof ApiError ? error.message : '트렌딩 글을 불러오지 못했습니다.');
-const resolveRecommendedErrorMessage = (error: unknown) => (error instanceof ApiError ? error.message : '추천 글을 불러오지 못했습니다.');
+const loadMoreLabel = computed(() => (isLoadingMore.value ? t('common.loading') : t('home.articles.loadMore')));
+
+const resolveErrorMessage = (error: unknown, fallbackKey: 'recent' | 'trending' | 'recommended') =>
+  error instanceof ApiError ? error.message : t(`home.articles.errors.${fallbackKey}`);
 
 const loadRecentArticles = async (page: number, append: boolean) => {
   if (isInitialLoading.value || isLoadingMore.value) {
@@ -61,7 +65,7 @@ const loadRecentArticles = async (page: number, append: boolean) => {
     nextPage.value = data.page + 1;
     hasNextPage.value = data.hasNext;
   } catch (error) {
-    const errorMessage = resolveErrorMessage(error);
+    const errorMessage = resolveErrorMessage(error, 'recent');
     if (append) {
       loadMoreError.value = errorMessage;
       return;
@@ -94,7 +98,7 @@ const loadTrendingArticles = async (force = false) => {
     trendingArticles.value = await getTrendingArticles('DAY', TRENDING_ARTICLE_LIMIT);
     hasLoadedTrending.value = true;
   } catch (error) {
-    trendingError.value = resolveTrendingErrorMessage(error);
+    trendingError.value = resolveErrorMessage(error, 'trending');
     trendingArticles.value = [];
   } finally {
     isTrendingLoading.value = false;
@@ -116,7 +120,7 @@ const loadRecommendedArticles = async (force = false) => {
     recommendedArticles.value = await getRecommendedArticles(RECOMMENDED_ARTICLE_LIMIT);
     hasLoadedRecommended.value = true;
   } catch (error) {
-    recommendedError.value = resolveRecommendedErrorMessage(error);
+    recommendedError.value = resolveErrorMessage(error, 'recommended');
     recommendedArticles.value = [];
   } finally {
     isRecommendedLoading.value = false;
@@ -151,7 +155,7 @@ onMounted(() => {
 
 <template>
   <section class="bbs-box">
-    <SectionHeader title="전체글">
+    <SectionHeader :title="t('home.articles.title')">
       <template #tabs>
         <div role="tablist" class="flex flex-wrap">
           <button
@@ -162,7 +166,7 @@ onMounted(() => {
             :class="activeTab === 'recent' ? 'bbs-tab-active' : ''"
             @click="changeTab('recent')"
           >
-            최신
+            {{ t('home.articles.tabs.recent') }}
           </button>
           <button
             type="button"
@@ -172,7 +176,7 @@ onMounted(() => {
             :class="activeTab === 'trending' ? 'bbs-tab-active' : ''"
             @click="changeTab('trending')"
           >
-            트렌딩
+            {{ t('home.articles.tabs.trending') }}
           </button>
           <button
             type="button"
@@ -182,7 +186,7 @@ onMounted(() => {
             :class="activeTab === 'recommended' ? 'bbs-tab-active' : ''"
             @click="changeTab('recommended')"
           >
-            추천
+            {{ t('home.articles.tabs.recommended') }}
           </button>
         </div>
       </template>
@@ -190,15 +194,15 @@ onMounted(() => {
 
     <template v-if="activeTab === 'recent'">
       <div v-if="listError" class="ui-state ui-state-danger ui-section-message">{{ listError }}</div>
-      <div v-else-if="isInitialLoading" class="ui-section-loading">불러오는 중...</div>
+      <div v-else-if="isInitialLoading" class="ui-section-loading">{{ t('common.loading') }}</div>
       <template v-else-if="articles.length > 0">
         <div class="bbs-table-head bbs-cols-6">
-          <span>제목</span>
-          <span class="text-center">글쓴이</span>
-          <span class="text-center">날짜</span>
-          <span class="text-center">댓글</span>
-          <span class="text-center">조회</span>
-          <span class="text-center">추천</span>
+          <span>{{ t('home.articles.columns.title') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.author') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.date') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.comments') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.views') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.likes') }}</span>
         </div>
         <ArticleFeedCard v-for="article in articles" :key="article.id" :article="article" />
         <div v-if="loadMoreError" class="ui-state ui-state-danger ui-section-message">{{ loadMoreError }}</div>
@@ -210,45 +214,45 @@ onMounted(() => {
             :disabled="isLoadingMore"
             @click="loadMoreArticles"
           >
-            {{ isLoadingMore ? '불러오는 중...' : '더보기' }}
+            {{ loadMoreLabel }}
           </button>
         </div>
       </template>
-      <div v-else class="ui-state ui-state-empty ui-section-message">글이 없습니다.</div>
+      <div v-else class="ui-state ui-state-empty ui-section-message">{{ t('home.articles.empty') }}</div>
     </template>
 
     <template v-else-if="activeTab === 'trending'">
       <div v-if="trendingError" class="ui-state ui-state-danger ui-section-message">{{ trendingError }}</div>
-      <div v-else-if="isTrendingLoading" class="ui-section-loading">불러오는 중...</div>
+      <div v-else-if="isTrendingLoading" class="ui-section-loading">{{ t('common.loading') }}</div>
       <template v-else-if="trendingArticles.length > 0">
         <div class="bbs-table-head bbs-cols-6">
-          <span>제목</span>
-          <span class="text-center">글쓴이</span>
-          <span class="text-center">날짜</span>
-          <span class="text-center">댓글</span>
-          <span class="text-center">조회</span>
-          <span class="text-center">트렌드</span>
+          <span>{{ t('home.articles.columns.title') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.author') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.date') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.comments') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.views') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.trend') }}</span>
         </div>
         <ArticleTrendingCard v-for="article in trendingArticles" :key="article.articleId" :article="article" />
       </template>
-      <div v-else class="ui-state ui-state-empty ui-section-message">트렌딩 글이 없습니다.</div>
+      <div v-else class="ui-state ui-state-empty ui-section-message">{{ t('home.articles.emptyTrending') }}</div>
     </template>
 
     <template v-else>
       <div v-if="recommendedError" class="ui-state ui-state-danger ui-section-message">{{ recommendedError }}</div>
-      <div v-else-if="isRecommendedLoading" class="ui-section-loading">불러오는 중...</div>
+      <div v-else-if="isRecommendedLoading" class="ui-section-loading">{{ t('common.loading') }}</div>
       <template v-else-if="recommendedArticles.length > 0">
         <div class="bbs-table-head bbs-cols-6">
-          <span>제목</span>
-          <span class="text-center">글쓴이</span>
-          <span class="text-center">날짜</span>
-          <span class="text-center">댓글</span>
-          <span class="text-center">조회</span>
-          <span class="text-center">추천</span>
+          <span>{{ t('home.articles.columns.title') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.author') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.date') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.comments') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.views') }}</span>
+          <span class="text-center">{{ t('home.articles.columns.likes') }}</span>
         </div>
         <ArticleRecommendedCard v-for="article in recommendedArticles" :key="article.articleId" :article="article" />
       </template>
-      <div v-else class="ui-state ui-state-empty ui-section-message">추천 글이 없습니다.</div>
+      <div v-else class="ui-state ui-state-empty ui-section-message">{{ t('home.articles.emptyRecommended') }}</div>
     </template>
   </section>
 </template>

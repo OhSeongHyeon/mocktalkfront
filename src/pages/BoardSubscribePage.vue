@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { ApiError } from '../shared/lib/http/api';
 import { getBoardSubscribes, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
@@ -12,6 +13,8 @@ import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import { formatKoreanDate } from '../shared/lib/date';
 import AppShell from '../widgets/layout/AppShell.vue';
+
+const { t } = useI18n();
 
 const isLoading = ref(false);
 const listError = ref('');
@@ -40,7 +43,7 @@ const loadPage = async (pageIndex: number) => {
     hasNext.value = data.hasNext;
     hasPrevious.value = data.hasPrevious;
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '구독 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('board.errors.loadSubscribesFailed');
   } finally {
     isLoading.value = false;
   }
@@ -62,10 +65,10 @@ onMounted(() => {
   <AppShell>
     <PageContainer width="auto">
       <div class="space-y-6">
-        <PageHeader title="구독 목록" description="구독 중인 커뮤니티를 목록형 레이아웃으로 빠르게 확인할 수 있습니다.">
+        <PageHeader :title="t('board.subscribePage.title')" :description="t('board.subscribePage.description')">
           <template #meta>
-            <span class="ui-badge ui-badge-success">현재 페이지 {{ page + 1 }}</span>
-            <span v-if="totalPages > 0" class="ui-badge ui-badge-muted">총 {{ totalPages }}페이지</span>
+            <span class="ui-badge ui-badge-success">{{ t('board.subscribePage.currentPage', { page: page + 1 }) }}</span>
+            <span v-if="totalPages > 0" class="ui-badge ui-badge-muted">{{ t('board.subscribePage.totalPages', { count: totalPages }) }}</span>
           </template>
         </PageHeader>
 
@@ -77,10 +80,10 @@ onMounted(() => {
           <div
             class="hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 border-b border-line bg-surface-1 px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
-            <span>이미지</span>
-            <span>게시판</span>
-            <span class="text-center">공개 범위</span>
-            <span class="text-center">구독일</span>
+            <span>{{ t('board.subscribePage.columnImage') }}</span>
+            <span>{{ t('board.subscribePage.columnBoard') }}</span>
+            <span class="text-center">{{ t('board.subscribePage.columnVisibility') }}</span>
+            <span class="text-center">{{ t('board.subscribePage.columnSubscribedAt') }}</span>
           </div>
           <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
             <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] md:items-center">
@@ -99,7 +102,7 @@ onMounted(() => {
 
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="ui-badge ui-badge-accent">구독중</span>
+                  <span class="ui-badge ui-badge-accent">{{ t('board.subscribe.subscribedBadge') }}</span>
                   <span class="bbs-meta">/{{ board.slug }}</span>
                 </div>
                 <h2 class="bbs-row-title mt-1 truncate transition group-hover:text-link">
@@ -115,18 +118,20 @@ onMounted(() => {
               </div>
 
               <div class="bbs-meta flex flex-wrap items-center gap-2 md:block md:text-center">
-                <span class="ui-badge ui-badge-success md:hidden">구독일 {{ formatKoreanDate(board.subscribedAt) }}</span>
+                <span class="ui-badge ui-badge-success md:hidden">{{
+                  t('board.subscribe.subscribedDate', { date: formatKoreanDate(board.subscribedAt) })
+                }}</span>
                 <span class="hidden md:inline">{{ formatKoreanDate(board.subscribedAt) }}</span>
               </div>
             </div>
           </RouterLink>
         </div>
 
-        <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 구독 중인 커뮤니티가 없습니다.</div>
+        <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">{{ t('board.subscribePage.empty') }}</div>
 
         <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
           <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
-          구독 목록을 불러오는 중입니다.
+          {{ t('board.subscribePage.loading') }}
         </div>
 
         <div v-if="showPagination" class="ui-toolbar justify-between text-xs text-muted">
@@ -137,7 +142,7 @@ onMounted(() => {
               :disabled="!hasPrevious || isLoading"
               @click="handlePageChange(page - 1)"
             >
-              이전
+              {{ t('common.previous') }}
             </button>
             <div class="flex flex-wrap items-center gap-1">
               <button
@@ -158,10 +163,10 @@ onMounted(() => {
               :disabled="!hasNext || isLoading"
               @click="handlePageChange(page + 1)"
             >
-              다음
+              {{ t('common.next') }}
             </button>
           </div>
-          <span>페이지 {{ page + 1 }} / {{ totalPages }}</span>
+          <span>{{ t('board.subscribePage.pageSummary', { current: page + 1, total: totalPages }) }}</span>
         </div>
       </div>
     </PageContainer>

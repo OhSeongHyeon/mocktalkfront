@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { RouterLink, useRoute } from 'vue-router';
 
 import { resolveSideMenuIcon } from '../../shared/lib/sideMenuIcons';
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 }>();
 
 const route = useRoute();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin, isManagerOrAdmin } = storeToRefs(authStore);
 
@@ -36,38 +38,38 @@ type RawSideMenuSection = {
   items: RawSideMenuItem[];
 };
 
-const serviceSections: RawSideMenuSection[] = [
+const serviceSections = computed<RawSideMenuSection[]>(() => [
   {
-    title: '메인',
+    title: t('nav.sections.main'),
     items: [
-      { name: '홈', icon: 'home', path: '/' },
-      { name: '구독', icon: 'subscribe', path: '/boards/subscribes' },
+      { name: t('nav.home'), icon: 'home', path: '/' },
+      { name: t('nav.subscribe'), icon: 'subscribe', path: '/boards/subscribes' },
     ],
   },
   {
-    title: '둘러보기',
+    title: t('nav.sections.explore'),
     items: [
-      { name: '공지사항', icon: 'megaphone', path: '/b/notice' },
-      { name: '문의 게시판', icon: 'chat', path: '/b/inquiry' },
-      { name: '커뮤니티', icon: 'community', path: '/boards' },
-      { name: '콘텐츠', icon: 'gallery', path: '/contents' },
+      { name: t('nav.notice'), icon: 'megaphone', path: '/b/notice' },
+      { name: t('nav.inquiry'), icon: 'chat', path: '/b/inquiry' },
+      { name: t('nav.community'), icon: 'community', path: '/boards' },
+      { name: t('nav.contents'), icon: 'gallery', path: '/contents' },
     ],
   },
   {
-    title: '보관함',
+    title: t('nav.sections.archive'),
     items: [
-      { name: '보관함', icon: 'bookmark', path: '/bookmarks' },
-      { name: '기록', icon: 'history', path: '/history' },
+      { name: t('nav.bookmarks'), icon: 'bookmark', path: '/bookmarks' },
+      { name: t('nav.history'), icon: 'history', path: '/history' },
     ],
   },
   {
-    title: '설정',
+    title: t('nav.sections.settings'),
     items: [
-      { name: '설정', icon: 'settings', path: '/settings' },
-      { name: '도움말', icon: 'help' },
+      { name: t('nav.settings'), icon: 'settings', path: '/settings' },
+      { name: t('nav.help'), icon: 'help' },
     ],
   },
-];
+]);
 
 const isActive = (path?: string) => {
   if (!path) {
@@ -118,20 +120,20 @@ const decorateSections = (rawSections: RawSideMenuSection[]) =>
 const backofficeSections = computed(() => {
   const sections: RawSideMenuSection[] = [
     {
-      title: '이동',
+      title: t('nav.sections.navigate'),
       items: [
-        { name: '서비스 홈', icon: 'home', path: '/' },
-        { name: '백오피스 홈', icon: 'shield', path: '/admin' },
+        { name: t('nav.serviceHome'), icon: 'home', path: '/' },
+        { name: t('nav.backofficeHome'), icon: 'shield', path: '/admin' },
       ],
     },
     ...(isManagerOrAdmin.value
       ? [
           {
-            title: '운영',
+            title: t('nav.sections.operations'),
             items: [
-              { name: '게시글 임포트', icon: 'community', path: '/admin/article-imports' },
-              { name: '콘텐츠 시세', icon: 'pulse', path: '/admin/content-market' },
-              { name: '뉴스봇', icon: 'megaphone', path: '/admin/news-bot' },
+              { name: t('nav.articleImport'), icon: 'community', path: '/admin/article-imports' },
+              { name: t('nav.contentMarket'), icon: 'pulse', path: '/admin/content-market' },
+              { name: t('nav.newsBot'), icon: 'megaphone', path: '/admin/news-bot' },
             ],
           },
         ]
@@ -139,13 +141,13 @@ const backofficeSections = computed(() => {
     ...(isAdmin.value
       ? [
           {
-            title: '관리',
+            title: t('nav.sections.management'),
             items: [
-              { name: '사용자 관리', icon: 'users', path: '/admin/users' },
-              { name: '게시판 관리', icon: 'community', path: '/admin/boards' },
-              { name: '신고 관리', icon: 'shield', path: '/admin/reports' },
-              { name: '제재 관리', icon: 'gavel', path: '/admin/sanctions' },
-              { name: '운영 로그', icon: 'pulse', path: '/admin/audit-logs' },
+              { name: t('nav.users'), icon: 'users', path: '/admin/users' },
+              { name: t('nav.boards'), icon: 'community', path: '/admin/boards' },
+              { name: t('nav.reports'), icon: 'shield', path: '/admin/reports' },
+              { name: t('nav.sanctions'), icon: 'gavel', path: '/admin/sanctions' },
+              { name: t('nav.auditLogs'), icon: 'pulse', path: '/admin/audit-logs' },
             ],
           },
         ]
@@ -161,12 +163,12 @@ const sections = computed(() => {
   }
 
   const rawSections: RawSideMenuSection[] = [
-    ...serviceSections,
+    ...serviceSections.value,
     ...(isManagerOrAdmin.value
       ? [
           {
-            title: '워크스페이스',
-            items: [{ name: '백오피스', icon: 'shield', path: '/admin' }],
+            title: t('nav.sections.workspace'),
+            items: [{ name: t('nav.backoffice'), icon: 'shield', path: '/admin' }],
           },
         ]
       : []),
@@ -196,7 +198,7 @@ const sections = computed(() => {
           : 'md:w-52 md:translate-x-0',
     ]"
   >
-    <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain py-2" aria-label="사이드 메뉴">
+    <nav class="ui-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain py-2" :aria-label="t('nav.ariaLabel')">
       <div v-for="section in sections" :key="section.title" class="flex flex-col gap-1">
         <p v-if="!isCompact" class="app-sidebar-section-label">
           {{ section.title }}
@@ -220,7 +222,7 @@ const sections = computed(() => {
         >
           <AppIcon :icon="resolveSideMenuIcon(item.icon)" :size="16" :icon-class="item.active ? 'text-link' : 'text-muted'" />
           <span v-if="!isCompact" class="truncate">{{ item.name }}</span>
-          <span v-if="!item.implemented && !isCompact" class="bbs-meta shrink-0">준비중</span>
+          <span v-if="!item.implemented && !isCompact" class="bbs-meta shrink-0">{{ t('nav.comingSoon') }}</span>
         </component>
       </div>
     </nav>

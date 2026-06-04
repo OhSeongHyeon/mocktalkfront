@@ -1,3 +1,5 @@
+import { translate } from '../../../shared/i18n/translate';
+
 const ATTACHMENT_MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 const ATTACHMENT_ALLOWED_EXTENSIONS = [
@@ -40,11 +42,11 @@ const resolveExtension = (fileName: string) => {
 
 const validateAttachmentFile = (file: File) => {
   if (file.size > ATTACHMENT_MAX_FILE_SIZE) {
-    return '파일 사이즈 제한 50MB';
+    return translate('editor.file.sizeLimit');
   }
   const extension = resolveExtension(file.name);
   if (!extension || !ATTACHMENT_ALLOWED_EXTENSIONS.includes(extension as (typeof ATTACHMENT_ALLOWED_EXTENSIONS)[number])) {
-    return '허용되지 않는 파일 형식입니다.';
+    return translate('editor.file.invalidType');
   }
   return null;
 };

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   MODERATION_STATUS_OPTIONS,
@@ -9,6 +10,8 @@ import {
   type ModerationReportStatus,
 } from '../../features/admin/lib/reportModeration';
 import { formatKoreanDateTime } from '../../shared/lib/date';
+
+const { t } = useI18n();
 
 interface ModerationSummaryCard {
   eyebrow: string;
@@ -65,10 +68,13 @@ const props = withDefaults(
     isLoadingList: false,
     isLoadingDetail: false,
     isProcessing: false,
-    listEmptyMessage: '현재 조건에 해당하는 신고가 없습니다.',
-    detailEmptyMessage: '좌측에서 신고를 선택하세요.',
+    listEmptyMessage: '',
+    detailEmptyMessage: '',
   },
 );
+
+const resolvedListEmptyMessage = computed(() => props.listEmptyMessage || t('admin.moderation.listEmpty'));
+const resolvedDetailEmptyMessage = computed(() => props.detailEmptyMessage || t('admin.moderation.detailEmpty'));
 
 const emit = defineEmits<{
   (event: 'select-report', reportId: number): void;
@@ -108,10 +114,10 @@ const handleProcess = () => {
     <section class="ui-panel p-5">
       <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
         <div>
-          <h2 class="bbs-row-title text-lg">신고 목록</h2>
+          <h2 class="bbs-row-title text-lg">{{ t('admin.moderation.listTitle') }}</h2>
           <p class="mt-1 text-sm text-muted">{{ listDescription }}</p>
         </div>
-        <span class="ui-badge ui-badge-muted">총 {{ reports.length }}건</span>
+        <span class="ui-badge ui-badge-muted">{{ t('admin.common.totalCount', { count: reports.length }) }}</span>
       </div>
 
       <div v-if="listError" class="ui-state ui-state-danger mt-4">
@@ -120,7 +126,7 @@ const handleProcess = () => {
 
       <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-muted">
         <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-        불러오는 중...
+        {{ t('common.loading') }}
       </div>
 
       <div v-else class="mt-4 flex flex-col gap-3">
@@ -138,24 +144,29 @@ const handleProcess = () => {
               <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                 <span :class="resolveModerationStatusBadgeClass(item.status)">{{ formatModerationStatusLabel(item.status) }}</span>
                 <span class="ui-badge ui-badge-muted">{{ item.targetType }}</span>
-                <span>대상 {{ item.targetId }}</span>
+                <span>{{ t('admin.common.target') }} {{ item.targetId }}</span>
               </div>
               <div class="mt-2 flex flex-wrap items-center gap-2">
                 <span class="bbs-row-title text-sm">#{{ item.id }}</span>
-                <span class="truncate text-sm text-muted">사유 {{ item.reasonCode }}</span>
+                <span class="truncate text-sm text-muted">{{ t('admin.common.reason') }} {{ item.reasonCode }}</span>
               </div>
               <p class="mt-2 text-xs text-muted">
-                신고자 {{ item.reporterUserId }} · 접수 {{ formatKoreanDateTime(item.createdAt, item.createdAt) }}
+                {{
+                  t('admin.moderation.reporterLine', {
+                    reporterId: item.reporterUserId,
+                    receivedAt: formatKoreanDateTime(item.createdAt, item.createdAt),
+                  })
+                }}
               </p>
             </div>
 
             <div class="text-xs text-subtle md:text-right">
-              <p>처리 {{ formatKoreanDateTime(item.processedAt) }}</p>
+              <p>{{ t('admin.common.processed') }} {{ formatKoreanDateTime(item.processedAt) }}</p>
             </div>
           </div>
         </button>
 
-        <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ listEmptyMessage }}</div>
+        <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ resolvedListEmptyMessage }}</div>
       </div>
 
       <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
@@ -166,7 +177,7 @@ const handleProcess = () => {
           :disabled="page === 0"
           @click="handleMovePage(-1)"
         >
-          이전
+          {{ t('common.previous') }}
         </button>
         <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
         <button
@@ -176,7 +187,7 @@ const handleProcess = () => {
           :disabled="page + 1 >= totalPages"
           @click="handleMovePage(1)"
         >
-          다음
+          {{ t('common.next') }}
         </button>
       </div>
     </section>
@@ -185,7 +196,7 @@ const handleProcess = () => {
       <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
         <div>
           <p class="ui-eyebrow">Detail</p>
-          <h2 class="bbs-row-title mt-1 text-lg">신고 상세</h2>
+          <h2 class="bbs-row-title mt-1 text-lg">{{ t('admin.moderation.detailTitle') }}</h2>
         </div>
         <div v-if="selectedReport" :class="resolveModerationStatusBadgeClass(selectedReport.status)">
           {{ formatModerationStatusLabel(selectedReport.status) }}
@@ -196,7 +207,7 @@ const handleProcess = () => {
         {{ detailError }}
       </div>
 
-      <div v-if="isLoadingDetail" class="mt-6 text-sm text-muted">상세 정보를 불러오는 중...</div>
+      <div v-if="isLoadingDetail" class="mt-6 text-sm text-muted">{{ t('admin.common.loadingDetail') }}</div>
 
       <div v-else-if="selectedReport" class="mt-6 space-y-6">
         <div v-if="detailCards.length > 0" class="grid gap-3 md:grid-cols-2">
@@ -219,30 +230,30 @@ const handleProcess = () => {
         </div>
 
         <div>
-          <h3 class="bbs-row-title text-sm">신고 상세</h3>
+          <h3 class="bbs-row-title text-sm">{{ t('admin.moderation.detailSection') }}</h3>
           <p class="ui-card mt-2 text-sm leading-6 text-muted">
-            {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
+            {{ selectedReport.reasonDetail || t('admin.moderation.noReasonDetail') }}
           </p>
         </div>
 
         <div v-if="selectedReportSnapshot">
-          <h3 class="bbs-row-title text-sm">대상 스냅샷</h3>
+          <h3 class="bbs-row-title text-sm">{{ t('admin.moderation.snapshotTitle') }}</h3>
           <pre class="ui-code-block ui-scrollbar mt-2 max-h-64 rounded-ui">{{ selectedReportSnapshot }}</pre>
         </div>
 
         <div class="ui-card grid gap-4">
           <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
-            <span>접수 {{ formatKoreanDateTime(selectedReport.createdAt, selectedReport.createdAt) }}</span>
-            <span>처리 {{ formatKoreanDateTime(selectedReport.processedAt) }}</span>
+            <span>{{ t('admin.common.received') }} {{ formatKoreanDateTime(selectedReport.createdAt, selectedReport.createdAt) }}</span>
+            <span>{{ t('admin.common.processed') }} {{ formatKoreanDateTime(selectedReport.processedAt) }}</span>
           </div>
-          <label class="text-xs font-semibold tracking-[0.2em] text-subtle uppercase">처리 상태</label>
+          <label class="text-xs font-semibold tracking-[0.2em] text-subtle uppercase">{{ t('admin.moderation.processStatus') }}</label>
           <select v-model="processStatusModel" class="ui-select">
             <option v-for="option in MODERATION_STATUS_OPTIONS.filter((item) => item !== 'ALL')" :key="option" :value="option">
               {{ formatModerationStatusLabel(option) }}
             </option>
           </select>
-          <label class="text-xs font-semibold tracking-[0.2em] text-subtle uppercase">처리 메모</label>
-          <textarea v-model="processNoteModel" rows="4" class="ui-textarea" placeholder="처리 결과와 사유를 간단히 기록하세요."></textarea>
+          <label class="text-xs font-semibold tracking-[0.2em] text-subtle uppercase">{{ t('admin.moderation.processNote') }}</label>
+          <textarea v-model="processNoteModel" rows="4" class="ui-textarea" :placeholder="t('admin.common.processNotePlaceholder')"></textarea>
           <button
             data-testid="report-process"
             type="button"
@@ -250,12 +261,12 @@ const handleProcess = () => {
             :disabled="isProcessing"
             @click="handleProcess"
           >
-            {{ isProcessing ? '처리 중...' : '처리 저장' }}
+            {{ isProcessing ? t('admin.common.processing') : t('admin.common.saveProcess') }}
           </button>
         </div>
       </div>
 
-      <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">{{ detailEmptyMessage }}</div>
+      <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">{{ resolvedDetailEmptyMessage }}</div>
     </section>
   </div>
 </template>

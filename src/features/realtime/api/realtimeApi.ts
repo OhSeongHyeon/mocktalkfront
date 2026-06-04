@@ -1,4 +1,5 @@
 import { API_BASE_URL, request } from '../../../shared/lib/http/api';
+import { resolveAcceptLanguage } from '../../../shared/i18n/localeHeader';
 import { useAuthStore } from '../../../stores/auth';
 
 export type RealtimeEventType = 'CONNECTED' | 'HEARTBEAT' | 'COMMENT_CHANGED' | 'REACTION_CHANGED';
@@ -149,8 +150,11 @@ const computeReconnectDelayMs = (attempt: number) => {
 
 const tryRefreshAccessTokenForRealtime = async () => {
   try {
+    const headers = new Headers();
+    headers.set('Accept-Language', resolveAcceptLanguage());
     const response = await fetch(buildRefreshUrl(), {
       method: 'POST',
+      headers,
       credentials: 'include',
     });
     if (!response.ok) {

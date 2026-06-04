@@ -19,6 +19,7 @@ vi.mock('../shared/lib/profile', () => ({
   applyProfileSummary: applyProfileSummaryMock,
 }));
 
+import { i18n } from '../test/plugins';
 import LoginPage from './LoginPage.vue';
 
 const createRouterInstance = async (initialPath = '/login') => {
@@ -65,7 +66,7 @@ describe('pages/LoginPage', () => {
     const router = await createRouterInstance('/login?redirect=%2Fmypage');
     const wrapper = mount(LoginPage, {
       global: {
-        plugins: [pinia, router],
+        plugins: [pinia, router, i18n],
       },
     });
     await flushPromises();

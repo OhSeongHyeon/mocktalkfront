@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type {
   MarketInstrumentCode,
@@ -10,24 +11,29 @@ import type {
   MarketSeriesResponse,
 } from '../entities/content';
 import { getMarketOverview, getMarketSeries } from '../entities/content';
+import { type AppLocale, toIntlLocaleTag } from '../shared/i18n';
 import { ApiError } from '../shared/lib/http/api';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import ContentMarketChart from '../widgets/content/ContentMarketChart.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
+const { t, locale } = useI18n();
+
 const GOLD_TROY_OUNCE_IN_GRAMS = 31.1034768;
 
-const periodOptions: Array<{ value: Exclude<MarketSeriesPeriod, 'CUSTOM'>; label: string; days: number }> = [
-  { value: 'TEN_YEAR', label: '10년', days: 3652 },
-  { value: 'FIVE_YEAR', label: '5년', days: 1826 },
-  { value: 'THREE_YEAR', label: '3년', days: 1095 },
-  { value: 'YEAR', label: '1년', days: 365 },
-  { value: 'HALF_YEAR', label: '6개월', days: 183 },
-  { value: 'QUARTER', label: '3개월', days: 92 },
-  { value: 'MONTH', label: '30일', days: 30 },
-  { value: 'WEEK', label: '7일', days: 7 },
-];
+const intlLocale = computed(() => toIntlLocaleTag(locale.value as AppLocale));
+
+const periodOptions = computed<Array<{ value: Exclude<MarketSeriesPeriod, 'CUSTOM'>; label: string; days: number }>>(() => [
+  { value: 'TEN_YEAR', label: t('content.market.period.tenYear'), days: 3652 },
+  { value: 'FIVE_YEAR', label: t('content.market.period.fiveYear'), days: 1826 },
+  { value: 'THREE_YEAR', label: t('content.market.period.threeYear'), days: 1095 },
+  { value: 'YEAR', label: t('content.market.period.year'), days: 365 },
+  { value: 'HALF_YEAR', label: t('content.market.period.halfYear'), days: 183 },
+  { value: 'QUARTER', label: t('content.market.period.quarter'), days: 92 },
+  { value: 'MONTH', label: t('content.market.period.month'), days: 30 },
+  { value: 'WEEK', label: t('content.market.period.week'), days: 7 },
+]);
 
 type MarketSeriesMap = Partial<Record<MarketInstrumentCode, MarketSeriesResponse>>;
 type MarketChartSeries = {
@@ -88,7 +94,7 @@ const toDisplayNameLabel = (item: Pick<MarketOverviewItemResponse, 'instrumentCo
   if (!isGoldInstrument(item.instrumentCode)) {
     return item.displayName;
   }
-  return `금 시세 (${item.quoteCurrency}/g)`;
+  return t('content.market.goldDisplayName', { currency: item.quoteCurrency });
 };
 
 const resolveFractionDigits = (item: Pick<MarketOverviewItemResponse, 'instrumentCode' | 'marketGroup' | 'quoteCurrency'>) => {
@@ -197,9 +203,9 @@ const combinedChartSeries = computed<MarketChartSeries[]>(() => {
 const lastObservedAtLabel = computed(() => {
   const target = overview.value?.lastObservedAt;
   if (!target) {
-    return '데이터를 축적하는 중입니다.';
+    return t('content.market.page.accumulating');
   }
-  return new Intl.DateTimeFormat('ko-KR', {
+  return new Intl.DateTimeFormat(intlLocale.value, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(target));
@@ -208,19 +214,29 @@ const lastObservedAtLabel = computed(() => {
 const currentRangeLabel = computed(() => {
   if (selectedPeriod.value === 'CUSTOM') {
     if (!customStartDate.value || !customEndDate.value) {
-      return '직접 선택';
+      return t('content.market.period.custom');
     }
-    return `${formatDateInput(customStartDate.value)} ~ ${formatDateInput(customEndDate.value)}`;
+    return t('content.market.period.customRange', {
+      start: formatDateInput(customStartDate.value),
+      end: formatDateInput(customEndDate.value),
+    });
   }
-  return periodOptions.find((option) => option.value === selectedPeriod.value)?.label ?? '1년';
+  return periodOptions.value.find((option) => option.value === selectedPeriod.value)?.label ?? t('content.market.period.year');
 });
+
+const selectedDetailSubtitle = computed(() =>
+  selectedOverviewItem.value?.marketGroup === 'FX' ? t('content.market.detail.fxSubtitle') : t('content.market.detail.metalSubtitle'),
+);
+
+const resolveMarketGroupLabel = (marketGroup: MarketOverviewItemResponse['marketGroup']) =>
+  marketGroup === 'FX' ? t('content.market.group.fx') : t('content.market.group.metal');
 
 const selectedPriceLabel = computed(() => {
   const item = selectedOverviewItem.value;
   if (!item) {
     return '-';
   }
-  return new Intl.NumberFormat('ko-KR', {
+  return new Intl.NumberFormat(intlLocale.value, {
     maximumFractionDigits: resolveFractionDigits(item),
   }).format(item.displayPriceValue);
 });
@@ -228,7 +244,7 @@ const selectedPriceLabel = computed(() => {
 const selectedChangeLabel = computed(() => {
   const item = selectedOverviewItem.value;
   if (!item || item.displayChangeValue === null) {
-    return '변화 데이터 없음';
+    return t('content.market.noChangeData');
   }
   const sign = item.displayChangeValue > 0 ? '+' : '';
   const rate = item.changeRate === null ? '' : ` (${sign}${item.changeRate.toFixed(3)}%)`;
@@ -242,7 +258,7 @@ const formatStatValue = (
   if (value === null || value === undefined || !Number.isFinite(value)) {
     return '-';
   }
-  return new Intl.NumberFormat('ko-KR', {
+  return new Intl.NumberFormat(intlLocale.value, {
     maximumFractionDigits: resolveFractionDigits(item),
   }).format(value);
 };
@@ -303,7 +319,7 @@ const loadOverview = async () => {
     overview.value = payload;
     ensureSelectedInstrument(payload);
   } catch (error) {
-    overviewError.value = resolveErrorMessage(error, '시세 요약 정보를 불러오지 못했습니다.');
+    overviewError.value = resolveErrorMessage(error, t('content.market.errors.overview'));
     overview.value = null;
     seriesMap.value = {};
   } finally {
@@ -322,7 +338,7 @@ const loadAllSeries = async () => {
   }
 
   if (selectedPeriod.value === 'CUSTOM' && (!customStartDate.value || !customEndDate.value)) {
-    rangeError.value = '직접 선택 기간은 시작일과 종료일을 함께 입력해야 합니다.';
+    rangeError.value = t('content.market.errors.customRangeRequired');
     seriesMap.value = {};
     return;
   }
@@ -352,12 +368,12 @@ const loadAllSeries = async () => {
 
     seriesMap.value = nextSeriesMap;
     if (successCount === 0) {
-      seriesError.value = '시계열 데이터를 불러오지 못했습니다.';
+      seriesError.value = t('content.market.errors.series');
     } else if (successCount < items.length) {
-      seriesError.value = '일부 종목의 시계열 데이터를 불러오지 못했습니다.';
+      seriesError.value = t('content.market.errors.seriesPartial');
     }
   } catch (error) {
-    seriesError.value = resolveErrorMessage(error, '시계열 데이터를 불러오지 못했습니다.');
+    seriesError.value = resolveErrorMessage(error, t('content.market.errors.series'));
     seriesMap.value = {};
   } finally {
     isSeriesLoading.value = false;
@@ -371,17 +387,17 @@ const handleRefresh = async () => {
 
 const selectPeriod = (period: Exclude<MarketSeriesPeriod, 'CUSTOM'>) => {
   rangeError.value = '';
-  applyPresetDates(periodOptions.find((option) => option.value === period)?.days ?? 365);
+  applyPresetDates(periodOptions.value.find((option) => option.value === period)?.days ?? 365);
   selectedPeriod.value = period;
 };
 
 const applyCustomRange = async () => {
   if (!customStartDate.value || !customEndDate.value) {
-    rangeError.value = '직접 선택 기간은 시작일과 종료일을 함께 입력해야 합니다.';
+    rangeError.value = t('content.market.errors.customRangeRequired');
     return;
   }
   if (customStartDate.value > customEndDate.value) {
-    rangeError.value = '시작일은 종료일보다 늦을 수 없습니다.';
+    rangeError.value = t('content.market.errors.startAfterEnd');
     return;
   }
 
@@ -429,9 +445,9 @@ onBeforeUnmount(() => {
     <PageContainer width="wide">
       <section class="space-y-4">
         <PageHeader
-          eyebrow="Market"
-          title="환율 / 금 시세"
-          description="무료 데이터 소스를 기준으로 하루 1회 수집한 스냅샷을 보여줍니다. 금 시세는 1트로이온스 원본값을 1g 기준으로 환산해 표시합니다."
+          :eyebrow="t('content.market.page.eyebrow')"
+          :title="t('content.market.page.title')"
+          :description="t('content.market.page.description')"
         >
           <template #actions>
             <button
@@ -439,36 +455,35 @@ onBeforeUnmount(() => {
               class="ui-chip-button border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-200"
               @click="handleRefresh"
             >
-              새로고침
+              {{ t('content.market.page.refresh') }}
             </button>
           </template>
-          <p class="text-sm text-muted">마지막 갱신 {{ lastObservedAtLabel }}</p>
+          <p class="text-sm text-muted">{{ t('content.market.page.lastUpdated', { label: lastObservedAtLabel }) }}</p>
         </PageHeader>
 
         <div v-if="overviewError" class="ui-state ui-state-danger">
           {{ overviewError }}
         </div>
 
-        <div v-else-if="isOverviewLoading" class="ui-panel ui-section-loading px-6 py-8">시세 요약 정보를 불러오는 중입니다.</div>
+        <div v-else-if="isOverviewLoading" class="ui-panel ui-section-loading px-6 py-8">{{ t('content.market.overview.loadingOverview') }}</div>
 
         <template v-else-if="overview && overview.items.length > 0">
           <div class="ui-panel space-y-6 px-6 py-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">Overview</p>
-                <h2 class="ui-heading-page mt-2 text-2xl">통합 그래프</h2>
+                <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">{{ t('content.market.overview.label') }}</p>
+                <h2 class="ui-heading-page mt-2 text-2xl">{{ t('content.market.overview.title') }}</h2>
                 <p class="mt-2 text-sm text-muted">
-                  전체 종목 흐름을 한 번에 보고, 아래 탭에서 원하는 종목만 따로 자세히 확인할 수 있습니다. 통합 그래프는 기준일을 100으로 맞춘 상대
-                  비교 그래프이고, 금 시세는 화면에서 1g 기준으로 보여줍니다.
+                  {{ t('content.market.overview.description') }}
                 </p>
               </div>
               <div class="rounded-full border border-line bg-surface-soft px-4 py-2 text-sm font-medium text-muted dark:border-line dark:text-subtle">
-                선택 범위 {{ currentRangeLabel }}
+                {{ t('content.market.overview.selectedRange', { label: currentRangeLabel }) }}
               </div>
             </div>
 
             <div class="ui-card space-y-4">
-              <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="시세 기간 전환">
+              <div class="flex flex-wrap items-center gap-2" role="tablist" :aria-label="t('content.market.overview.periodTabsAria')">
                 <button
                   v-for="option in periodOptions"
                   :key="option.value"
@@ -488,7 +503,9 @@ onBeforeUnmount(() => {
 
               <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
                 <label class="space-y-2 text-sm text-muted">
-                  <span class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">시작일</span>
+                  <span class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{
+                    t('content.market.overview.startDate')
+                  }}</span>
                   <input
                     v-model="customStartDate"
                     type="date"
@@ -497,7 +514,9 @@ onBeforeUnmount(() => {
                   />
                 </label>
                 <label class="space-y-2 text-sm text-muted">
-                  <span class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">종료일</span>
+                  <span class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{
+                    t('content.market.overview.endDate')
+                  }}</span>
                   <input
                     v-model="customEndDate"
                     type="date"
@@ -511,7 +530,7 @@ onBeforeUnmount(() => {
                     class="ui-chip-button h-[50px] w-full justify-center border-cyan-200 bg-cyan-50 px-5 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100 md:w-auto dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-200"
                     @click="applyCustomRange"
                   >
-                    직접 선택 적용
+                    {{ t('content.market.overview.applyCustom') }}
                   </button>
                 </div>
               </div>
@@ -525,33 +544,34 @@ onBeforeUnmount(() => {
               {{ seriesError }}
             </div>
 
-            <div v-if="isSeriesLoading" class="ui-section-loading py-12">{{ currentRangeLabel }} 통합 그래프를 불러오는 중입니다.</div>
+            <div v-if="isSeriesLoading" class="ui-section-loading py-12">
+              {{ t('content.market.overview.combinedChartLoading', { label: currentRangeLabel }) }}
+            </div>
 
             <div v-else-if="combinedChartSeries.length > 0" class="ui-card p-2">
-              <ContentMarketChart title="전체 시세 흐름 (기준일=100)" :series="combinedChartSeries" />
+              <ContentMarketChart :title="t('content.market.overview.combinedChartTitle')" :series="combinedChartSeries" />
             </div>
 
             <div
               v-if="combinedChartSeries.length > 0"
               class="ui-card border-sky-200 bg-sky-50/80 text-sm text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-100"
             >
-              <p class="font-semibold">통합그래프 y축 안내</p>
+              <p class="font-semibold">{{ t('content.market.overview.yAxisGuideTitle') }}</p>
               <p class="mt-1 text-sky-800/90 dark:text-sky-100/80">
-                y축 숫자는 실제 환율/금액이 아니라 <span class="font-semibold">기준일 값을 100으로 둔 상대지수</span>입니다. 예를 들어 110은 기준일
-                대비 약 10% 상승, 95는 약 5% 하락을 뜻합니다.
+                {{ t('content.market.overview.yAxisGuideBody') }}
               </p>
             </div>
 
-            <div v-else class="ui-state ui-state-empty px-5 py-10">표시할 수 있는 시계열 데이터가 아직 충분히 쌓이지 않았습니다.</div>
+            <div v-else class="ui-state ui-state-empty px-5 py-10">{{ t('content.market.overview.insufficientSeries') }}</div>
           </div>
 
           <div class="ui-panel space-y-4 px-6 py-6">
             <div>
-              <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">Selector</p>
-              <h2 class="ui-heading-page mt-2 text-2xl">종목 선택</h2>
+              <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">{{ t('content.market.selector.label') }}</p>
+              <h2 class="ui-heading-page mt-2 text-2xl">{{ t('content.market.selector.title') }}</h2>
             </div>
 
-            <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-5" role="tablist" aria-label="시세 종목 선택">
+            <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-5" role="tablist" :aria-label="t('content.market.selector.ariaLabel')">
               <button
                 v-for="item in compactMarketItems"
                 :key="item.instrumentCode"
@@ -584,11 +604,11 @@ onBeforeUnmount(() => {
                         : 'bg-surface-2 bg-surface-soft text-muted dark:text-subtle'
                     "
                   >
-                    {{ item.marketGroup === 'FX' ? '환율' : '금 시세' }}
+                    {{ resolveMarketGroupLabel(item.marketGroup) }}
                   </span>
                 </div>
                 <p class="mt-3 text-base font-semibold">
-                  {{ new Intl.NumberFormat('ko-KR', { maximumFractionDigits: resolveFractionDigits(item) }).format(item.displayPriceValue) }}
+                  {{ new Intl.NumberFormat(intlLocale, { maximumFractionDigits: resolveFractionDigits(item) }).format(item.displayPriceValue) }}
                 </p>
               </button>
             </div>
@@ -597,19 +617,21 @@ onBeforeUnmount(() => {
           <div v-if="selectedOverviewItem" class="ui-panel space-y-6 px-6 py-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">Detail</p>
+                <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">{{ t('content.market.detail.label') }}</p>
                 <h2 class="ui-heading-page mt-2 text-2xl">{{ selectedOverviewItem.displayNameLabel }}</h2>
                 <p class="mt-2 text-sm text-muted">
-                  {{ selectedOverviewItem.marketGroup === 'FX' ? '선택한 환율 종목 상세' : '선택한 금 시세 종목 상세 (1g 기준)' }}
+                  {{ selectedDetailSubtitle }}
                 </p>
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
                 <div class="ui-stat-card">
-                  <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">현재 값</p>
+                  <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">
+                    {{ t('content.market.detail.currentValue') }}
+                  </p>
                   <p class="mt-2 text-lg font-semibold text-ink">{{ selectedPriceLabel }} {{ selectedOverviewItem.displayUnitLabel }}</p>
                 </div>
                 <div class="ui-stat-card">
-                  <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">변동</p>
+                  <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{ t('content.market.detail.change') }}</p>
                   <p class="mt-2 text-lg font-semibold text-ink">{{ selectedChangeLabel }}</p>
                 </div>
               </div>
@@ -625,37 +647,37 @@ onBeforeUnmount(() => {
 
             <div v-if="selectedSeriesStats" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <div class="ui-stat-card">
-                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 평균값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{ t('content.market.detail.avg') }}</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.average, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
               <div class="ui-stat-card">
-                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 중위값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{ t('content.market.detail.median') }}</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.median, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
               <div class="ui-stat-card">
-                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 최저값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{ t('content.market.detail.min') }}</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.minimum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
               <div class="ui-stat-card">
-                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 최고값</p>
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">{{ t('content.market.detail.max') }}</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.maximum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
             </div>
 
-            <div v-else class="ui-state ui-state-empty px-5 py-10">선택한 기간의 시세 데이터가 아직 충분히 쌓이지 않았습니다.</div>
+            <div v-else class="ui-state ui-state-empty px-5 py-10">{{ t('content.market.detail.insufficientDetail') }}</div>
           </div>
         </template>
 
         <div v-else class="ui-state ui-state-empty px-5 py-10">
-          아직 집계된 시세 데이터가 없습니다. 배포 후 첫 수집이 완료되면 그래프를 확인할 수 있습니다.
+          {{ t('content.market.overview.noData') }}
         </div>
       </section>
     </PageContainer>

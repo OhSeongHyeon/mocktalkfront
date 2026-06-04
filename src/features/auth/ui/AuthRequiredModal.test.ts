@@ -4,6 +4,7 @@ import { createMemoryHistory, createRouter } from 'vue-router';
 import { describe, expect, it } from 'vitest';
 
 import { useAuthPromptStore } from '../../../stores/authPrompt';
+import { i18n } from '../../../test/plugins';
 import AuthRequiredModal from './AuthRequiredModal.vue';
 
 const createRouterInstance = async () => {
@@ -30,7 +31,7 @@ describe('features/auth/ui/AuthRequiredModal', () => {
 
     const wrapper = mount(AuthRequiredModal, {
       global: {
-        plugins: [pinia, router],
+        plugins: [pinia, router, i18n],
       },
     });
     await flushPromises();
@@ -56,7 +57,7 @@ describe('features/auth/ui/AuthRequiredModal', () => {
 
     const wrapper = mount(AuthRequiredModal, {
       global: {
-        plugins: [pinia, router],
+        plugins: [pinia, router, i18n],
       },
     });
     await flushPromises();
