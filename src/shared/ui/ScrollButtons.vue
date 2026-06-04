@@ -30,7 +30,7 @@ const scrollToBottom = () => {
     <button
       type="button"
       aria-label="맨 위로 이동"
-      class="hover:bg-surface-soft grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-ink shadow-lg backdrop-blur transition"
+      class="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-ink shadow-lg backdrop-blur transition hover:bg-surface-soft"
       @click="scrollToTop"
     >
       <AppIcon :icon="ArrowUp" :size="20" />
@@ -38,7 +38,7 @@ const scrollToBottom = () => {
     <button
       type="button"
       aria-label="맨 아래로 이동"
-      class="hover:bg-surface-soft grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-ink shadow-lg backdrop-blur transition"
+      class="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-ink shadow-lg backdrop-blur transition hover:bg-surface-soft"
       @click="scrollToBottom"
     >
       <AppIcon :icon="ArrowDown" :size="20" />

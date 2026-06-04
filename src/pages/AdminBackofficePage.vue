@@ -109,7 +109,7 @@ const resolveCardClass = (tone: string) => {
             </div>
             <RouterLink
               to="/"
-              class="hover:bg-surface-soft inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
+              class="inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
             >
               서비스 홈으로 이동
             </RouterLink>
@@ -137,7 +137,7 @@ const resolveCardClass = (tone: string) => {
               v-for="tool in adminTools"
               :key="tool.path"
               :to="tool.path"
-              class="group rounded-3xl border p-5 transition hover:-translate-y-0.5 hover:shadow-md"
+              class="group ui-admin-tool border"
               :class="resolveCardClass(tool.tone)"
             >
               <div class="flex items-start justify-between gap-3">
@@ -146,7 +146,8 @@ const resolveCardClass = (tone: string) => {
                   <p class="mt-2 text-sm leading-6 text-muted">{{ tool.description }}</p>
                 </div>
                 <span
-                  class="dark:border-line/70 /70 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-white/70 text-lg font-semibold text-ink shadow-sm"
+                  class="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-line bg-surface-1 text-lg font-semibold text-ink"
+                  style="border-radius: var(--radius-md)"
                 >
                   →
                 </span>

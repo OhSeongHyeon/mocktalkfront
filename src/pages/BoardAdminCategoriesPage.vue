@@ -197,7 +197,7 @@ onMounted(async () => {
 
           <div class="grid gap-6 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.94fr)]">
             <section class="ui-panel p-5">
-              <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
+              <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
                   <h2 class="bbs-row-title text-lg">카테고리 목록</h2>
                   <p class="mt-1 text-sm text-muted">등록 시각과 수정 액션을 한 줄에서 확인합니다.</p>
@@ -206,7 +206,7 @@ onMounted(async () => {
               </div>
 
               <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-                <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+                <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
                 불러오는 중...
               </div>
 
@@ -262,7 +262,7 @@ onMounted(async () => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
+              <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
                   <p class="ui-eyebrow">Create</p>
                   <h2 class="bbs-row-title mt-1 text-lg">카테고리 추가</h2>

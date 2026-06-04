@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import AppShell from '../widgets/layout/AppShell.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
-import SectionHeader from '../shared/ui/SectionHeader.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import ContentHubCard from '../widgets/content/ContentHubCard.vue';
 </script>
 
 <template>
   <AppShell>
     <PageContainer width="wide">
-      <section class="space-y-8">
-        <div class="bg-surface-soft dark:border-line/80 rounded-[32px] border border-line bg-white px-6 py-8 shadow-sm sm:px-8">
-          <SectionHeader eyebrow="Contents" title="콘텐츠" description="커뮤니티 바깥에서도 가볍게 둘러볼 수 있는 정보형 화면을 한곳에 모았습니다." />
-        </div>
+      <section class="space-y-4">
+        <PageHeader eyebrow="Contents" title="콘텐츠" description="커뮤니티 바깥에서도 가볍게 둘러볼 수 있는 정보형 화면을 한곳에 모았습니다." />
 
-        <div class="grid gap-5 lg:grid-cols-2">
+        <div class="grid gap-4 lg:grid-cols-2">
           <ContentHubCard
             title="이미지 갤러리"
             description="사진과 이미지를 주제별로 모아보는 화면은 준비 중입니다. 공개 방식과 탐색 구조를 확정한 뒤 별도 공개합니다."

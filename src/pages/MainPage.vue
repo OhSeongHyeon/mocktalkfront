@@ -14,10 +14,10 @@ const { isAuthenticated } = storeToRefs(authStore);
 <template>
   <AppShell>
     <PageContainer width="auto">
-      <div class="space-y-3">
+      <div class="space-y-4">
         <HomeSubscriptionSection v-if="isAuthenticated" />
-        <HomeRecentArticleSection />
         <HomeCommunitySection />
+        <HomeRecentArticleSection />
       </div>
     </PageContainer>
   </AppShell>

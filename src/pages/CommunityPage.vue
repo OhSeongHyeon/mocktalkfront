@@ -106,7 +106,7 @@ onBeforeUnmount(() => {
 
         <div v-if="visibleBoards.length > 0" class="bbs-box overflow-hidden">
           <div
-            class="bg-surface-1 hidden grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] gap-3 border-b border-line px-3 py-2 text-xs font-semibold text-subtle md:grid"
+            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] gap-3 border-b border-line bg-surface-1 px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
             <span>이미지</span>
             <span>게시판</span>
@@ -115,7 +115,7 @@ onBeforeUnmount(() => {
           </div>
           <RouterLink v-for="board in visibleBoards" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
             <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] md:items-center">
-              <div class="bg-surface-soft h-14 overflow-hidden rounded-[var(--radius-md)] border border-line">
+              <div class="h-14 overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface-soft">
                 <FileImage
                   v-if="board.boardImage"
                   :file="board.boardImage"
@@ -156,12 +156,9 @@ onBeforeUnmount(() => {
 
         <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 게시판이 없습니다.</div>
 
-        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
-          게시판을 불러오는 중입니다.
-        </div>
+        <div v-if="isInitialLoading" class="ui-section-loading">게시판을 불러오는 중입니다.</div>
 
-        <div v-if="isLoading && visibleBoards.length > 0" class="text-sm text-muted">더 불러오는 중...</div>
+        <div v-if="isLoading && visibleBoards.length > 0" class="ui-section-loading">더 불러오는 중...</div>
 
         <div ref="sentinelRef" class="h-8 w-full"></div>
       </div>

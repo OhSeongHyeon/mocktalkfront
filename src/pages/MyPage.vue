@@ -6,8 +6,9 @@ import BaseModal from '../shared/ui/BaseModal.vue';
 import { logout } from '../features/auth';
 import { deleteAllNotifications, deleteNotification, getNotifications, markNotificationRead } from '../features/notification';
 import type { NotificationResponse } from '../features/notification';
-import { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile } from '../entities/user';
-import type { ArticleResponse, CommentResponse, PageResponse, UserProfileResponse } from '../entities/user';
+import { resolveBoardVisibilityLabel } from '../entities/board';
+import { deleteMyAccount, getMyArticles, getMyBoards, getMyComments, getMyProfile, updateMyProfile } from '../entities/user';
+import type { ArticleResponse, CommentResponse, MyBoardResponse, PageResponse, UserProfileResponse } from '../entities/user';
 import { ApiError } from '../shared/lib/http/api';
 import { resolveImageUrl } from '../shared/lib/files';
 import { formatNotificationMessage } from '../shared/lib/notifications';
@@ -19,7 +20,7 @@ import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
-type ActivityTab = 'articles' | 'comments' | 'notifications';
+type ActivityTab = 'boards' | 'articles' | 'comments' | 'notifications';
 
 const profile = ref<UserProfileResponse | null>(null);
 const isProfileLoading = ref(false);
@@ -40,12 +41,14 @@ const form = reactive({
 const previewUrl = ref<string | null>(null);
 
 const mainTab = ref<'activity' | 'profile'>('activity');
-const activeTab = ref<ActivityTab>('articles');
+const activeTab = ref<ActivityTab>('boards');
 const listLoading = ref(false);
 const listError = ref('');
+const boards = ref<PageResponse<MyBoardResponse> | null>(null);
 const articles = ref<PageResponse<ArticleResponse> | null>(null);
 const comments = ref<PageResponse<CommentResponse> | null>(null);
 const notifications = ref<PageResponse<NotificationResponse> | null>(null);
+const boardPage = ref(0);
 const articlePage = ref(0);
 const commentPage = ref(0);
 const notificationPage = ref(0);
@@ -107,6 +110,29 @@ const loadProfile = async () => {
     return false;
   } finally {
     isProfileLoading.value = false;
+  }
+};
+
+const loadBoards = async (page = 0) => {
+  const requestId = beginListRequest();
+  try {
+    const data = await getMyBoards(page, pageSize);
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
+    boards.value = data;
+    boardPage.value = data.page;
+  } catch (error) {
+    if (isStaleListRequest(requestId)) {
+      return;
+    }
+    if (error instanceof ApiError && error.status === 401) {
+      await router.push('/login');
+      return;
+    }
+    listError.value = error instanceof ApiError ? error.message : '게시판 조회에 실패했습니다.';
+  } finally {
+    finishListRequest(requestId);
   }
 };
 
@@ -180,6 +206,10 @@ const loadNotifications = async (page = 0) => {
 };
 
 const loadActiveTab = async () => {
+  if (activeTab.value === 'boards') {
+    await loadBoards(boardPage.value);
+    return;
+  }
   if (activeTab.value === 'articles') {
     await loadArticles(articlePage.value);
     return;
@@ -205,6 +235,10 @@ const setPage = async (page: number) => {
   }
   const data = currentList.value;
   if (data && data.totalPages > 0 && page >= data.totalPages) {
+    return;
+  }
+  if (activeTab.value === 'boards') {
+    await loadBoards(page);
     return;
   }
   if (activeTab.value === 'articles') {
@@ -335,6 +369,23 @@ const formatDate = (value?: string | null) => {
   });
 };
 
+const resolveBoardRoleLabel = (role: MyBoardResponse['boardRole']) => {
+  if (role === 'OWNER') {
+    return '소유';
+  }
+  if (role === 'MODERATOR') {
+    return '운영';
+  }
+  return role;
+};
+
+const handleBoardClick = async (item: MyBoardResponse) => {
+  if (listLoading.value) {
+    return;
+  }
+  await router.push(`/b/${item.slug}`);
+};
+
 const handleActivityClick = async (item: ArticleResponse | CommentResponse) => {
   if (listLoading.value) {
     return;
@@ -354,6 +405,9 @@ const handleActivityClick = async (item: ArticleResponse | CommentResponse) => {
 };
 
 const currentList = computed(() => {
+  if (activeTab.value === 'boards') {
+    return boards.value;
+  }
   if (activeTab.value === 'articles') {
     return articles.value;
   }
@@ -371,6 +425,9 @@ const isListEmpty = computed(() => {
 const currentTotalPages = computed(() => currentList.value?.totalPages ?? 0);
 
 const currentPage = computed(() => {
+  if (activeTab.value === 'boards') {
+    return boardPage.value;
+  }
   if (activeTab.value === 'articles') {
     return articlePage.value;
   }
@@ -405,6 +462,9 @@ const hasPreviousActivityPageWindow = computed(() => activityPageWindowStart.val
 const hasNextActivityPageWindow = computed(() => activityPageWindowEnd.value < currentTotalPages.value);
 
 const activityEmptyMessage = computed(() => {
+  if (activeTab.value === 'boards') {
+    return '운영 중인 게시판이 없습니다.';
+  }
   if (activeTab.value === 'articles') {
     return '작성한 게시글이 없습니다.';
   }
@@ -414,6 +474,7 @@ const activityEmptyMessage = computed(() => {
   return '알림이 없습니다.';
 });
 
+const boardTotalCount = computed(() => boards.value?.totalElements ?? null);
 const articleTotalCount = computed(() => articles.value?.totalElements ?? null);
 const commentTotalCount = computed(() => comments.value?.totalElements ?? null);
 const notificationTotalCount = computed(() => notifications.value?.totalElements ?? null);
@@ -507,7 +568,7 @@ onBeforeUnmount(() => {
         <section v-if="mainTab === 'profile'" class="grid gap-4 lg:grid-cols-[1fr_1.35fr]">
           <div class="ui-panel flex h-full flex-col gap-4 p-5">
             <div class="flex items-center gap-4">
-              <div class="bg-surface-soft h-18 w-18 overflow-hidden rounded-[0.75rem] border border-line">
+              <div class="h-18 w-18 overflow-hidden rounded-[0.75rem] border border-line bg-surface-soft">
                 <img v-if="resolvedProfileImage" :src="resolvedProfileImage" alt="프로필 이미지" class="h-full w-full object-cover" />
                 <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-subtle">없음</div>
               </div>
@@ -632,7 +693,7 @@ onBeforeUnmount(() => {
                   id="mypage-image"
                   type="file"
                   accept="image/*"
-                  class="file:bg-surface-soft hover:file:bg-surface-2 dark:file:bg-surface-2 dark:hover:file:bg-surface-3 text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink dark:text-subtle dark:file:text-ink"
+                  class="text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:bg-surface-soft file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:bg-surface-2 dark:text-subtle dark:file:bg-surface-2 dark:file:text-ink dark:hover:file:bg-surface-3"
                   :disabled="isProfileLoading || isProfileSaving"
                   @change="handleFileChange"
                 />
@@ -656,7 +717,7 @@ onBeforeUnmount(() => {
               >
                 저장
               </button>
-              <span v-if="saveMessage" class="text-sm font-semibold text-emerald-600">
+              <span v-if="saveMessage" class="text-sm font-semibold text-success">
                 {{ saveMessage }}
               </span>
             </div>
@@ -684,6 +745,12 @@ onBeforeUnmount(() => {
         <section v-else class="ui-panel flex flex-col gap-4 p-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="ui-tab-list">
+              <button type="button" class="ui-tab-button" :class="activeTab === 'boards' ? 'ui-tab-button-active' : ''" @click="setTab('boards')">
+                내 게시판
+                <span v-if="boardTotalCount !== null" class="ml-1 text-xs text-muted">
+                  {{ boardTotalCount }}
+                </span>
+              </button>
               <button type="button" class="ui-tab-button" :class="activeTab === 'articles' ? 'ui-tab-button-active' : ''" @click="setTab('articles')">
                 내 게시글
                 <span v-if="articleTotalCount !== null" class="ml-1 text-xs text-muted">
@@ -786,7 +853,26 @@ onBeforeUnmount(() => {
           <div v-else class="grid gap-2">
             <div v-for="item in currentList?.items" :key="item.id" class="ui-list-row text-sm text-ink">
               <button
-                v-if="activeTab === 'notifications'"
+                v-if="activeTab === 'boards'"
+                type="button"
+                class="flex w-full flex-col gap-2 text-left"
+                @click="handleBoardClick(item as MyBoardResponse)"
+              >
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span class="ui-badge ui-badge-accent">{{ resolveBoardRoleLabel((item as MyBoardResponse).boardRole) }}</span>
+                  <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel((item as MyBoardResponse).visibility) }}</span>
+                  <span>/{{ (item as MyBoardResponse).slug }}</span>
+                  <span>{{ formatDate((item as MyBoardResponse).joinedAt) }}</span>
+                </div>
+                <div class="font-semibold text-ink">
+                  {{ (item as MyBoardResponse).boardName }}
+                </div>
+                <p v-if="(item as MyBoardResponse).description" class="line-clamp-2 text-xs text-muted">
+                  {{ (item as MyBoardResponse).description }}
+                </p>
+              </button>
+              <button
+                v-else-if="activeTab === 'notifications'"
                 type="button"
                 class="flex w-full flex-col gap-2 text-left"
                 @click="handleNotificationClick(item as NotificationResponse)"
@@ -866,7 +952,7 @@ onBeforeUnmount(() => {
       </div>
       <p
         v-if="deleteError"
-        class="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
+        class="mt-3 rounded-ui border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200"
         role="alert"
       >
         {{ deleteError }}

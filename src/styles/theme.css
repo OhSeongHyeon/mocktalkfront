@@ -2,6 +2,26 @@
 
 @theme {
   --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --text-xs: 0.6875rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.875rem;
+  --text-base--line-height: 1.35rem;
+  --text-lg: 0.9375rem;
+  --text-lg--line-height: 1.4rem;
+  --text-xl: 1rem;
+  --text-xl--line-height: 1.45rem;
+  --text-2xl: 1.125rem;
+  --text-2xl--line-height: 1.35rem;
+  --text-3xl: 1.25rem;
+  --text-3xl--line-height: 1.3rem;
+  --color-surface: var(--surface-0);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-brand-50: #f4f7fd;
   --color-brand-100: #e8effb;
   --color-brand-200: #d2dff6;
@@ -39,6 +59,9 @@
   --danger-ink: #c92a2a;
   --danger-soft: #fff5f5;
   --warning-ink: #9c6b00;
+  --code-bg: #1a1d21;
+  --code-fg: #eceef1;
+  --code-border: #2f3540;
   --radius-sm: 2px;
   --radius-md: 3px;
   --radius-lg: 4px;
@@ -66,7 +89,7 @@ html.dark {
   --surface-overlay: rgba(0, 0, 0, 0.62);
   --ink-1: #eceef1;
   --ink-2: #b4bac3;
-  --ink-3: #8b919a;
+  --ink-3: #9aa1ab;
   --line-subtle: #353b44;
   --line-strong: #4a515c;
   --link: #6d9cf0;
@@ -77,5 +100,8 @@ html.dark {
   --success-ink: #7ddeb0;
   --danger-ink: #ff8f8f;
   --danger-soft: #3a2222;
+  --code-bg: #101214;
+  --code-fg: #eceef1;
+  --code-border: #353b44;
   color-scheme: dark;
 }

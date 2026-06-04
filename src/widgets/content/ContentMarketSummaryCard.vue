@@ -18,10 +18,10 @@ const cardClass = computed(() => {
 const changeToneClass = computed(() => {
   const value = props.item.changeValue ?? 0;
   if (value > 0) {
-    return props.active ? 'text-emerald-200 dark:text-emerald-700' : 'text-emerald-600 dark:text-emerald-400';
+    return props.active ? 'text-emerald-200 dark:text-emerald-400' : 'text-emerald-600 dark:text-emerald-400';
   }
   if (value < 0) {
-    return props.active ? 'text-rose-200 dark:text-rose-700' : 'text-rose-600 dark:text-rose-400';
+    return props.active ? 'text-rose-200 dark:text-rose-400' : 'text-rose-600 dark:text-rose-400';
   }
   return props.active ? 'text-ink dark:text-ink' : 'text-muted';
 });
@@ -44,7 +44,7 @@ const formattedChange = computed(() => {
 </script>
 
 <template>
-  <div class="w-full rounded-3xl border px-5 py-4 text-left transition" :class="cardClass">
+  <div class="bbs-box w-full px-5 py-4 text-left transition" :class="cardClass">
     <div class="flex items-start justify-between gap-3">
       <div>
         <p class="text-xs font-semibold tracking-[0.18em] uppercase" :class="active ? 'text-white/70 dark:text-muted' : 'text-subtle'">
@@ -54,7 +54,7 @@ const formattedChange = computed(() => {
       </div>
       <span
         class="rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] uppercase"
-        :class="active ? 'bg-white/15 text-white' : 'bg-surface-soft bg-surface-2 text-muted dark:text-subtle'"
+        :class="active ? 'bg-white/15 text-white' : 'bg-surface-2 bg-surface-soft text-muted dark:text-subtle'"
       >
         {{ item.marketGroup === 'FX' ? '환율' : '금 시세' }}
       </span>

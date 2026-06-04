@@ -18,10 +18,54 @@
   background-color: var(--surface-0);
 }
 
+@utility bg-surface-soft {
+  background-color: var(--surface-soft);
+}
+
+@utility bg-surface-strong {
+  background-color: var(--surface-strong);
+}
+
+@utility bg-surface-1 {
+  background-color: var(--surface-1);
+}
+
+@utility bg-surface-2 {
+  background-color: var(--surface-2);
+}
+
+@utility bg-surface-3 {
+  background-color: var(--surface-3);
+}
+
 @utility border-line {
   border-color: var(--line-subtle);
 }
 
 @utility text-link {
   color: var(--link);
+}
+
+@utility text-danger {
+  color: var(--danger-ink);
+}
+
+@utility text-success {
+  color: var(--success-ink);
+}
+
+@utility text-warning {
+  color: var(--warning-ink);
+}
+
+@utility text-on-strong {
+  color: var(--code-fg);
+}
+
+@utility bg-code {
+  background-color: var(--code-bg);
+}
+
+@utility rounded-ui {
+  border-radius: var(--radius-md);
 }

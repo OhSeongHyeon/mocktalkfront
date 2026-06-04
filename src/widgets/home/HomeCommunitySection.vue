@@ -60,8 +60,8 @@ onMounted(() => {
       </template>
     </SectionHeader>
 
-    <div v-if="listError" class="ui-state ui-state-danger m-3">{{ listError }}</div>
-    <div v-else-if="isLoading" class="px-3 py-5 text-sm text-muted">불러오는 중...</div>
+    <div v-if="listError" class="ui-state ui-state-danger ui-section-message">{{ listError }}</div>
+    <div v-else-if="isLoading" class="ui-section-loading">불러오는 중...</div>
     <template v-else-if="boards.length > 0">
       <RouterLink v-for="board in boards" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row">
         <span class="bbs-tag">{{ resolveBoardWritePolicyLabel(board.articleWritePolicy) }}</span>
@@ -69,6 +69,6 @@ onMounted(() => {
         <span class="bbs-meta ml-2">/{{ board.slug }}</span>
       </RouterLink>
     </template>
-    <div v-else class="ui-state ui-state-empty m-3">게시판이 없습니다.</div>
+    <div v-else class="ui-state ui-state-empty ui-section-message">게시판이 없습니다.</div>
   </section>
 </template>

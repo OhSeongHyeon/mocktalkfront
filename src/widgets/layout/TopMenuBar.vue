@@ -297,7 +297,7 @@ const handleDeleteAllNotifications = async () => {
         <button
           type="submit"
           data-testid="desktop-search-button"
-          class="ui-icon-button bg-surface-soft h-8 w-8 shrink-0 border-0 p-0"
+          class="ui-icon-button h-8 w-8 shrink-0 border-0 bg-surface-soft p-0"
           aria-label="검색 실행"
         >
           <AppIcon :icon="Search" :size="16" />
@@ -357,7 +357,7 @@ const handleDeleteAllNotifications = async () => {
                 <button
                   v-if="notifications.length"
                   type="button"
-                  class="text-xs font-semibold text-rose-500 transition hover:text-rose-600 dark:text-rose-200 dark:hover:text-rose-100"
+                  class="text-xs font-semibold text-danger transition hover:opacity-80"
                   @click="handleDeleteAllNotifications"
                 >
                   전체 삭제
@@ -424,36 +424,22 @@ const handleDeleteAllNotifications = async () => {
           >
             <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
           </button>
-          <div v-if="isProfileMenuOpen" ref="profileMenuRef" :class="[menuPanelClass, 'w-64']" role="menu">
-            <div class="border-b border-line px-4 py-3">
-              <div class="flex items-center gap-3">
-                <div class="h-10 w-10 overflow-hidden rounded-[var(--radius-md)] border border-line">
+          <div v-if="isProfileMenuOpen" ref="profileMenuRef" :class="[menuPanelClass, 'w-52']" role="menu">
+            <div class="border-b border-line px-3 py-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="h-8 w-8 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-line">
                   <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-bold text-ink">{{ resolvedDisplayName }}</p>
+                  <p class="truncate text-xs font-bold text-ink">{{ resolvedDisplayName }}</p>
                   <p class="ui-caption">포인트 {{ resolvedPoint }}P</p>
                 </div>
               </div>
             </div>
-            <div class="space-y-2 p-3">
-              <button type="button" class="ui-list-row w-full cursor-pointer text-left" role="menuitem" @click="openMyPage">
-                <span class="text-sm font-semibold text-ink">마이페이지</span>
-                <span class="ui-caption">프로필과 활동 기록을 관리합니다.</span>
-              </button>
-              <button type="button" class="ui-list-row w-full cursor-pointer text-left" role="menuitem" @click="openBoardCreate">
-                <span class="text-sm font-semibold text-ink">커뮤니티 개설</span>
-                <span class="ui-caption">새 게시판을 만들고 운영을 시작합니다.</span>
-              </button>
-              <button
-                type="button"
-                class="ui-list-row w-full cursor-pointer border-rose-200 bg-rose-50 text-left dark:border-rose-900/40 dark:bg-rose-950/20"
-                role="menuitem"
-                @click="handleLogout"
-              >
-                <span class="text-sm font-semibold text-rose-600 dark:text-rose-200">로그아웃</span>
-                <span class="text-xs text-rose-500/90 dark:text-rose-300/80">현재 세션을 종료합니다.</span>
-              </button>
+            <div class="flex flex-col py-1">
+              <button type="button" class="ui-menu-item" role="menuitem" @click="openMyPage">마이페이지</button>
+              <button type="button" class="ui-menu-item" role="menuitem" @click="openBoardCreate">커뮤니티 개설</button>
+              <button type="button" class="ui-menu-item ui-menu-item-danger" role="menuitem" @click="handleLogout">로그아웃</button>
             </div>
           </div>
         </div>

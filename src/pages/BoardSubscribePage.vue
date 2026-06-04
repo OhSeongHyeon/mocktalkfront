@@ -75,7 +75,7 @@ onMounted(() => {
 
         <div v-if="subscribes.length > 0" class="bbs-box overflow-hidden">
           <div
-            class="bg-surface-1 hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 border-b border-line px-3 py-2 text-xs font-semibold text-subtle md:grid"
+            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 border-b border-line bg-surface-1 px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
             <span>이미지</span>
             <span>게시판</span>
@@ -84,7 +84,7 @@ onMounted(() => {
           </div>
           <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
             <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] md:items-center">
-              <div class="bg-surface-soft h-14 overflow-hidden rounded-[var(--radius-md)] border border-line">
+              <div class="h-14 overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface-soft">
                 <FileImage
                   v-if="board.boardImage"
                   :file="board.boardImage"

@@ -89,11 +89,7 @@ const handlePageChange = (page: number) => {
             @change="handleToggle(item.id)"
           />
           <div class="min-w-0 flex-1">
-            <button
-              type="button"
-              class="text-left text-sm font-semibold text-ink hover:text-ink dark:hover:text-white"
-              @click="handleSelect(item.id)"
-            >
+            <button type="button" class="text-left text-sm font-semibold text-ink hover:text-ink dark:hover:text-ink" @click="handleSelect(item.id)">
               {{ item.title }}
             </button>
             <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
@@ -127,8 +123,8 @@ const handlePageChange = (page: number) => {
             class="h-8 rounded-[0.55rem] border px-3 text-xs font-semibold transition"
             :class="
               pageIndex === currentPage
-                ? 'border-[color:var(--line-strong)] bg-white text-ink'
-                : 'hover:bg-surface-soft border-line text-muted dark:border-line dark:text-subtle'
+                ? 'border-[color:var(--line-strong)] bg-surface text-ink'
+                : 'border-line text-muted hover:bg-surface-soft dark:border-line dark:text-subtle'
             "
             :disabled="isLoading"
             @click="handlePageChange(pageIndex)"

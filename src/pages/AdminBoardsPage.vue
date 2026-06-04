@@ -450,7 +450,7 @@ onBeforeUnmount(() => {
 
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
           <section class="ui-panel p-5">
-            <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+            <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
               <div>
                 <h2 class="bbs-row-title text-lg">게시판 목록</h2>
                 <p class="mt-1 text-sm text-muted">필터와 검색을 적용한 결과만 좌측 큐에 표시합니다.</p>
@@ -488,7 +488,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
               불러오는 중...
             </div>
 
@@ -498,11 +498,11 @@ onBeforeUnmount(() => {
                 :key="item.id"
                 type="button"
                 class="ui-list-row text-left"
-                :class="[item.id === selectedBoardId ? '/80 border-[color:var(--line-strong)] bg-white/95 shadow-sm' : '']"
+                :class="[item.id === selectedBoardId ? 'border-[color:var(--line-strong)] bg-surface shadow-sm' : '']"
                 @click="selectBoard(item.id)"
               >
                 <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_auto] md:items-start">
-                  <div class="bg-surface-soft h-14 overflow-hidden rounded-2xl">
+                  <div class="h-14 overflow-hidden rounded-ui bg-surface-soft">
                     <FileImage
                       v-if="item.boardImage"
                       :file="item.boardImage"
@@ -557,7 +557,7 @@ onBeforeUnmount(() => {
 
           <div class="flex flex-col gap-6">
             <section class="ui-panel p-5">
-              <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+              <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
                 <div>
                   <p class="ui-eyebrow">Create</p>
                   <h2 class="bbs-row-title mt-1 text-lg">새 게시판 생성</h2>
@@ -589,13 +589,13 @@ onBeforeUnmount(() => {
                   <textarea v-model="createForm.description" rows="3" class="ui-textarea" placeholder="게시판 소개를 입력하세요"></textarea>
                 </label>
 
-                <div class="bg-surface-soft/70 rounded-2xl border border-dashed border-line p-4 dark:border-line">
+                <div class="rounded-ui border border-dashed border-line bg-surface-soft/70 p-4 dark:border-line">
                   <div class="flex items-center justify-between text-sm font-semibold text-muted">
                     대표 이미지(선택)
                     <span class="text-xs text-subtle">생성 후 업로드</span>
                   </div>
                   <div class="mt-3 flex flex-col gap-3">
-                    <div class="bg-surface-soft overflow-hidden rounded-2xl">
+                    <div class="overflow-hidden rounded-ui bg-surface-soft">
                       <img v-if="createPreviewUrl" :src="createPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
                       <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">선택된 이미지가 없습니다.</div>
                     </div>
@@ -628,7 +628,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div
                   v-if="createSuccess"
-                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="rounded-ui border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
                 >
                   {{ createSuccess }}
                 </div>
@@ -642,7 +642,7 @@ onBeforeUnmount(() => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+              <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
                 <div>
                   <p class="ui-eyebrow">Edit</p>
                   <h2 class="bbs-row-title mt-1 text-lg">선택 게시판 수정</h2>
@@ -677,13 +677,13 @@ onBeforeUnmount(() => {
                   <textarea v-model="editForm.description" rows="3" class="ui-textarea"></textarea>
                 </label>
 
-                <div class="bg-surface-soft/70 rounded-2xl border border-dashed border-line p-4 dark:border-line">
+                <div class="rounded-ui border border-dashed border-line bg-surface-soft/70 p-4 dark:border-line">
                   <div class="flex items-center justify-between text-sm font-semibold text-muted">
                     대표 이미지
                     <span class="text-xs text-subtle">{{ selectedBoard.boardImage ? '설정됨' : '없음' }}</span>
                   </div>
                   <div class="mt-3 grid gap-3">
-                    <div class="bg-surface-soft overflow-hidden rounded-2xl">
+                    <div class="overflow-hidden rounded-ui bg-surface-soft">
                       <img v-if="editPreviewUrl" :src="editPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
                       <FileImage
                         v-else-if="selectedBoard?.boardImage"
@@ -739,7 +739,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div
                   v-if="editSuccess"
-                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="rounded-ui border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
                 >
                   {{ editSuccess }}
                 </div>
@@ -748,7 +748,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div
                   v-if="imageSuccess"
-                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="rounded-ui border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
                 >
                   {{ imageSuccess }}
                 </div>

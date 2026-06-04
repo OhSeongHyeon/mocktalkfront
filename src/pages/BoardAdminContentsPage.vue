@@ -291,7 +291,7 @@ onMounted(async () => {
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
               불러오는 중...
             </div>
 
@@ -300,7 +300,7 @@ onMounted(async () => {
                 <div
                   v-for="article in articles"
                   :key="article.id"
-                  class="rounded-2xl border border-line px-4 py-3 text-left transition dark:border-line"
+                  class="rounded-ui border border-line px-4 py-3 text-left transition dark:border-line"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -326,7 +326,7 @@ onMounted(async () => {
                       </span>
                       <span
                         v-if="article.deletedAt"
-                        class="bg-surface-soft bg-surface-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
+                        class="inline-flex items-center rounded-full bg-surface-2 bg-surface-soft px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
                       >
                         삭제됨
                       </span>
@@ -357,7 +357,7 @@ onMounted(async () => {
                 <div
                   v-for="comment in comments"
                   :key="comment.id"
-                  class="rounded-2xl border border-line px-4 py-3 text-left transition dark:border-line"
+                  class="rounded-ui border border-line px-4 py-3 text-left transition dark:border-line"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -378,7 +378,7 @@ onMounted(async () => {
                       </span>
                       <span
                         v-if="comment.deletedAt"
-                        class="bg-surface-soft bg-surface-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
+                        class="inline-flex items-center rounded-full bg-surface-2 bg-surface-soft px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
                       >
                         삭제됨
                       </span>

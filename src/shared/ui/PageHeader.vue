@@ -16,7 +16,8 @@ const slots = useSlots();
   <div class="bbs-box">
     <div class="bbs-toolbar">
       <div class="min-w-0">
-        <h1 class="bbs-toolbar-title">{{ title }}</h1>
+        <p v-if="eyebrow" class="ui-eyebrow">{{ eyebrow }}</p>
+        <h1 class="bbs-toolbar-title" :class="eyebrow ? 'mt-1' : ''">{{ title }}</h1>
         <p v-if="description" class="ui-caption mt-0.5">{{ description }}</p>
       </div>
       <div v-if="slots.actions" class="flex flex-wrap items-center gap-1.5">

@@ -1035,44 +1035,33 @@ onUnmounted(() => {
         </div>
 
         <div v-else class="mt-6 space-y-6">
-          <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <article class="ui-panel overflow-hidden">
-              <div class="border-b border-line px-5 py-5 sm:px-6">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span v-if="article?.notice" class="ui-badge ui-badge-warning">공지</span>
-                  <span v-if="articleCategoryLabel" class="ui-badge ui-badge-success">{{ articleCategoryLabel }}</span>
-                  <span class="ui-badge ui-badge-muted">{{ articleVisibilityLabel }}</span>
-                  <span class="ui-badge ui-badge-muted">댓글 {{ article?.commentCount ?? 0 }}</span>
-                </div>
-                <h1 class="ui-heading-page mt-3 text-2xl sm:text-[2rem]">
-                  {{ article?.title ?? '' }}
-                </h1>
-                <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
-                  <span>{{ article?.authorName ?? '작성자' }}</span>
-                  <span>조회 {{ article?.hit ?? 0 }}</span>
-                  <span>{{ article?.createdAt ? formatDateTime(article.createdAt) : '' }}</span>
-                  <span v-if="article?.updatedAt">수정 {{ formatDateTime(article.updatedAt) }}</span>
-                </div>
+          <article class="ui-panel overflow-hidden">
+            <div class="border-b border-line px-5 py-5 sm:px-6">
+              <div class="flex flex-wrap items-center gap-2">
+                <span v-if="article?.notice" class="ui-badge ui-badge-warning">공지</span>
+                <span v-if="articleCategoryLabel" class="ui-badge ui-badge-success">{{ articleCategoryLabel }}</span>
+                <span class="ui-badge ui-badge-muted">{{ articleVisibilityLabel }}</span>
+                <span class="ui-badge ui-badge-muted">댓글 {{ article?.commentCount ?? 0 }}</span>
               </div>
-
-              <div class="px-5 py-5 sm:px-6">
-                <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
-                <div v-else class="text-sm text-muted">본문이 없습니다.</div>
+              <h1 class="ui-heading-page mt-3">
+                {{ article?.title ?? '' }}
+              </h1>
+              <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
+                <span>{{ article?.authorName ?? '작성자' }}</span>
+                <span>조회 {{ article?.hit ?? 0 }}</span>
+                <span>{{ article?.createdAt ? formatDateTime(article.createdAt) : '' }}</span>
+                <span v-if="article?.updatedAt">수정 {{ formatDateTime(article.updatedAt) }}</span>
               </div>
-            </article>
+            </div>
 
-            <aside class="space-y-4">
-              <section class="ui-panel p-4">
-                <p class="ui-eyebrow">Quick Actions</p>
-                <div class="mt-3 flex flex-col gap-2">
-                  <button type="button" class="ui-button-ghost h-10 px-4 text-sm" @click="goBoard">게시판으로</button>
-                  <button v-if="isAuthor" type="button" class="ui-button-primary h-10 px-4 text-sm" @click="goEdit">수정</button>
-                  <button v-if="isAuthor" type="button" class="ui-button-danger h-10 px-4 text-sm" @click="openDeleteModal">삭제</button>
-                </div>
-              </section>
+            <div class="px-5 py-5 sm:px-6">
+              <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
+              <div v-else class="text-sm text-muted">본문이 없습니다.</div>
+            </div>
 
-              <section class="ui-panel p-4">
-                <div class="flex items-center justify-between gap-2">
+            <div class="space-y-0 border-t border-line">
+              <section class="border-b border-line px-5 py-5 sm:px-6">
+                <div class="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p class="ui-eyebrow">Reaction</p>
                     <h2 class="ui-heading-section mt-1">반응과 보관</h2>
@@ -1081,7 +1070,7 @@ onUnmounted(() => {
                     {{ isAuthenticated ? '사용 가능' : '로그인 필요' }}
                   </span>
                 </div>
-                <div class="mt-3 grid gap-2">
+                <div class="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     class="h-10 px-4 text-sm"
@@ -1113,31 +1102,32 @@ onUnmounted(() => {
                 <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-muted">로그인 후 반응과 북마크를 사용할 수 있습니다.</p>
               </section>
 
-              <section class="ui-panel p-4">
+              <section class="px-5 py-5 sm:px-6">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p class="ui-eyebrow">Attachment</p>
                     <h2 class="ui-heading-section mt-1">첨부파일 {{ attachments.length }}개</h2>
                   </div>
-                  <button
-                    type="button"
-                    class="ui-button-ghost h-10 px-4 text-xs"
-                    :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
-                    :aria-controls="attachmentSectionId"
-                    @click="isAttachmentExpanded = !isAttachmentExpanded"
-                  >
-                    {{ isAttachmentExpanded ? '접기' : '펼치기' }}
-                  </button>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      class="ui-button-ghost h-10 px-4 text-xs"
+                      :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
+                      :aria-controls="attachmentSectionId"
+                      @click="isAttachmentExpanded = !isAttachmentExpanded"
+                    >
+                      {{ isAttachmentExpanded ? '접기' : '펼치기' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="ui-button-primary h-10 px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="attachments.length === 0 || isDownloadingAllAttachments"
+                      @click="downloadAllAttachments"
+                    >
+                      {{ isDownloadingAllAttachments ? '다운로드 중...' : '전체 다운로드' }}
+                    </button>
+                  </div>
                 </div>
-
-                <button
-                  type="button"
-                  class="ui-button-primary mt-3 h-10 w-full px-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                  :disabled="attachments.length === 0 || isDownloadingAllAttachments"
-                  @click="downloadAllAttachments"
-                >
-                  {{ isDownloadingAllAttachments ? '다운로드 중...' : '전체 다운로드' }}
-                </button>
 
                 <div v-show="isAttachmentExpanded" :id="attachmentSectionId" class="mt-3">
                   <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">첨부파일이 없습니다.</div>
@@ -1155,8 +1145,8 @@ onUnmounted(() => {
                   </div>
                 </div>
               </section>
-            </aside>
-          </div>
+            </div>
+          </article>
 
           <section class="ui-panel overflow-hidden">
             <div class="border-b border-line px-5 py-4 sm:px-6">
@@ -1239,16 +1229,7 @@ onUnmounted(() => {
             </div>
           </section>
 
-          <section class="space-y-3">
-            <div class="flex items-center justify-between gap-3">
-              <div>
-                <p class="ui-eyebrow">Related Feed</p>
-                <h2 class="ui-heading-section mt-1">같은 게시판의 다른 글</h2>
-              </div>
-              <span class="ui-badge ui-badge-muted">{{ article?.board?.boardName ?? '커뮤니티' }}</span>
-            </div>
-            <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
-          </section>
+          <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
         </div>
 
         <div v-if="isLoading" class="mt-6 text-sm text-muted">게시글을 불러오는 중입니다...</div>

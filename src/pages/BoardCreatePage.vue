@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
 
             <div class="mt-5 grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
               <div class="ui-sub-panel aspect-[4/3] overflow-hidden p-2">
-                <div class="bg-surface-soft h-full w-full overflow-hidden rounded-[var(--radius-md)]">
+                <div class="h-full w-full overflow-hidden rounded-[var(--radius-md)] bg-surface-soft">
                   <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-full w-full object-cover" />
                   <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-subtle">
                     <AppIcon :icon="LayoutGrid" :size="24" icon-class="text-muted" />
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
                   id="board-image"
                   type="file"
                   accept="image/*"
-                  class="file:bg-surface-1 hover:file:bg-surface-soft block w-full text-sm text-muted file:mr-3 file:rounded-[var(--radius-sm)] file:border file:border-line file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink"
+                  class="block w-full text-sm text-muted file:mr-3 file:rounded-[var(--radius-sm)] file:border file:border-line file:bg-surface-1 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink hover:file:bg-surface-soft"
                   aria-label="대표 이미지 업로드"
                   @change="handleImageChange"
                 />
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
           </p>
           <p
             v-if="successMessage"
-            class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+            class="rounded-ui border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
           >
             {{ successMessage }}
           </p>

@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
           </PageHeader>
 
           <section class="ui-panel p-6">
-            <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+            <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
               <h2 class="bbs-row-title text-lg">기본 정보</h2>
               <span class="ui-badge ui-badge-muted">게시판 ID {{ board.id }}</span>
             </div>
@@ -289,7 +289,7 @@ onBeforeUnmount(() => {
               </div>
               <div
                 v-if="formSuccess"
-                class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 md:col-span-2 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                class="rounded-ui border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 md:col-span-2 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
               >
                 {{ formSuccess }}
               </div>
@@ -303,14 +303,14 @@ onBeforeUnmount(() => {
           </section>
 
           <section class="ui-panel p-6">
-            <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+            <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
               <h2 class="bbs-row-title text-lg">대표 이미지</h2>
               <span class="ui-badge ui-badge-muted">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
             </div>
 
             <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]">
-              <div class="bg-surface-soft/60 rounded-3xl border border-dashed border-line p-4 dark:border-line">
-                <div class="bg-surface-soft relative overflow-hidden rounded-2xl">
+              <div class="ui-card border-dashed">
+                <div class="relative overflow-hidden rounded-ui bg-surface-soft">
                   <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
                   <FileImage
                     v-else-if="board?.boardImage"
@@ -367,7 +367,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div
                   v-if="imageSuccess"
-                  class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  class="rounded-ui border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200"
                 >
                   {{ imageSuccess }}
                 </div>

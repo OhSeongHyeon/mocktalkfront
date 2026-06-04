@@ -323,7 +323,7 @@ watch(
             <div v-else class="mt-3 space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
                 <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
-                  <div class="bg-surface-soft h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-line">
+                  <div class="h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-line bg-surface-soft">
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -443,7 +443,7 @@ watch(
             <div v-if="selectedType === 'BOARD'" class="space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
                 <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
-                  <div class="bg-surface-soft h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-line">
+                  <div class="h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-line bg-surface-soft">
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"

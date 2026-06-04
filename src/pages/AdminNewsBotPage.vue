@@ -238,8 +238,8 @@ const resolveFieldLabelClass = (fieldName: RequiredFieldName) => (fieldErrors[fi
 
 const resolveFieldInputClass = (fieldName: RequiredFieldName) =>
   fieldErrors[fieldName]
-    ? 'rounded-2xl border border-rose-400 bg-rose-50/70 px-4 py-3 text-sm text-ink shadow-sm outline-none transition focus:border-rose-500 dark:border-rose-500 dark:bg-rose-950/20 '
-    : 'rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm outline-none transition focus:border-[color:var(--accent-strong)] ';
+    ? 'rounded-ui border border-rose-400 bg-rose-50/70 px-4 py-3 text-sm text-ink shadow-sm outline-none transition focus:border-rose-500 dark:border-rose-500 dark:bg-rose-950/20 '
+    : 'rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm outline-none transition focus:border-[color:var(--accent-strong)] ';
 
 const focusField = async (fieldName: RequiredFieldName) => {
   await nextTick();
@@ -513,7 +513,7 @@ watch(
           </div>
           <RouterLink
             to="/admin"
-            class="hover:bg-surface-soft inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
+            class="inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
           >
             백오피스 홈
           </RouterLink>
@@ -546,7 +546,7 @@ watch(
             </div>
 
             <div v-if="isLoading" class="mt-6 flex items-center gap-2 text-sm text-muted">
-              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
               불러오는 중...
             </div>
 
@@ -555,8 +555,8 @@ watch(
                 v-for="job in jobs"
                 :key="job.jobId"
                 type="button"
-                class="hover:bg-surface-soft /60 rounded-3xl border p-4 text-left transition hover:border-line"
-                :class="job.jobId === selectedJobId ? 'bg-surface-soft /70 border-line shadow-sm' : 'border-line'"
+                class="ui-card text-left transition hover:border-line hover:bg-surface-2"
+                :class="job.jobId === selectedJobId ? 'border-line bg-surface-soft/70 shadow-sm' : 'border-line'"
                 @click="selectJob(job)"
               >
                 <div class="flex flex-wrap items-start justify-between gap-3">
@@ -571,7 +571,7 @@ watch(
                         :class="
                           job.enabled
                             ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200'
-                            : 'bg-surface-soft bg-surface-2 text-muted'
+                            : 'bg-surface-2 bg-surface-soft text-muted'
                         "
                       >
                         {{ job.enabled ? 'ON' : 'OFF' }}
@@ -581,7 +581,7 @@ watch(
                       {{ job.sourceType }} · /b/{{ job.targetBoardSlug }} · {{ job.collectIntervalMinutes }}분마다 · 최대 {{ job.fetchLimit }}건
                     </p>
                     <p class="mt-1 text-xs text-subtle">다음 실행 {{ formatDateTime(job.nextRunAt) }}</p>
-                    <p v-if="job.lastErrorMessage" class="mt-2 text-xs text-rose-500 dark:text-rose-300">최근 오류: {{ job.lastErrorMessage }}</p>
+                    <p v-if="job.lastErrorMessage" class="mt-2 text-xs text-danger">최근 오류: {{ job.lastErrorMessage }}</p>
                   </div>
                   <div class="flex flex-wrap items-center gap-2">
                     <button
@@ -593,7 +593,7 @@ watch(
                     </button>
                     <button
                       type="button"
-                      class="dark:bg-surface-soft rounded-full bg-[color:var(--accent-strong)] px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-60 dark:text-ink"
+                      class="rounded-full bg-[color:var(--accent-strong)] px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-60 dark:bg-surface-soft dark:text-ink"
                       :disabled="runningJobId === job.jobId"
                       @click.stop="runNow(job)"
                     >
@@ -620,7 +620,7 @@ watch(
               </div>
 
               <form class="mt-6 space-y-4" @submit.prevent="submitForm">
-                <div class="bg-surface-soft bg-surface-soft/70 rounded-3xl border border-line p-4 dark:border-line">
+                <div class="ui-card">
                   <div>
                     <h3 class="text-sm font-semibold text-ink">공통 정보</h3>
                     <p class="mt-1 text-xs leading-6 text-muted">이 잡이 어떤 목적의 잡인지 먼저 정하고, 어떤 외부 소스를 쓸지 고릅니다.</p>
@@ -648,7 +648,7 @@ watch(
                       <select
                         v-model="form.sourceType"
                         name="sourceType"
-                        class="rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
+                        class="rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
                       >
                         <option v-for="option in sourceTypeOptions" :key="option.value" :value="option.value">
                           {{ option.label }}
@@ -657,14 +657,14 @@ watch(
                     </label>
                   </div>
                   <div
-                    class="bg-surface-soft mt-3 rounded-2xl border border-line bg-white/80 px-4 py-3 text-xs leading-6 text-muted dark:border-line dark:text-subtle"
+                    class="mt-3 rounded-ui border border-line bg-surface-soft bg-surface/80 px-4 py-3 text-xs leading-6 text-muted dark:border-line dark:text-subtle"
                   >
                     <p>{{ selectedSourceOption?.description }}</p>
                     <p class="mt-1">{{ selectedSourcePolicy.summary }}</p>
                   </div>
                 </div>
 
-                <div class="bg-surface-soft bg-surface-soft/70 rounded-3xl border border-line p-4 dark:border-line">
+                <div class="ui-card">
                   <div>
                     <h3 class="text-sm font-semibold text-ink">외부 소스 조건</h3>
                     <p class="mt-1 text-xs leading-6 text-muted">
@@ -678,7 +678,7 @@ watch(
                       <select
                         v-model="form.hackerNewsStoryType"
                         name="hackerNewsStoryType"
-                        class="rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
+                        class="rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
                       >
                         <option v-for="option in hackerNewsStoryTypeOptions" :key="option.value" :value="option.value">
                           {{ option.label }}
@@ -697,10 +697,10 @@ watch(
                         <label
                           v-for="option in devSourceModeOptions"
                           :key="option.value"
-                          class="flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 text-sm transition"
+                          class="flex cursor-pointer items-start gap-3 rounded-ui border px-4 py-3 text-sm transition"
                           :class="
                             form.devSourceMode === option.value
-                              ? 'border-[color:var(--line-strong)] bg-white text-ink shadow-sm dark:border-line'
+                              ? 'border-[color:var(--line-strong)] bg-surface text-ink shadow-sm dark:border-line'
                               : 'border-line text-muted dark:text-subtle'
                           "
                         >
@@ -802,7 +802,7 @@ watch(
                   </div>
                 </div>
 
-                <div class="bg-surface-soft bg-surface-soft/70 rounded-3xl border border-line p-4 dark:border-line">
+                <div class="ui-card">
                   <div>
                     <h3 class="text-sm font-semibold text-ink">내부 적재 정보</h3>
                     <p class="mt-1 text-xs leading-6 text-muted">
@@ -849,7 +849,7 @@ watch(
                     </label>
                     <p
                       v-else
-                      class="rounded-2xl border border-dashed border-line px-4 py-3 text-xs leading-6 text-muted dark:border-line dark:text-subtle"
+                      class="rounded-ui border border-dashed border-line px-4 py-3 text-xs leading-6 text-muted dark:border-line dark:text-subtle"
                     >
                       게시판 자동 생성이 꺼져 있어 게시판 이름 입력은 숨겨집니다. 기존 게시판 slug로만 적재합니다.
                     </p>
@@ -860,14 +860,14 @@ watch(
                         name="targetCategoryName"
                         type="text"
                         maxlength="48"
-                        class="rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
+                        class="rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
                         placeholder="예: release"
                       />
                     </label>
                   </div>
                 </div>
 
-                <div class="bg-surface-soft bg-surface-soft/70 rounded-3xl border border-line p-4 dark:border-line">
+                <div class="ui-card">
                   <div>
                     <h3 class="text-sm font-semibold text-ink">실행 정책</h3>
                     <p class="mt-1 text-xs leading-6 text-muted">
@@ -883,7 +883,7 @@ watch(
                         type="number"
                         min="5"
                         max="10080"
-                        class="rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
+                        class="rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
                       />
                       <span class="text-xs font-normal text-subtle">예: 180=3시간, 1440=24시간</span>
                     </label>
@@ -895,7 +895,7 @@ watch(
                         type="number"
                         min="1"
                         max="100"
-                        class="rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
+                        class="rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
                       />
                       <span class="text-xs font-normal text-subtle">한 번 실행할 때 가져올 최대 글 수입니다.</span>
                     </label>
@@ -912,7 +912,7 @@ watch(
                           class="rounded-full border px-3 py-1.5 text-xs font-semibold transition"
                           :class="
                             form.collectIntervalMinutes === preset
-                              ? 'border-[color:var(--line-strong)] bg-white text-ink shadow-sm dark:border-line'
+                              ? 'border-[color:var(--line-strong)] bg-surface text-ink shadow-sm dark:border-line'
                               : 'border-line text-muted hover:border-line dark:text-subtle'
                           "
                           @click="form.collectIntervalMinutes = preset"
@@ -931,7 +931,7 @@ watch(
                           class="rounded-full border px-3 py-1.5 text-xs font-semibold transition"
                           :class="
                             form.fetchLimit === preset
-                              ? 'border-[color:var(--line-strong)] bg-white text-ink shadow-sm dark:border-line'
+                              ? 'border-[color:var(--line-strong)] bg-surface text-ink shadow-sm dark:border-line'
                               : 'border-line text-muted hover:border-line dark:text-subtle'
                           "
                           @click="form.fetchLimit = preset"
@@ -942,7 +942,7 @@ watch(
                     </div>
                   </div>
 
-                  <div class="bg-surface-soft mt-4 rounded-2xl border border-line bg-white/80 p-4 dark:border-line">
+                  <div class="ui-card mt-4">
                     <button
                       type="button"
                       data-testid="news-bot-advanced-toggle"
@@ -962,14 +962,14 @@ watch(
                         name="timezone"
                         type="text"
                         maxlength="64"
-                        class="rounded-2xl border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
+                        class="rounded-ui border border-line px-4 py-3 text-sm text-ink shadow-sm transition outline-none focus:border-[color:var(--accent-strong)]"
                         placeholder="예: Asia/Seoul"
                       />
                     </label>
                   </div>
                 </div>
 
-                <div class="bg-surface-soft bg-surface-soft/70 rounded-3xl border border-line p-4 dark:border-line">
+                <div class="ui-card">
                   <div>
                     <h3 class="text-sm font-semibold text-ink">자동 생성 정책</h3>
                     <p class="mt-1 text-xs leading-6 text-muted">
@@ -1001,7 +1001,7 @@ watch(
                 <div class="flex flex-wrap items-center gap-3">
                   <button
                     type="submit"
-                    class="dark:bg-surface-soft rounded-full bg-[color:var(--accent-strong)] px-6 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60 dark:text-ink"
+                    class="rounded-full bg-[color:var(--accent-strong)] px-6 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60 dark:bg-surface-soft dark:text-ink"
                     :disabled="isSaving"
                   >
                     {{ isSaving ? '저장 중...' : isEditMode ? '잡 수정' : '잡 생성' }}
@@ -1020,19 +1020,19 @@ watch(
             <section v-if="lastRunResult" class="ui-panel p-5">
               <h2 class="text-lg font-semibold text-ink">최근 즉시 실행 결과</h2>
               <div class="mt-4 grid gap-3 md:grid-cols-2">
-                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <div class="ui-stat-card">
                   <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실행 시각</p>
                   <p class="mt-2 text-sm font-semibold text-ink">{{ formatDateTime(lastRunResult.executedAt) }}</p>
                 </div>
-                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <div class="ui-stat-card">
                   <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">상태</p>
                   <p class="mt-2 text-sm font-semibold text-ink">{{ lastRunResult.status }}</p>
                 </div>
-                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <div class="ui-stat-card">
                   <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">가져온 항목</p>
                   <p class="mt-2 text-lg font-semibold text-ink">{{ lastRunResult.fetchedCount }}</p>
                 </div>
-                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <div class="ui-stat-card">
                   <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성/갱신/스킵</p>
                   <p class="mt-2 text-sm font-semibold text-ink">
                     {{ lastRunResult.createdCount }} / {{ lastRunResult.updatedCount }} / {{ lastRunResult.skippedCount }}

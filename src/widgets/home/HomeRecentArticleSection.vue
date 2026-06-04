@@ -13,6 +13,7 @@ import {
   type ArticleTrendingItemResponse,
 } from '../../entities/article';
 import { ApiError } from '../../shared/lib/http/api';
+import SectionHeader from '../../shared/ui/SectionHeader.vue';
 
 const RECENT_ARTICLE_BATCH_SIZE = 15;
 const TRENDING_ARTICLE_LIMIT = 9;
@@ -150,45 +151,46 @@ onMounted(() => {
 
 <template>
   <section class="bbs-box">
-    <div class="bbs-toolbar">
-      <h2 class="bbs-toolbar-title">전체글</h2>
-      <div class="bbs-tabs border-0" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          data-testid="home-article-tab-recent"
-          class="bbs-tab"
-          :class="activeTab === 'recent' ? 'bbs-tab-active' : ''"
-          @click="changeTab('recent')"
-        >
-          최신
-        </button>
-        <button
-          type="button"
-          role="tab"
-          data-testid="home-article-tab-trending"
-          class="bbs-tab"
-          :class="activeTab === 'trending' ? 'bbs-tab-active' : ''"
-          @click="changeTab('trending')"
-        >
-          트렌딩
-        </button>
-        <button
-          type="button"
-          role="tab"
-          data-testid="home-article-tab-recommended"
-          class="bbs-tab"
-          :class="activeTab === 'recommended' ? 'bbs-tab-active' : ''"
-          @click="changeTab('recommended')"
-        >
-          추천
-        </button>
-      </div>
-    </div>
+    <SectionHeader title="전체글">
+      <template #tabs>
+        <div role="tablist" class="flex flex-wrap">
+          <button
+            type="button"
+            role="tab"
+            data-testid="home-article-tab-recent"
+            class="bbs-tab"
+            :class="activeTab === 'recent' ? 'bbs-tab-active' : ''"
+            @click="changeTab('recent')"
+          >
+            최신
+          </button>
+          <button
+            type="button"
+            role="tab"
+            data-testid="home-article-tab-trending"
+            class="bbs-tab"
+            :class="activeTab === 'trending' ? 'bbs-tab-active' : ''"
+            @click="changeTab('trending')"
+          >
+            트렌딩
+          </button>
+          <button
+            type="button"
+            role="tab"
+            data-testid="home-article-tab-recommended"
+            class="bbs-tab"
+            :class="activeTab === 'recommended' ? 'bbs-tab-active' : ''"
+            @click="changeTab('recommended')"
+          >
+            추천
+          </button>
+        </div>
+      </template>
+    </SectionHeader>
 
     <template v-if="activeTab === 'recent'">
-      <div v-if="listError" class="ui-state ui-state-danger m-3">{{ listError }}</div>
-      <div v-else-if="isInitialLoading" class="px-3 py-6 text-sm text-muted">불러오는 중...</div>
+      <div v-if="listError" class="ui-state ui-state-danger ui-section-message">{{ listError }}</div>
+      <div v-else-if="isInitialLoading" class="ui-section-loading">불러오는 중...</div>
       <template v-else-if="articles.length > 0">
         <div class="bbs-table-head bbs-cols-5">
           <span>제목</span>
@@ -198,7 +200,7 @@ onMounted(() => {
           <span class="text-center">추천</span>
         </div>
         <ArticleFeedCard v-for="article in articles" :key="article.id" :article="article" />
-        <div v-if="loadMoreError" class="ui-state ui-state-danger m-3">{{ loadMoreError }}</div>
+        <div v-if="loadMoreError" class="ui-state ui-state-danger ui-section-message">{{ loadMoreError }}</div>
         <div v-if="hasNextPage" class="border-t border-line px-3 py-2 text-center">
           <button
             type="button"
@@ -211,25 +213,25 @@ onMounted(() => {
           </button>
         </div>
       </template>
-      <div v-else class="ui-state ui-state-empty m-3">글이 없습니다.</div>
+      <div v-else class="ui-state ui-state-empty ui-section-message">글이 없습니다.</div>
     </template>
 
     <template v-else-if="activeTab === 'trending'">
-      <div v-if="trendingError" class="ui-state ui-state-danger m-3">{{ trendingError }}</div>
-      <div v-else-if="isTrendingLoading" class="px-3 py-6 text-sm text-muted">불러오는 중...</div>
+      <div v-if="trendingError" class="ui-state ui-state-danger ui-section-message">{{ trendingError }}</div>
+      <div v-else-if="isTrendingLoading" class="ui-section-loading">불러오는 중...</div>
       <template v-else-if="trendingArticles.length > 0">
         <ArticleTrendingCard v-for="article in trendingArticles" :key="article.articleId" :article="article" />
       </template>
-      <div v-else class="ui-state ui-state-empty m-3">트렌딩 글이 없습니다.</div>
+      <div v-else class="ui-state ui-state-empty ui-section-message">트렌딩 글이 없습니다.</div>
     </template>
 
     <template v-else>
-      <div v-if="recommendedError" class="ui-state ui-state-danger m-3">{{ recommendedError }}</div>
-      <div v-else-if="isRecommendedLoading" class="px-3 py-6 text-sm text-muted">불러오는 중...</div>
+      <div v-if="recommendedError" class="ui-state ui-state-danger ui-section-message">{{ recommendedError }}</div>
+      <div v-else-if="isRecommendedLoading" class="ui-section-loading">불러오는 중...</div>
       <template v-else-if="recommendedArticles.length > 0">
         <ArticleRecommendedCard v-for="article in recommendedArticles" :key="article.articleId" :article="article" />
       </template>
-      <div v-else class="ui-state ui-state-empty m-3">추천 글이 없습니다.</div>
+      <div v-else class="ui-state ui-state-empty ui-section-message">추천 글이 없습니다.</div>
     </template>
   </section>
 </template>

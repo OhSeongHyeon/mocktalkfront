@@ -241,7 +241,7 @@ watch(
         <div v-if="isAuthenticated" class="flex items-center gap-2 text-[11px]">
           <button type="button" class="text-xs font-semibold text-link hover:underline" @click="toggleReply">답글</button>
           <button v-if="isOwner" type="button" class="text-xs font-semibold text-muted hover:text-ink" @click="toggleEdit">수정</button>
-          <button v-if="isOwner" type="button" class="text-xs font-semibold text-rose-500 hover:text-rose-600" @click="remove">삭제</button>
+          <button v-if="isOwner" type="button" class="text-xs font-semibold text-danger hover:opacity-80" @click="remove">삭제</button>
         </div>
       </div>
     </div>

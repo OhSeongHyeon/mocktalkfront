@@ -112,7 +112,7 @@ const handleImport = async () => {
           </div>
           <RouterLink
             to="/admin"
-            class="hover:bg-surface-soft inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
+            class="inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
           >
             백오피스 홈
           </RouterLink>
@@ -133,7 +133,7 @@ const handleImport = async () => {
             </div>
             <button
               type="button"
-              class="dark:bg-surface-soft rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:text-ink dark:hover:bg-white"
+              class="rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-soft dark:text-ink dark:hover:bg-surface-1"
               :disabled="isRefreshLoading || isImportLoading"
               @click="handleRefresh"
             >
@@ -142,19 +142,19 @@ const handleImport = async () => {
           </div>
 
           <div v-if="refreshResult" class="mt-5 grid gap-3 md:grid-cols-4">
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실행 시각</p>
               <p class="mt-2 text-sm font-semibold text-ink">{{ formatDateTime(refreshResult.executedAt) }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.createdCount }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">갱신</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.updatedCount }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">스킵</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.skippedCount }}</p>
             </div>
@@ -169,7 +169,7 @@ const handleImport = async () => {
             </div>
             <button
               type="button"
-              class="hover:bg-surface-soft rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line disabled:cursor-not-allowed disabled:opacity-60"
+              class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="!selectedFile || isImportLoading"
               @click="resetFileSelection"
             >
@@ -178,7 +178,7 @@ const handleImport = async () => {
           </div>
 
           <div class="mt-5 space-y-5">
-            <div class="bg-surface-soft/80 inline-flex rounded-full border border-line p-1 dark:border-line">
+            <div class="inline-flex rounded-full border border-line bg-surface-soft/80 p-1 dark:border-line">
               <button
                 type="button"
                 class="ui-chip-button px-4 py-2 text-sm"
@@ -206,7 +206,7 @@ const handleImport = async () => {
             </div>
 
             <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+              <div class="ui-card">
                 <h3 class="text-sm font-semibold text-ink">업로드 가이드</h3>
                 <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                   <li>
@@ -227,12 +227,12 @@ const handleImport = async () => {
                 </ul>
               </div>
 
-              <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+              <div class="ui-card">
                 <p class="text-sm font-semibold text-ink">선택 파일</p>
                 <p class="mt-2 text-sm text-muted">{{ selectedFileName }}</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                   <label
-                    class="hover:bg-surface-soft inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
+                    class="inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
                   >
                     CSV / XLSX 선택
                     <input :key="fileInputKey" type="file" class="hidden" accept=".csv,.xlsx" @change="onFileChange" />
@@ -263,32 +263,29 @@ const handleImport = async () => {
           </div>
 
           <div v-if="importResult" class="mt-6 grid gap-3 md:grid-cols-5">
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">전체 row</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.totalCount }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.createdCount }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">갱신</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.updatedCount }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">스킵</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.skippedCount }}</p>
             </div>
-            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+            <div class="ui-stat-card">
               <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실패</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.failedCount }}</p>
             </div>
           </div>
 
-          <div
-            v-if="importResult?.failures.length"
-            class="mt-5 rounded-3xl border border-rose-200 bg-rose-50/70 p-4 dark:border-rose-900/60 dark:bg-rose-950/20"
-          >
+          <div v-if="importResult?.failures.length" class="ui-card mt-5 border-rose-200 bg-rose-50/70 dark:border-rose-900/60 dark:bg-rose-950/20">
             <h3 class="text-sm font-semibold text-rose-900 dark:text-rose-100">실패 row</h3>
             <ul class="mt-3 space-y-2 text-sm leading-6 text-rose-700 dark:text-rose-200">
               <li v-for="failure in importResult.failures.slice(0, 20)" :key="`${failure.rowNumber}-${failure.message}`">

@@ -205,12 +205,12 @@ onMounted(async () => {
           </div>
 
           <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-            <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+            <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
             불러오는 중...
           </div>
 
           <div v-else class="mt-4 flex flex-col gap-3">
-            <div v-for="user in users" :key="user.id" class="rounded-2xl border border-line px-4 py-3 text-left transition dark:border-line">
+            <div v-for="user in users" :key="user.id" class="rounded-ui border border-line px-4 py-3 text-left transition dark:border-line">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div class="flex items-center gap-2 text-sm font-semibold text-ink">
@@ -289,7 +289,7 @@ onMounted(async () => {
         </button>
         <button
           type="button"
-          class="dark:bg-surface-soft rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:text-ink"
+          class="rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-soft dark:text-ink"
           :disabled="isSubmitting"
           @click="submitRoleChange"
         >

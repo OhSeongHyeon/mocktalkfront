@@ -161,7 +161,7 @@ const onYoutubeSizeChange = (event: Event) => {
     <div
       v-if="isMobileMoreOpen"
       id="mobile-editor-more"
-      class="bg-surface-soft dark:border-line/80 /60 space-y-1 rounded-2xl border border-line bg-white/75 p-2 shadow-sm"
+      class="dark:border-line/80 space-y-1 rounded-ui border border-line bg-surface-soft bg-surface/75 p-2 shadow-sm"
     >
       <div class="grid grid-cols-3 gap-2">
         <button
@@ -219,11 +219,7 @@ const onYoutubeSizeChange = (event: Event) => {
         <button type="button" :class="buttonClass(editor?.isActive('superscript'))" @click="actions.toggleSuperscript">위첨자</button>
       </div>
 
-      <div
-        v-if="mobileAccordionKey === 'font'"
-        id="mobile-accordion-font"
-        class="bg-surface-soft bg-surface-soft/80 dark:border-line/80 /60 space-y-2 rounded-2xl border border-line p-2"
-      >
+      <div v-if="mobileAccordionKey === 'font'" id="mobile-accordion-font" class="dark:border-line/80 ui-card space-y-2 p-2">
         <div class="flex flex-wrap items-center gap-2">
           <select :value="fontFamily" :class="selectClass" aria-label="폰트 패밀리" @change="onFontFamilyChange">
             <option v-for="option in fontFamilyOptions" :key="option.value" :value="option.value">
@@ -273,11 +269,7 @@ const onYoutubeSizeChange = (event: Event) => {
         <button type="button" :class="buttonClass()" @click="actions.setHorizontalRule">구분선</button>
       </div>
 
-      <div
-        v-if="mobileAccordionKey === 'insert'"
-        id="mobile-accordion-insert"
-        class="bg-surface-soft bg-surface-soft/80 dark:border-line/80 /60 space-y-2 rounded-2xl border border-line p-2"
-      >
+      <div v-if="mobileAccordionKey === 'insert'" id="mobile-accordion-insert" class="dark:border-line/80 ui-card space-y-2 p-2">
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" :class="buttonClass(editor?.isActive('codeBlock'))" @click="actions.toggleCodeBlock">코드블록</button>
           <select :value="codeLanguage" :class="selectClass" aria-label="코드 언어" @change="onCodeLanguageChange">
@@ -300,11 +292,7 @@ const onYoutubeSizeChange = (event: Event) => {
         </div>
       </div>
 
-      <div
-        v-if="mobileAccordionKey === 'table'"
-        id="mobile-accordion-table"
-        class="bg-surface-soft bg-surface-soft/80 dark:border-line/80 /60 space-y-2 rounded-2xl border border-line p-2"
-      >
+      <div v-if="mobileAccordionKey === 'table'" id="mobile-accordion-table" class="dark:border-line/80 ui-card space-y-2 p-2">
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" :class="buttonClass(editor?.isActive('table'))" @click="actions.insertTable">테이블 삽입</button>
         </div>

@@ -152,7 +152,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
             </select>
             <p v-if="isCategoryLoading" class="mt-1 text-xs text-muted">카테고리 목록을 불러오는 중입니다...</p>
             <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-muted">카테고리 목록을 조회할 수 없습니다.</p>
-            <p v-else-if="categoryErrorMessage" class="mt-1 text-xs text-rose-500">{{ categoryErrorMessage }}</p>
+            <p v-else-if="categoryErrorMessage" class="mt-1 text-xs text-danger">{{ categoryErrorMessage }}</p>
             <p v-else-if="categories.length === 0" class="mt-1 text-xs text-muted">
               등록된 카테고리가 없습니다.
               <span v-if="canManageCategories">커뮤니티 관리에서 카테고리를 등록해 주세요.</span>
@@ -190,7 +190,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
       <div class="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
-          class="hover:bg-surface-soft inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink transition hover:border-line dark:border-line"
+          class="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft dark:border-line"
           :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
           aria-controls="article-upsert-attachment-panel"
           @click="isAttachmentExpanded = !isAttachmentExpanded"
@@ -201,7 +201,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="hover:bg-surface-soft rounded-full border border-line px-4 py-1.5 text-xs font-semibold text-ink transition hover:border-line dark:border-line"
+            class="rounded-full border border-line px-4 py-1.5 text-xs font-semibold text-ink transition hover:border-line hover:bg-surface-soft dark:border-line"
             :disabled="isSubmitting || isAttachmentUploading"
             @click="openAttachmentPicker"
           >
@@ -215,8 +215,8 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         <p class="mt-1 text-xs font-medium text-amber-600 dark:text-amber-300">
           첨부파일 업로드 시 원본 파일을 저장하기 때문에 메타데이터가 보존됩니다. 민감정보에 유의하세요.
         </p>
-        <p v-if="isAttachmentUploading" class="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-300">첨부파일 업로드 중...</p>
-        <p v-if="attachmentErrorMessage" class="mt-2 text-xs font-semibold text-rose-500">{{ attachmentErrorMessage }}</p>
+        <p v-if="isAttachmentUploading" class="mt-2 text-xs font-semibold text-success">첨부파일 업로드 중...</p>
+        <p v-if="attachmentErrorMessage" class="mt-2 text-xs font-semibold text-danger">{{ attachmentErrorMessage }}</p>
         <div
           v-if="attachments.length === 0"
           class="mt-3 rounded-xl border border-dashed border-line px-4 py-4 text-sm text-muted dark:border-line dark:text-subtle"
@@ -258,12 +258,12 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
       </button>
       <button
         type="button"
-        class="rounded-full border border-line px-5 py-2 text-sm font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-white"
+        class="rounded-full border border-line px-5 py-2 text-sm font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
         @click="$emit('cancel')"
       >
         취소
       </button>
-      <span v-if="hasPermissionMessage" class="text-xs text-rose-500">
+      <span v-if="hasPermissionMessage" class="text-xs text-danger">
         {{ submitPermissionMessage }}
       </span>
     </div>

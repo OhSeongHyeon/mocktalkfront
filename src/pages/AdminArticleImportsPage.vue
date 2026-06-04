@@ -231,42 +231,36 @@ const resolveStatusBadgeClass = (executable: boolean) => {
           </div>
 
           <div class="mt-5 grid gap-4 xl:grid-cols-2">
-            <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+            <div class="ui-card">
               <h3 class="text-sm font-semibold text-ink">권장 zip 구조</h3>
-              <pre
-                class="ui-scrollbar bg-surface-strong mt-3 overflow-x-auto rounded-2xl px-4 py-3 text-xs leading-6 text-[color:var(--surface-0)]"
-              ><code>{{ sampleZipStructure }}</code></pre>
+              <pre class="ui-code-block ui-scrollbar mt-3 rounded-ui"><code>{{ sampleZipStructure }}</code></pre>
               <p class="mt-3 text-xs leading-6 text-muted">
                 <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의 Markdown 파일을 자동 스캔합니다.
               </p>
             </div>
 
-            <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+            <div class="ui-card">
               <h3 class="text-sm font-semibold text-ink">실행 순서</h3>
               <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                 <li v-for="step in importSteps" :key="step">{{ step }}</li>
               </ul>
             </div>
 
-            <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+            <div class="ui-card">
               <h3 class="text-sm font-semibold text-ink">메타데이터 우선순위</h3>
               <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                 <li v-for="rule in metadataRules" :key="rule">{{ rule }}</li>
               </ul>
             </div>
 
-            <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+            <div class="ui-card">
               <h3 class="text-sm font-semibold text-ink">manifest 예시</h3>
-              <pre
-                class="ui-scrollbar bg-surface-strong mt-3 overflow-x-auto rounded-2xl px-4 py-3 text-xs leading-6 text-[color:var(--surface-0)]"
-              ><code>{{ sampleManifest }}</code></pre>
+              <pre class="ui-code-block ui-scrollbar mt-3"><code>{{ sampleManifest }}</code></pre>
             </div>
 
-            <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+            <div class="ui-card">
               <h3 class="text-sm font-semibold text-ink">Markdown 예시</h3>
-              <pre
-                class="ui-scrollbar bg-surface-strong mt-3 overflow-x-auto rounded-2xl px-4 py-3 text-xs leading-6 text-[color:var(--surface-0)]"
-              ><code>{{ sampleMarkdown }}</code></pre>
+              <pre class="ui-code-block ui-scrollbar mt-3"><code>{{ sampleMarkdown }}</code></pre>
               <p class="mt-3 text-xs leading-6 text-muted">
                 저장 시 <code class="font-mono text-[0.95em]">title</code>, <code class="font-mono text-[0.95em]">boardSlug</code>,
                 <code class="font-mono text-[0.95em]">categoryName</code>, <code class="font-mono text-[0.95em]">visibility</code>는 현재 적용값으로
@@ -275,7 +269,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
             </div>
           </div>
 
-          <div class="mt-4 rounded-3xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+          <div class="ui-card mt-4 border-amber-200 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/20">
             <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">현재 제한 사항</h3>
             <ul class="mt-3 space-y-2 text-sm leading-6 text-amber-800 dark:text-amber-200">
               <li v-for="note in unsupportedNotes" :key="note">{{ note }}</li>
@@ -305,7 +299,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                 <span>카테고리 자동 생성</span>
               </label>
               <label
-                class="hover:bg-surface-soft inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
+                class="inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
               >
                 zip 선택
                 <input
@@ -318,7 +312,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               </label>
               <button
                 type="button"
-                class="dark:bg-surface-soft rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:text-ink dark:hover:bg-white"
+                class="rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-soft dark:text-ink dark:hover:bg-surface-1"
                 :disabled="!selectedZipFile || isPreviewLoading || isExecuteLoading"
                 @click="runPreview"
               >
@@ -420,7 +414,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               v-for="item in executeResult.items"
               :key="`${item.filePath}-${item.articleId ?? 'failed'}`"
               :to="resolveCreatedArticlePath(item) ?? undefined"
-              class="block rounded-2xl border p-4"
+              class="ui-card block"
               :class="resolveExecuteCardClass(item)"
             >
               <div class="flex flex-wrap items-center justify-between gap-3">
@@ -429,7 +423,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                     <p class="text-sm font-semibold text-ink">{{ item.title ?? item.filePath }}</p>
                     <span
                       v-if="resolveCreatedArticlePath(item)"
-                      class="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:text-emerald-300"
+                      class="rounded-full border border-emerald-200 bg-surface px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:text-emerald-300"
                     >
                       클릭해서 글 보기
                     </span>

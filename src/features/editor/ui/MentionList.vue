@@ -62,11 +62,11 @@ defineExpose({ onKeyDown });
       :class="
         index === selectedIndex
           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
-          : 'hover:bg-surface-soft /60 text-muted dark:text-subtle'
+          : 'text-muted hover:bg-surface-soft/60 dark:text-subtle'
       "
       @click="selectItem(index)"
     >
-      <div class="bg-surface-2 bg-surface-2 h-7 w-7 overflow-hidden rounded-full">
+      <div class="h-7 w-7 overflow-hidden rounded-full bg-surface-2">
         <img v-if="item.profileImageUrl" :src="item.profileImageUrl" :alt="item.handle" class="h-full w-full object-cover" />
       </div>
       <div class="flex flex-col">

@@ -260,7 +260,7 @@ onMounted(async () => {
           </div>
 
           <section class="ui-panel p-5">
-            <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
+            <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
               <div>
                 <h2 class="bbs-row-title text-lg">멤버 목록</h2>
                 <p class="mt-1 text-sm text-muted">사용자별 상태와 최근 변경 시점을 한 줄에서 확인합니다.</p>
@@ -269,7 +269,7 @@ onMounted(async () => {
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
               불러오는 중...
             </div>
 

@@ -233,6 +233,27 @@
     border: 1px solid var(--line-strong);
     background: var(--surface-0);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    font-size: 0.8125rem;
+  }
+
+  .ui-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.4rem 0.75rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink-1);
+    transition: background-color 100ms ease;
+  }
+
+  .ui-menu-item:hover {
+    background: var(--surface-1);
+  }
+
+  .ui-menu-item-danger {
+    color: var(--danger-ink);
   }
 
   .ui-oauth-button {
@@ -249,5 +270,23 @@
 
   .ui-oauth-button:hover {
     background: var(--surface-1);
+  }
+
+  .ui-code-block {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--code-border);
+    background: var(--code-bg);
+    padding: 0.75rem 1rem;
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--code-fg);
+    white-space: pre;
+  }
+
+  .ui-code-block code {
+    font: inherit;
+    color: inherit;
   }
 }

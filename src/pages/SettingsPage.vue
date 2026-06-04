@@ -178,12 +178,8 @@ onBeforeUnmount(() => {
                   v-for="option in themeOptions"
                   :key="option.value"
                   type="button"
-                  class="rounded-3xl border px-5 py-4 text-left transition"
-                  :class="
-                    selectedThemeMode === option.value
-                      ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
-                  "
+                  class="ui-option-tile"
+                  :class="selectedThemeMode === option.value ? 'ui-option-tile-active' : ''"
                   :aria-pressed="selectedThemeMode === option.value"
                   @click="handleSelectThemeMode(option.value)"
                 >
@@ -217,12 +213,8 @@ onBeforeUnmount(() => {
                   v-for="option in layoutOptions"
                   :key="option.value"
                   type="button"
-                  class="rounded-3xl border px-5 py-4 text-left transition"
-                  :class="
-                    contentWidthPreset === option.value
-                      ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
-                  "
+                  class="ui-option-tile"
+                  :class="contentWidthPreset === option.value ? 'ui-option-tile-active' : ''"
                   :aria-pressed="contentWidthPreset === option.value"
                   @click="handleSelectPreset(option.value)"
                 >
@@ -259,12 +251,8 @@ onBeforeUnmount(() => {
                   v-for="option in topMenuPositionOptions"
                   :key="option.value"
                   type="button"
-                  class="rounded-3xl border px-5 py-4 text-left transition"
-                  :class="
-                    topMenuPositionMode === option.value
-                      ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
-                  "
+                  class="ui-option-tile"
+                  :class="topMenuPositionMode === option.value ? 'ui-option-tile-active' : ''"
                   :aria-pressed="topMenuPositionMode === option.value"
                   @click="handleSelectTopMenuPositionMode(option.value)"
                 >
@@ -298,12 +286,8 @@ onBeforeUnmount(() => {
                   v-for="option in sideMenuOptions"
                   :key="option.value"
                   type="button"
-                  class="rounded-3xl border px-5 py-4 text-left transition"
-                  :class="
-                    sideMenuDisplayMode === option.value
-                      ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
-                  "
+                  class="ui-option-tile"
+                  :class="sideMenuDisplayMode === option.value ? 'ui-option-tile-active' : ''"
                   :aria-pressed="sideMenuDisplayMode === option.value"
                   @click="handleSelectSideMenuMode(option.value)"
                 >
@@ -334,32 +318,32 @@ onBeforeUnmount(() => {
             <div class="space-y-4">
               <SectionHeader eyebrow="현재 설정" :title="selectedLayoutOption.label" :description="selectedLayoutOption.description" />
 
-              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+              <div class="ui-card">
                 <p class="text-sm font-semibold text-ink">테마 모드</p>
                 <p class="mt-2 text-sm text-muted">{{ selectedThemeOption.label }}</p>
                 <p class="mt-1 text-sm text-muted">{{ selectedThemeOption.description }}</p>
                 <p class="mt-2 text-xs font-semibold text-subtle">현재 적용 테마: {{ resolvedThemeLabel }}</p>
               </div>
 
-              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+              <div class="ui-card">
                 <p class="text-sm font-semibold text-ink">사이드메뉴 동작</p>
                 <p class="mt-2 text-sm text-muted">{{ selectedSideMenuOption.label }}</p>
                 <p class="mt-1 text-sm text-muted">{{ selectedSideMenuOption.description }}</p>
               </div>
 
-              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+              <div class="ui-card">
                 <p class="text-sm font-semibold text-ink">상단메뉴바 위치</p>
                 <p class="mt-2 text-sm text-muted">{{ selectedTopMenuPositionOption.label }}</p>
                 <p class="mt-1 text-sm text-muted">{{ selectedTopMenuPositionOption.description }}</p>
               </div>
 
-              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+              <div class="ui-card">
                 <p class="text-sm font-semibold text-ink">상단메뉴바 노출</p>
                 <p class="mt-2 text-sm text-muted">항상 표시</p>
                 <p class="mt-1 text-sm text-muted">상단메뉴바는 자동 숨김 없이 계속 표시합니다.</p>
               </div>
 
-              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+              <div class="ui-card">
                 <p class="text-sm font-semibold text-ink">적용 범위</p>
                 <ul class="mt-3 space-y-2 text-sm text-muted">
                   <li>시스템, 화이트, 다크 테마 모드</li>
@@ -371,7 +355,7 @@ onBeforeUnmount(() => {
                 </ul>
               </div>
 
-              <div class="rounded-3xl border border-dashed border-line bg-white/70 p-4 dark:border-line">
+              <div class="ui-card border-dashed">
                 <p class="text-sm font-semibold text-ink">예정 항목</p>
                 <p class="mt-2 text-sm text-muted">
                   이후에는 카드 밀도, 목록 표시 방식 같은 화면 관련 설정도 이 화면에 순차적으로 추가할 수 있습니다.

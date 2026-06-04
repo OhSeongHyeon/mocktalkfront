@@ -215,7 +215,7 @@ watch(scopeFilter, async () => {
 
         <div class="grid gap-6 xl:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)]">
           <section class="ui-panel p-5">
-            <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
+            <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
               <div>
                 <h2 class="bbs-row-title text-lg">제재 목록</h2>
                 <p class="mt-1 text-sm text-muted">활성, 종료, 해제 상태를 같은 규칙으로 확인합니다.</p>
@@ -224,7 +224,7 @@ watch(scopeFilter, async () => {
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
               불러오는 중...
             </div>
 
@@ -279,7 +279,7 @@ watch(scopeFilter, async () => {
           </section>
 
           <section class="ui-panel p-5">
-            <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
+            <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
               <div>
                 <p class="ui-eyebrow">Create</p>
                 <h2 class="bbs-row-title mt-1 text-lg">제재 등록</h2>
@@ -306,7 +306,7 @@ watch(scopeFilter, async () => {
                   v-model="form.boardId"
                   type="number"
                   :disabled="formBoardDisabled"
-                  class="ui-input disabled:bg-surface-soft/80 disabled:cursor-not-allowed dark:disabled:opacity-60"
+                  class="ui-input disabled:cursor-not-allowed disabled:bg-surface-soft/80 dark:disabled:opacity-60"
                   placeholder="BOARD 범위일 때"
                 />
               </label>

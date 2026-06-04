@@ -62,7 +62,7 @@ defineExpose({ onKeyDown });
       :class="
         index === selectedIndex
           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
-          : 'hover:bg-surface-soft /60 text-muted dark:text-subtle'
+          : 'text-muted hover:bg-surface-soft/60 dark:text-subtle'
       "
       @click="selectItem(index)"
     >

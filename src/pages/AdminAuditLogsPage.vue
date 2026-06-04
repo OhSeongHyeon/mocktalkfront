@@ -216,7 +216,7 @@ onMounted(async () => {
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
-              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
               불러오는 중...
             </div>
 
@@ -225,11 +225,11 @@ onMounted(async () => {
                 v-for="log in logs"
                 :key="log.id"
                 type="button"
-                class="rounded-2xl border px-4 py-3 text-left transition"
+                class="rounded-ui border px-4 py-3 text-left transition"
                 :class="[
                   selectedLog?.id === log.id
-                    ? 'bg-surface-soft border-line shadow-sm dark:border-line'
-                    : 'hover:bg-surface-soft border-line hover:border-line dark:border-line',
+                    ? 'border-line bg-surface-soft shadow-sm dark:border-line'
+                    : 'border-line hover:border-line hover:bg-surface-soft dark:border-line',
                 ]"
                 @click="selectLog(log)"
               >
@@ -311,15 +311,10 @@ onMounted(async () => {
                 <span>User-Agent</span>
                 <span class="font-semibold text-ink">{{ selectedLog.userAgent ?? '-' }}</span>
               </div>
-              <div class="bg-surface-soft bg-surface-soft rounded-2xl border border-line px-4 py-3 text-xs text-muted dark:border-line">
+              <div class="rounded-ui border border-line bg-surface-soft px-4 py-3 text-xs text-muted dark:border-line">
                 {{ selectedLog.summary }}
               </div>
-              <div
-                v-if="detailJsonPretty"
-                class="bg-surface-soft bg-surface-strong rounded-2xl border border-line px-4 py-3 text-xs text-[color:var(--surface-0)] dark:border-line"
-              >
-                <pre class="whitespace-pre-wrap">{{ detailJsonPretty }}</pre>
-              </div>
+              <pre v-if="detailJsonPretty" class="ui-code-block rounded-ui whitespace-pre-wrap">{{ detailJsonPretty }}</pre>
             </div>
 
             <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">로그를 선택하세요.</div>

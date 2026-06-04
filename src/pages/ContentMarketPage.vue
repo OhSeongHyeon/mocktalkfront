@@ -12,7 +12,7 @@ import type {
 import { getMarketOverview, getMarketSeries } from '../entities/content';
 import { ApiError } from '../shared/lib/http/api';
 import PageContainer from '../shared/ui/PageContainer.vue';
-import SectionHeader from '../shared/ui/SectionHeader.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import ContentMarketChart from '../widgets/content/ContentMarketChart.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
@@ -427,31 +427,29 @@ onBeforeUnmount(() => {
 <template>
   <AppShell>
     <PageContainer width="wide">
-      <section class="space-y-6">
-        <div class="bg-surface-soft rounded-[32px] border border-line bg-white px-6 py-8 shadow-sm sm:px-8 dark:border-line">
-          <SectionHeader
-            eyebrow="Market"
-            title="환율 / 금 시세"
-            description="무료 데이터 소스를 기준으로 하루 1회 수집한 스냅샷을 보여줍니다. 금 시세는 1트로이온스 원본값을 1g 기준으로 환산해 표시합니다."
-          >
-            <template #actions>
-              <button
-                type="button"
-                class="ui-chip-button border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-200"
-                @click="handleRefresh"
-              >
-                새로고침
-              </button>
-            </template>
-          </SectionHeader>
-          <p class="mt-4 text-sm text-muted">마지막 갱신 {{ lastObservedAtLabel }}</p>
-        </div>
+      <section class="space-y-4">
+        <PageHeader
+          eyebrow="Market"
+          title="환율 / 금 시세"
+          description="무료 데이터 소스를 기준으로 하루 1회 수집한 스냅샷을 보여줍니다. 금 시세는 1트로이온스 원본값을 1g 기준으로 환산해 표시합니다."
+        >
+          <template #actions>
+            <button
+              type="button"
+              class="ui-chip-button border-cyan-200 bg-cyan-50 text-cyan-700 hover:border-cyan-300 hover:bg-cyan-100 dark:border-cyan-900/50 dark:bg-cyan-950/40 dark:text-cyan-200"
+              @click="handleRefresh"
+            >
+              새로고침
+            </button>
+          </template>
+          <p class="text-sm text-muted">마지막 갱신 {{ lastObservedAtLabel }}</p>
+        </PageHeader>
 
         <div v-if="overviewError" class="ui-state ui-state-danger">
           {{ overviewError }}
         </div>
 
-        <div v-else-if="isOverviewLoading" class="ui-panel px-6 py-8 text-sm text-muted">시세 요약 정보를 불러오는 중입니다.</div>
+        <div v-else-if="isOverviewLoading" class="ui-panel ui-section-loading px-6 py-8">시세 요약 정보를 불러오는 중입니다.</div>
 
         <template v-else-if="overview && overview.items.length > 0">
           <div class="ui-panel space-y-6 px-6 py-6">
@@ -464,12 +462,12 @@ onBeforeUnmount(() => {
                   비교 그래프이고, 금 시세는 화면에서 1g 기준으로 보여줍니다.
                 </p>
               </div>
-              <div class="bg-surface-soft rounded-full border border-line px-4 py-2 text-sm font-medium text-muted dark:border-line dark:text-subtle">
+              <div class="rounded-full border border-line bg-surface-soft px-4 py-2 text-sm font-medium text-muted dark:border-line dark:text-subtle">
                 선택 범위 {{ currentRangeLabel }}
               </div>
             </div>
 
-            <div class="bg-surface-soft/80 space-y-4 rounded-[28px] border border-line p-4 dark:border-line">
+            <div class="ui-card space-y-4">
               <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="시세 기간 전환">
                 <button
                   v-for="option in periodOptions"
@@ -527,15 +525,15 @@ onBeforeUnmount(() => {
               {{ seriesError }}
             </div>
 
-            <div v-if="isSeriesLoading" class="px-2 py-12 text-sm text-muted">{{ currentRangeLabel }} 통합 그래프를 불러오는 중입니다.</div>
+            <div v-if="isSeriesLoading" class="ui-section-loading py-12">{{ currentRangeLabel }} 통합 그래프를 불러오는 중입니다.</div>
 
-            <div v-else-if="combinedChartSeries.length > 0" class="bg-surface/80 rounded-[28px] border border-line p-2 dark:border-line">
+            <div v-else-if="combinedChartSeries.length > 0" class="ui-card p-2">
               <ContentMarketChart title="전체 시세 흐름 (기준일=100)" :series="combinedChartSeries" />
             </div>
 
             <div
               v-if="combinedChartSeries.length > 0"
-              class="rounded-2xl border border-sky-100 bg-sky-50/80 px-4 py-3 text-sm text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-100"
+              class="ui-card border-sky-200 bg-sky-50/80 text-sm text-sky-900 dark:border-sky-900/40 dark:bg-sky-950/30 dark:text-sky-100"
             >
               <p class="font-semibold">통합그래프 y축 안내</p>
               <p class="mt-1 text-sky-800/90 dark:text-sky-100/80">
@@ -558,11 +556,12 @@ onBeforeUnmount(() => {
                 v-for="item in compactMarketItems"
                 :key="item.instrumentCode"
                 type="button"
-                class="rounded-2xl border px-4 py-3 text-left transition"
+                class="border px-4 py-3 text-left transition"
+                style="border-radius: var(--radius-md)"
                 :class="
                   selectedInstrument === item.instrumentCode
-                    ? 'dark:bg-surface-soft border-[color:var(--accent-strong)] bg-[color:var(--accent-strong)] text-white shadow-sm dark:border-line dark:text-ink'
-                    : 'border-line bg-white text-ink hover:border-line hover:shadow-sm dark:border-line'
+                    ? 'border-[color:var(--accent-strong)] bg-[color:var(--accent-strong)] text-white shadow-sm dark:border-line dark:bg-surface-soft dark:text-ink'
+                    : 'border-line bg-surface text-ink hover:border-line hover:shadow-sm dark:border-line'
                 "
                 :aria-selected="selectedInstrument === item.instrumentCode"
                 @click="selectedInstrument = item.instrumentCode"
@@ -582,7 +581,7 @@ onBeforeUnmount(() => {
                     :class="
                       selectedInstrument === item.instrumentCode
                         ? 'bg-white/15 text-white'
-                        : 'bg-surface-soft bg-surface-2 text-muted dark:text-subtle'
+                        : 'bg-surface-2 bg-surface-soft text-muted dark:text-subtle'
                     "
                   >
                     {{ item.marketGroup === 'FX' ? '환율' : '금 시세' }}
@@ -605,21 +604,18 @@ onBeforeUnmount(() => {
                 </p>
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
-                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <div class="ui-stat-card">
                   <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">현재 값</p>
                   <p class="mt-2 text-lg font-semibold text-ink">{{ selectedPriceLabel }} {{ selectedOverviewItem.displayUnitLabel }}</p>
                 </div>
-                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <div class="ui-stat-card">
                   <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">변동</p>
                   <p class="mt-2 text-lg font-semibold text-ink">{{ selectedChangeLabel }}</p>
                 </div>
               </div>
             </div>
 
-            <div
-              v-if="selectedSeries && selectedSeries.displayPoints.length > 0"
-              class="bg-surface/80 rounded-[28px] border border-line p-2 dark:border-line"
-            >
+            <div v-if="selectedSeries && selectedSeries.displayPoints.length > 0" class="ui-card p-2">
               <ContentMarketChart
                 :title="selectedSeries.displayNameLabel"
                 :unit-label="selectedSeries.displayUnitLabel"
@@ -628,25 +624,25 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="selectedSeriesStats" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <div class="ui-stat-card">
                 <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 평균값</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.average, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
-              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <div class="ui-stat-card">
                 <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 중위값</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.median, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
-              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <div class="ui-stat-card">
                 <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 최저값</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.minimum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
-              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <div class="ui-stat-card">
                 <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 최고값</p>
                 <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.maximum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}

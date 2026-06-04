@@ -95,14 +95,14 @@ onMounted(() => {
         <div v-if="!isLoading && errorMessage" class="mt-6 flex flex-col gap-3">
           <button
             type="button"
-            class="h-11 w-full rounded-2xl bg-[color:var(--accent-strong)] text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
+            class="h-11 w-full rounded-ui bg-[color:var(--accent-strong)] text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
             @click="retryLogin"
           >
             다시 로그인하기
           </button>
           <button
             type="button"
-            class="ui-panel hover:bg-surface-soft h-11 w-full text-sm font-semibold text-ink shadow-sm transition"
+            class="ui-panel h-11 w-full text-sm font-semibold text-ink shadow-sm transition hover:bg-surface-soft"
             @click="redirectToLogin"
           >
             로그인 페이지로 이동

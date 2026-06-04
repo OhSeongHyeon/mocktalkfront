@@ -1141,18 +1141,18 @@ const buttonClass = (active = false, emphasis = false) =>
   [
     'inline-flex h-7 items-center rounded-lg border px-2.5 text-xs font-semibold leading-none transition-all duration-150',
     emphasis
-      ? 'border-line bg-surface-soft text-ink hover:bg-white border-[color:var(--line-strong)] hover:bg-surface-1 bg-surface-2 dark:hover:border-line'
+      ? 'border-line bg-surface-soft text-ink hover:bg-surface-1 border-[color:var(--line-strong)] hover:bg-surface-1 bg-surface-2 dark:hover:border-line'
       : '',
     active
       ? 'border-emerald-400 bg-emerald-500/15 text-emerald-700 shadow-sm ring-1 ring-emerald-200/80 dark:border-emerald-500/70 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-700/40'
-      : 'border-line bg-white text-muted hover:-translate-y-px hover:border-line hover:text-ink hover:shadow-sm dark:text-subtle dark:hover:border-line dark:hover:text-ink',
+      : 'border-line bg-surface text-muted hover:-translate-y-px hover:border-line hover:text-ink hover:shadow-sm dark:text-subtle dark:hover:border-line dark:hover:text-ink',
   ].join(' ');
 
 const selectClass =
   'h-7 rounded-lg border border-line bg-surface px-2 text-xs font-semibold text-ink shadow-sm transition focus:border-emerald-400 focus:outline-none ';
 
 const sectionClass =
-  'flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-surface-soft px-2.5 py-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)] dark:border-line dark:shadow-none';
+  'flex flex-wrap items-center gap-2 rounded-ui border border-line bg-surface-soft px-2.5 py-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)] dark:border-line dark:shadow-none';
 
 const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] text-muted';
 </script>
@@ -1160,7 +1160,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
 <template>
   <div class="ui-panel shadow-sm dark:border-line">
     <div
-      class="from-surface-soft/80 to-surface/80 dark:from-surface-1 dark:to-surface-0 space-y-1 border-b border-line bg-gradient-to-b px-4 py-1.5 dark:border-line"
+      class="dark:to-surface-0 space-y-1 border-b border-line bg-gradient-to-b from-surface-soft/80 to-surface/80 px-4 py-1.5 dark:border-line dark:from-surface-1"
     >
       <div class="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface px-2.5 py-1.5 dark:border-line">
         <button type="button" :class="buttonClass(!isHtmlMode, true)" @click="setEditorMode('wysiwyg')">에디터</button>
@@ -1234,7 +1234,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
     </div>
     <div
       v-if="!isHtmlMode && isImageSelected"
-      class="bg-surface-soft/70 flex flex-wrap items-center gap-2 border-b border-line px-4 py-2 dark:border-line"
+      class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-soft/70 px-4 py-2 dark:border-line"
     >
       <span :class="sectionLabelClass">이미지 편집</span>
       <button type="button" :class="buttonClass(activeImageAlign === 'left')" @click="setImageAlign('left')">좌측</button>
@@ -1268,7 +1268,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
     </div>
     <div
       v-if="!isHtmlMode && isTableSelected"
-      class="bg-surface-soft/70 flex flex-wrap items-center gap-2 border-b border-line px-4 py-2 dark:border-line"
+      class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-soft/70 px-4 py-2 dark:border-line"
     >
       <span :class="sectionLabelClass">테이블 편집</span>
       <button type="button" :class="buttonClass()" @click="addRowBefore">행+앞</button>
@@ -1286,11 +1286,11 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
     </div>
     <div
       v-if="!isHtmlMode"
-      class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-dashed px-4 py-2.5 text-xs font-semibold transition"
+      class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-ui border border-dashed px-4 py-2.5 text-xs font-semibold transition"
       :class="
         isDropActive
           ? 'border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm dark:border-emerald-500/70 dark:bg-emerald-500/10 dark:text-emerald-200'
-          : 'border-line/80 bg-surface-soft/60 /80 /40 text-muted dark:text-subtle'
+          : 'border-line/80 bg-surface-soft/60 text-muted dark:text-subtle'
       "
       @dragenter.prevent="handleDropZoneDragOver"
       @dragover.prevent="handleDropZoneDragOver"
@@ -1300,7 +1300,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       <span>이미지/영상 파일을 여기에 드래그하세요.</span>
       <span class="text-[10px] font-semibold text-subtle">최대 50MB</span>
     </div>
-    <div v-if="uploads.length > 0" class="mx-4 mt-3 rounded-2xl border border-line bg-surface p-3 shadow-sm dark:border-line">
+    <div v-if="uploads.length > 0" class="mx-4 mt-3 rounded-ui border border-line bg-surface p-3 shadow-sm dark:border-line">
       <p class="text-xs font-semibold text-muted">업로드 큐</p>
       <div class="mt-2 space-y-2">
         <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-line px-3 py-2 text-xs dark:border-line">
@@ -1329,14 +1329,14 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
               <button
                 v-if="item.status !== 'uploading'"
                 type="button"
-                class="hover:bg-surface-soft rounded border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:border-line dark:text-subtle"
+                class="rounded border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:border-line hover:bg-surface-soft dark:text-subtle"
                 @click="removeUpload(item.id)"
               >
                 지우기
               </button>
             </div>
           </div>
-          <div class="bg-surface-soft bg-surface-2 mt-2 h-1.5 overflow-hidden rounded">
+          <div class="mt-2 h-1.5 overflow-hidden rounded bg-surface-2 bg-surface-soft">
             <div
               class="h-full rounded transition-all"
               :class="
@@ -1354,21 +1354,21 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
         </div>
       </div>
     </div>
-    <EditorContent v-if="!isHtmlMode" :editor="editor" class="/70 bg-white/80" />
-    <div v-else class="/70 space-y-2 bg-white/80 px-4 py-4">
+    <EditorContent v-if="!isHtmlMode" :editor="editor" class="bg-surface/80" />
+    <div v-else class="space-y-2 bg-surface/80 px-4 py-4">
       <p class="text-xs font-semibold text-muted">저장 시 sanitize 정책에 따라 위험 태그/속성은 제거됩니다.</p>
       <textarea
         v-model="htmlSource"
-        class="bg-surface-soft min-h-[360px] w-full rounded-xl border border-line px-3 py-2 font-mono text-xs text-ink focus:border-emerald-400 focus:bg-white focus:outline-none dark:border-line"
+        class="min-h-[360px] w-full rounded-xl border border-line bg-surface-soft px-3 py-2 font-mono text-xs text-ink focus:border-emerald-400 focus:bg-surface focus:outline-none dark:border-line"
         spellcheck="false"
         @input="onHtmlSourceInput"
       ></textarea>
     </div>
-    <div class="bg-surface-soft/60 border-t border-line px-4 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
+    <div class="border-t border-line bg-surface-soft/60 px-4 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
       단축키: Ctrl/Cmd+B 굵게, Ctrl/Cmd+I 기울임, Ctrl/Cmd+K 링크, Ctrl/Cmd+Z 되돌리기, Ctrl/Cmd+Y 다시, / 슬래시 명령어, Enter 문단/다음 항목,
       Shift+Enter 줄바꿈.
     </div>
-    <div v-if="errorMessage" class="border-t border-line px-4 py-2 text-xs text-rose-600 dark:border-line">
+    <div v-if="errorMessage" class="border-t border-line px-4 py-2 text-xs text-danger dark:border-line">
       {{ errorMessage }}
     </div>
     <input ref="imageInputRef" type="file" accept="image/*" class="hidden" multiple @change="onImagePicked" />
@@ -1393,7 +1393,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-emerald-400 focus:outline-none dark:border-line"
               />
             </label>
-            <p v-if="linkErrorMessage" class="text-xs font-semibold text-rose-500">{{ linkErrorMessage }}</p>
+            <p v-if="linkErrorMessage" class="text-xs font-semibold text-danger">{{ linkErrorMessage }}</p>
             <div class="flex items-center justify-between gap-2">
               <button
                 type="button"
@@ -1439,7 +1439,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-emerald-400 focus:outline-none dark:border-line"
               />
             </label>
-            <p v-if="youtubeErrorMessage" class="text-xs font-semibold text-rose-500">{{ youtubeErrorMessage }}</p>
+            <p v-if="youtubeErrorMessage" class="text-xs font-semibold text-danger">{{ youtubeErrorMessage }}</p>
             <div class="flex items-center justify-end gap-2">
               <button
                 type="button"

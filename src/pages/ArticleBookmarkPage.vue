@@ -159,7 +159,7 @@ onMounted(() => {
         </div>
 
         <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
-          <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
+          <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
           북마크 목록을 불러오는 중입니다.
         </div>
 
@@ -193,7 +193,7 @@ onMounted(() => {
     >
       <p
         v-if="deleteError"
-        class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
+        class="mt-4 rounded-ui border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
         role="alert"
       >
         {{ deleteError }}
