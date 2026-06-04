@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 
-const props = defineProps<{
+defineProps<{
   title: string;
   description: string;
   badge?: string;
   to?: string;
-  accent: 'amber' | 'cyan';
 }>();
-
-const accentClass = computed(() => (props.accent === 'amber' ? 'ui-feature-tile--amber' : 'ui-feature-tile--cyan'));
 </script>
 
 <template>
-  <component :is="to ? RouterLink : 'div'" :to="to" class="group ui-feature-tile" :class="accentClass">
+  <component :is="to ? RouterLink : 'div'" :to="to" class="group ui-feature-tile" :class="to ? 'ui-feature-tile--interactive' : 'ui-feature-tile--static'">
     <div class="space-y-4">
       <div class="flex items-start justify-between gap-3">
         <h2 class="text-xl font-semibold text-ink">{{ title }}</h2>

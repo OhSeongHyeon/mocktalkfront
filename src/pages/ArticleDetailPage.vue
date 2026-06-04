@@ -1061,16 +1061,7 @@ onUnmounted(() => {
 
             <div class="space-y-0 border-t border-line">
               <section class="ui-panel-section ui-panel-section--bordered">
-                <div class="ui-panel-section-head">
-                  <div>
-                    <p class="ui-eyebrow">Reaction</p>
-                    <h2 class="ui-heading-section mt-1">반응과 보관</h2>
-                  </div>
-                  <span class="ui-badge" :class="isAuthenticated ? 'ui-badge-success' : 'ui-badge-muted'">
-                    {{ isAuthenticated ? '사용 가능' : '로그인 필요' }}
-                  </span>
-                </div>
-                <div class="mt-3 flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     class="h-10 px-4 text-sm"

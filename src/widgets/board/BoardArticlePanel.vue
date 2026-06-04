@@ -382,7 +382,6 @@ watch(
         <div class="min-w-0">
           <p class="ui-eyebrow">Board Feed</p>
           <h2 class="ui-heading-section mt-1">게시글 탐색</h2>
-          <p class="ui-lead mt-1">카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 좁혀볼 수 있습니다.</p>
         </div>
 
         <div class="flex flex-wrap gap-2">

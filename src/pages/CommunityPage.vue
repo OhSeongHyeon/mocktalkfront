@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
       <div class="space-y-4">
-        <PageHeader class="animate-rise" eyebrow="Boards" title="커뮤니티" description="공개된 커뮤니티를 게시판형 목록으로 빠르게 훑을 수 있습니다.">
+        <PageHeader class="animate-rise" eyebrow="Boards" title="커뮤니티">
           <template #meta>
             <span class="ui-badge ui-badge-success">게시판 {{ visibleBoardCount }}개</span>
             <span v-if="isLoading && visibleBoards.length > 0" class="ui-badge ui-badge-muted">추가 로딩 중</span>
