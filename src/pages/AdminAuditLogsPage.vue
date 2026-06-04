@@ -141,7 +141,7 @@ onMounted(async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page text-2xl">운영 로그</h1>
+            <h1 class="ui-heading-page">운영 로그</h1>
             <p class="text-sm text-muted">관리자 활동 이력을 확인합니다.</p>
           </div>
         </div>

@@ -162,7 +162,7 @@ onMounted(async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page text-2xl">사용자 관리</h1>
+            <h1 class="ui-heading-page">사용자 관리</h1>
             <p class="text-sm text-muted">회원 상태 및 권한을 관리합니다.</p>
           </div>
         </div>

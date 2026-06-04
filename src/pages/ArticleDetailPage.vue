@@ -1060,8 +1060,8 @@ onUnmounted(() => {
             </div>
 
             <div class="space-y-0 border-t border-line">
-              <section class="border-b border-line px-5 py-5 sm:px-6">
-                <div class="flex flex-wrap items-center justify-between gap-2">
+              <section class="ui-panel-section ui-panel-section--bordered">
+                <div class="ui-panel-section-head">
                   <div>
                     <p class="ui-eyebrow">Reaction</p>
                     <h2 class="ui-heading-section mt-1">반응과 보관</h2>
@@ -1102,8 +1102,8 @@ onUnmounted(() => {
                 <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-muted">로그인 후 반응과 북마크를 사용할 수 있습니다.</p>
               </section>
 
-              <section class="px-5 py-5 sm:px-6">
-                <div class="flex flex-wrap items-center justify-between gap-2">
+              <section class="ui-panel-section">
+                <div class="ui-panel-section-head">
                   <div>
                     <p class="ui-eyebrow">Attachment</p>
                     <h2 class="ui-heading-section mt-1">첨부파일 {{ attachments.length }}개</h2>

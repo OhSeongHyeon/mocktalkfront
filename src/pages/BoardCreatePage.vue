@@ -126,7 +126,7 @@ onBeforeUnmount(() => {
         <section class="ui-panel p-6 sm:p-7">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="space-y-2">
-              <h1 class="ui-heading-page text-2xl">커뮤니티 개설</h1>
+              <h1 class="ui-heading-page">커뮤니티 개설</h1>
               <p class="ui-lead">게시판명, 슬러그, 공개 범위를 설정하고 필요하면 대표 이미지를 등록하세요.</p>
             </div>
             <span

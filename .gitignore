@@ -59,6 +59,9 @@ coverage/
 src/**/*.js
 
 
+# Agent / local terminals
+terminals/
+
 # Custom
 .env
 # .env.development

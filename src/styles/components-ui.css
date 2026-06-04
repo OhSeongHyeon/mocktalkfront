@@ -256,6 +256,22 @@
     color: var(--danger-ink);
   }
 
+  .ui-panel-section {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .ui-panel-section--bordered {
+    border-bottom: 1px solid var(--line-subtle);
+  }
+
+  .ui-panel-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
   .ui-oauth-button {
     display: flex;
     height: 2.25rem;

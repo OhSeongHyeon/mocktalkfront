@@ -205,7 +205,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page text-2xl">게시글 대량 임포트</h1>
+            <h1 class="ui-heading-page">게시글 대량 임포트</h1>
             <p class="text-sm text-muted">
               <code class="font-mono text-[0.95em]">여러 .md/.markdown + 선택적 manifest + 본문 assets + zip</code>
               구조를 미리 검증하고 일괄 생성합니다.

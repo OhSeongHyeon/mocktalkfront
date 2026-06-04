@@ -33,7 +33,7 @@ const props = defineProps<BoardHeaderCardProps>();
         </div>
 
         <div class="min-w-0 flex-1">
-          <h1 class="bbs-toolbar-title text-base">
+          <h1 class="bbs-toolbar-title">
             <RouterLink v-if="props.linkTo" :to="props.linkTo">{{ props.title }}</RouterLink>
             <span v-else>{{ props.title }}</span>
           </h1>

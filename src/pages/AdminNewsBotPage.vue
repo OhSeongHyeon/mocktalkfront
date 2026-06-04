@@ -508,7 +508,7 @@ watch(
       <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page text-2xl">뉴스봇 운영</h1>
+            <h1 class="ui-heading-page">뉴스봇 운영</h1>
             <p class="mt-1 text-sm text-muted">외부 공개 API/RSS를 주기적으로 수집해 게시판에 새소식을 자동 발행합니다.</p>
           </div>
           <RouterLink

@@ -105,7 +105,7 @@ const handleImport = async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page text-2xl">콘텐츠 시세 운영</h1>
+            <h1 class="ui-heading-page">콘텐츠 시세 운영</h1>
             <p class="mt-1 text-sm text-muted">
               공개 콘텐츠에서 사용하는 환율/금 시세를 수동으로 최신화하거나 CSV/XLSX 파일로 과거 데이터를 반영합니다.
             </p>

@@ -580,7 +580,7 @@ onBeforeUnmount(() => {
                     class="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase"
                     :class="
                       selectedInstrument === item.instrumentCode
-                        ? 'bg-white/15 text-white'
+                        ? 'bg-on-strong/15 text-on-strong'
                         : 'bg-surface-2 bg-surface-soft text-muted dark:text-subtle'
                     "
                   >

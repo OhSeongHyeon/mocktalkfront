@@ -4,12 +4,12 @@ import { useRouter } from 'vue-router';
 
 import BaseModal from '../shared/ui/BaseModal.vue';
 import { logout } from '../features/auth';
-import { deleteAllNotifications, deleteNotification, getNotifications, markNotificationRead } from '../features/notification';
-import type { NotificationResponse } from '../features/notification';
-import { resolveBoardVisibilityLabel } from '../entities/board';
-import { deleteMyAccount, getMyArticles, getMyBoards, getMyComments, getMyProfile, updateMyProfile } from '../entities/user';
-import type { ArticleResponse, CommentResponse, MyBoardResponse, PageResponse, UserProfileResponse } from '../entities/user';
+import { useMyPageActivity } from '../features/user/lib/useMyPageActivity';
+import { resolveBoardRoleLabel, resolveBoardVisibilityLabel } from '../entities/board';
+import { deleteMyAccount, getMyProfile, updateMyProfile } from '../entities/user';
+import type { UserProfileResponse } from '../entities/user';
 import { ApiError } from '../shared/lib/http/api';
+import { formatKoreanDate } from '../shared/lib/date';
 import { resolveImageUrl } from '../shared/lib/files';
 import { formatNotificationMessage } from '../shared/lib/notifications';
 import { applyProfileSummary } from '../shared/lib/profile';
@@ -20,7 +20,48 @@ import AppShell from '../widgets/layout/AppShell.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
-type ActivityTab = 'boards' | 'articles' | 'comments' | 'notifications';
+
+const {
+  activeTab,
+  listLoading,
+  listError,
+  boards,
+  articles,
+  comments,
+  notifications,
+  loadActiveTab,
+  setTab,
+  setPage,
+  currentList,
+  isListEmpty,
+  currentTotalPages,
+  currentPage,
+  showActivityPagination,
+  showActivityPageNumbers,
+  activityPageNumbers,
+  hasPreviousActivityPageWindow,
+  hasNextActivityPageWindow,
+  activityEmptyMessage,
+  boardTotalCount,
+  articleTotalCount,
+  commentTotalCount,
+  notificationTotalCount,
+  handlePreviousActivityPageWindow,
+  handleNextActivityPageWindow,
+  handleBoardClick,
+  handleArticleClick,
+  handleCommentClick,
+  handleNotificationClick,
+  handleDeleteNotification,
+  handleDeleteAllNotifications,
+} = useMyPageActivity(router);
+
+const formatActivityDate = (value?: string | null) => {
+  if (!value) {
+    return '-';
+  }
+  return formatKoreanDate(value);
+};
 
 const profile = ref<UserProfileResponse | null>(null);
 const isProfileLoading = ref(false);
@@ -41,20 +82,6 @@ const form = reactive({
 const previewUrl = ref<string | null>(null);
 
 const mainTab = ref<'activity' | 'profile'>('activity');
-const activeTab = ref<ActivityTab>('boards');
-const listLoading = ref(false);
-const listError = ref('');
-const boards = ref<PageResponse<MyBoardResponse> | null>(null);
-const articles = ref<PageResponse<ArticleResponse> | null>(null);
-const comments = ref<PageResponse<CommentResponse> | null>(null);
-const notifications = ref<PageResponse<NotificationResponse> | null>(null);
-const boardPage = ref(0);
-const articlePage = ref(0);
-const commentPage = ref(0);
-const notificationPage = ref(0);
-const pageSize = 10;
-const ACTIVITY_PAGE_WINDOW_SIZE = 10;
-const listRequestSequence = ref(0);
 
 const isDeleteModalOpen = ref(false);
 const deleteConfirmText = ref('');
@@ -71,20 +98,6 @@ const resolvedProfileImage = computed(() => {
   }
   return resolveImageUrl(profile.value?.profileImage ?? null, 'medium');
 });
-
-const beginListRequest = () => {
-  listError.value = '';
-  listLoading.value = true;
-  return ++listRequestSequence.value;
-};
-
-const isStaleListRequest = (requestId: number) => requestId !== listRequestSequence.value;
-
-const finishListRequest = (requestId: number) => {
-  if (requestId === listRequestSequence.value) {
-    listLoading.value = false;
-  }
-};
 
 const loadProfile = async () => {
   profileError.value = '';
@@ -111,145 +124,6 @@ const loadProfile = async () => {
   } finally {
     isProfileLoading.value = false;
   }
-};
-
-const loadBoards = async (page = 0) => {
-  const requestId = beginListRequest();
-  try {
-    const data = await getMyBoards(page, pageSize);
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    boards.value = data;
-    boardPage.value = data.page;
-  } catch (error) {
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    if (error instanceof ApiError && error.status === 401) {
-      await router.push('/login');
-      return;
-    }
-    listError.value = error instanceof ApiError ? error.message : '게시판 조회에 실패했습니다.';
-  } finally {
-    finishListRequest(requestId);
-  }
-};
-
-const loadArticles = async (page = 0) => {
-  const requestId = beginListRequest();
-  try {
-    const data = await getMyArticles(page, pageSize);
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    articles.value = data;
-    articlePage.value = data.page;
-  } catch (error) {
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    if (error instanceof ApiError && error.status === 401) {
-      await router.push('/login');
-      return;
-    }
-    listError.value = error instanceof ApiError ? error.message : '게시글 조회에 실패했습니다.';
-  } finally {
-    finishListRequest(requestId);
-  }
-};
-
-const loadComments = async (page = 0) => {
-  const requestId = beginListRequest();
-  try {
-    const data = await getMyComments(page, pageSize);
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    comments.value = data;
-    commentPage.value = data.page;
-  } catch (error) {
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    if (error instanceof ApiError && error.status === 401) {
-      await router.push('/login');
-      return;
-    }
-    listError.value = error instanceof ApiError ? error.message : '댓글 조회에 실패했습니다.';
-  } finally {
-    finishListRequest(requestId);
-  }
-};
-
-const loadNotifications = async (page = 0) => {
-  const requestId = beginListRequest();
-  try {
-    const data = await getNotifications(page, pageSize);
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    notifications.value = data;
-    notificationPage.value = data.page;
-  } catch (error) {
-    if (isStaleListRequest(requestId)) {
-      return;
-    }
-    if (error instanceof ApiError && error.status === 401) {
-      await router.push('/login');
-      return;
-    }
-    listError.value = error instanceof ApiError ? error.message : '알림 조회에 실패했습니다.';
-  } finally {
-    finishListRequest(requestId);
-  }
-};
-
-const loadActiveTab = async () => {
-  if (activeTab.value === 'boards') {
-    await loadBoards(boardPage.value);
-    return;
-  }
-  if (activeTab.value === 'articles') {
-    await loadArticles(articlePage.value);
-    return;
-  }
-  if (activeTab.value === 'comments') {
-    await loadComments(commentPage.value);
-    return;
-  }
-  await loadNotifications(notificationPage.value);
-};
-
-const setTab = async (tab: ActivityTab) => {
-  if (activeTab.value === tab) {
-    return;
-  }
-  activeTab.value = tab;
-  await loadActiveTab();
-};
-
-const setPage = async (page: number) => {
-  if (page < 0) {
-    return;
-  }
-  const data = currentList.value;
-  if (data && data.totalPages > 0 && page >= data.totalPages) {
-    return;
-  }
-  if (activeTab.value === 'boards') {
-    await loadBoards(page);
-    return;
-  }
-  if (activeTab.value === 'articles') {
-    await loadArticles(page);
-    return;
-  }
-  if (activeTab.value === 'comments') {
-    await loadComments(page);
-    return;
-  }
-  await loadNotifications(page);
 };
 
 const handleFileChange = (event: Event) => {
@@ -351,181 +225,6 @@ const confirmDelete = async () => {
     deleteError.value = error instanceof ApiError ? error.message : '계정 삭제에 실패했습니다.';
   } finally {
     isDeleting.value = false;
-  }
-};
-
-const formatDate = (value?: string | null) => {
-  if (!value) {
-    return '-';
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
-
-const resolveBoardRoleLabel = (role: MyBoardResponse['boardRole']) => {
-  if (role === 'OWNER') {
-    return '소유';
-  }
-  if (role === 'MODERATOR') {
-    return '운영';
-  }
-  return role;
-};
-
-const handleBoardClick = async (item: MyBoardResponse) => {
-  if (listLoading.value) {
-    return;
-  }
-  await router.push(`/b/${item.slug}`);
-};
-
-const handleActivityClick = async (item: ArticleResponse | CommentResponse) => {
-  if (listLoading.value) {
-    return;
-  }
-  if (activeTab.value === 'articles') {
-    const articleItem = item as ArticleResponse;
-    await router.push(`/b/${articleItem.boardSlug}/articles/${articleItem.id}`);
-    return;
-  }
-  if (activeTab.value === 'comments') {
-    const commentItem = item as CommentResponse;
-    await router.push({
-      path: `/b/${commentItem.boardSlug}/articles/${commentItem.articleId}`,
-      query: { commentId: String(commentItem.id) },
-    });
-  }
-};
-
-const currentList = computed(() => {
-  if (activeTab.value === 'boards') {
-    return boards.value;
-  }
-  if (activeTab.value === 'articles') {
-    return articles.value;
-  }
-  if (activeTab.value === 'comments') {
-    return comments.value;
-  }
-  return notifications.value;
-});
-
-const isListEmpty = computed(() => {
-  const data = currentList.value;
-  return !data || data.items.length === 0;
-});
-
-const currentTotalPages = computed(() => currentList.value?.totalPages ?? 0);
-
-const currentPage = computed(() => {
-  if (activeTab.value === 'boards') {
-    return boardPage.value;
-  }
-  if (activeTab.value === 'articles') {
-    return articlePage.value;
-  }
-  if (activeTab.value === 'comments') {
-    return commentPage.value;
-  }
-  return notificationPage.value;
-});
-
-const showActivityPagination = computed(() => {
-  const data = currentList.value;
-  if (!data) {
-    return false;
-  }
-  if (data.totalPages > 1) {
-    return true;
-  }
-  return data.hasNext || data.hasPrevious;
-});
-
-const showActivityPageNumbers = computed(() => currentTotalPages.value > 1);
-
-const activityPageWindowStart = computed(() => Math.floor(currentPage.value / ACTIVITY_PAGE_WINDOW_SIZE) * ACTIVITY_PAGE_WINDOW_SIZE);
-const activityPageWindowEnd = computed(() => Math.min(activityPageWindowStart.value + ACTIVITY_PAGE_WINDOW_SIZE, currentTotalPages.value));
-const activityPageNumbers = computed(() =>
-  Array.from(
-    { length: Math.max(activityPageWindowEnd.value - activityPageWindowStart.value, 0) },
-    (_, index) => activityPageWindowStart.value + index,
-  ),
-);
-const hasPreviousActivityPageWindow = computed(() => activityPageWindowStart.value > 0);
-const hasNextActivityPageWindow = computed(() => activityPageWindowEnd.value < currentTotalPages.value);
-
-const activityEmptyMessage = computed(() => {
-  if (activeTab.value === 'boards') {
-    return '운영 중인 게시판이 없습니다.';
-  }
-  if (activeTab.value === 'articles') {
-    return '작성한 게시글이 없습니다.';
-  }
-  if (activeTab.value === 'comments') {
-    return '작성한 댓글이 없습니다.';
-  }
-  return '알림이 없습니다.';
-});
-
-const boardTotalCount = computed(() => boards.value?.totalElements ?? null);
-const articleTotalCount = computed(() => articles.value?.totalElements ?? null);
-const commentTotalCount = computed(() => comments.value?.totalElements ?? null);
-const notificationTotalCount = computed(() => notifications.value?.totalElements ?? null);
-
-const handlePreviousActivityPageWindow = async () => {
-  if (!hasPreviousActivityPageWindow.value) {
-    return;
-  }
-  await setPage(Math.max(activityPageWindowStart.value - 1, 0));
-};
-
-const handleNextActivityPageWindow = async () => {
-  if (!hasNextActivityPageWindow.value) {
-    return;
-  }
-  await setPage(activityPageWindowEnd.value);
-};
-
-const handleNotificationClick = async (notification: NotificationResponse) => {
-  if (!notification.read) {
-    try {
-      const updated = await markNotificationRead(notification.id);
-      notification.read = updated.read;
-    } catch (error) {
-      listError.value = error instanceof ApiError ? error.message : '알림 읽음 처리에 실패했습니다.';
-    }
-  }
-  if (notification.redirectUrl) {
-    await router.push(notification.redirectUrl);
-  }
-};
-
-const handleDeleteNotification = async (notification: NotificationResponse) => {
-  listError.value = '';
-  try {
-    await deleteNotification(notification.id);
-    const currentItems = notifications.value?.items.length ?? 0;
-    const nextPage = currentItems <= 1 && notificationPage.value > 0 ? notificationPage.value - 1 : notificationPage.value;
-    await loadNotifications(nextPage);
-  } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
-  }
-};
-
-const handleDeleteAllNotifications = async () => {
-  listError.value = '';
-  try {
-    await deleteAllNotifications();
-    await loadNotifications(0);
-  } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '알림 삭제에 실패했습니다.';
   }
 };
 
@@ -850,89 +549,68 @@ onBeforeUnmount(() => {
             {{ listError }}
           </p>
           <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-subtle">{{ activityEmptyMessage }}</div>
-          <div v-else class="grid gap-2">
-            <div v-for="item in currentList?.items" :key="item.id" class="ui-list-row text-sm text-ink">
-              <button
-                v-if="activeTab === 'boards'"
-                type="button"
-                class="flex w-full flex-col gap-2 text-left"
-                @click="handleBoardClick(item as MyBoardResponse)"
-              >
+          <div v-else-if="activeTab === 'boards'" class="grid gap-2">
+            <div v-for="item in boards?.items" :key="item.id" class="ui-list-row text-sm text-ink">
+              <button type="button" class="flex w-full flex-col gap-2 text-left" @click="handleBoardClick(item)">
                 <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
-                  <span class="ui-badge ui-badge-accent">{{ resolveBoardRoleLabel((item as MyBoardResponse).boardRole) }}</span>
-                  <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel((item as MyBoardResponse).visibility) }}</span>
-                  <span>/{{ (item as MyBoardResponse).slug }}</span>
-                  <span>{{ formatDate((item as MyBoardResponse).joinedAt) }}</span>
+                  <span class="ui-badge ui-badge-accent">{{ resolveBoardRoleLabel(item.boardRole) }}</span>
+                  <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel(item.visibility) }}</span>
+                  <span>/{{ item.slug }}</span>
+                  <span>{{ formatActivityDate(item.joinedAt) }}</span>
                 </div>
-                <div class="font-semibold text-ink">
-                  {{ (item as MyBoardResponse).boardName }}
-                </div>
-                <p v-if="(item as MyBoardResponse).description" class="line-clamp-2 text-xs text-muted">
-                  {{ (item as MyBoardResponse).description }}
-                </p>
+                <div class="font-semibold text-ink">{{ item.boardName }}</div>
+                <p v-if="item.description" class="line-clamp-2 text-xs text-muted">{{ item.description }}</p>
               </button>
-              <button
-                v-else-if="activeTab === 'notifications'"
-                type="button"
-                class="flex w-full flex-col gap-2 text-left"
-                @click="handleNotificationClick(item as NotificationResponse)"
-              >
+            </div>
+          </div>
+          <div v-else-if="activeTab === 'articles'" class="grid gap-2">
+            <div v-for="item in articles?.items" :key="item.id" class="ui-list-row text-sm text-ink">
+              <button type="button" class="flex w-full flex-col gap-2 text-left" @click="handleArticleClick(item)">
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span>{{ item.boardName }}</span>
+                  <span>{{ item.authorName }}</span>
+                  <span>{{ formatActivityDate(item.createdAt) }}</span>
+                  <span v-if="item.notice" class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">공지</span>
+                </div>
+                <div class="font-semibold text-ink">{{ item.title }}</div>
+                <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
+                  <span>조회 {{ item.hit }}</span>
+                  <span>댓글 {{ item.commentCount }}</span>
+                  <span>좋아요 {{ item.likeCount }}</span>
+                  <span>싫어요 {{ item.dislikeCount }}</span>
+                </div>
+              </button>
+            </div>
+          </div>
+          <div v-else-if="activeTab === 'comments'" class="grid gap-2">
+            <div v-for="item in comments?.items" :key="item.id" class="ui-list-row text-sm text-ink">
+              <button type="button" class="flex w-full flex-col gap-2 text-left" @click="handleCommentClick(item)">
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span>{{ item.boardName }}</span>
+                  <span>{{ item.articleTitle }}</span>
+                  <span>{{ item.authorName }}</span>
+                  <span>{{ formatActivityDate(item.createdAt) }}</span>
+                </div>
+                <p class="line-clamp-2 text-sm text-ink">{{ item.content }}</p>
+              </button>
+            </div>
+          </div>
+          <div v-else class="grid gap-2">
+            <div v-for="item in notifications?.items" :key="item.id" class="ui-list-row text-sm text-ink">
+              <button type="button" class="flex w-full flex-col gap-2 text-left" @click="handleNotificationClick(item)">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
-                    <span v-if="!(item as NotificationResponse).read" class="inline-flex h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span>
-                    <div class="font-semibold" :class="(item as NotificationResponse).read ? 'text-muted' : 'text-ink'">
-                      {{ formatNotificationMessage(item as NotificationResponse) }}
+                    <span v-if="!item.read" class="inline-flex h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span>
+                    <div class="font-semibold" :class="item.read ? 'text-muted' : 'text-ink'">
+                      {{ formatNotificationMessage(item) }}
                     </div>
                   </div>
-                  <div class="text-xs text-subtle">
-                    {{ formatDate((item as NotificationResponse).createdAt) }}
-                  </div>
+                  <div class="text-xs text-subtle">{{ formatActivityDate(item.createdAt) }}</div>
                 </div>
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <p>알림을 눌러 상세 화면으로 이동하세요.</p>
-                  <button
-                    type="button"
-                    class="ui-button-ghost h-8 px-3 text-[11px]"
-                    @click.stop="handleDeleteNotification(item as NotificationResponse)"
-                  >
-                    삭제
-                  </button>
+                  <button type="button" class="ui-button-ghost h-8 px-3 text-[11px]" @click.stop="handleDeleteNotification(item)">삭제</button>
                 </div>
-              </button>
-              <button
-                v-else-if="activeTab === 'articles'"
-                type="button"
-                class="flex w-full flex-col gap-2 text-left"
-                @click="handleActivityClick(item as ArticleResponse)"
-              >
-                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
-                  <span>{{ (item as ArticleResponse).boardName }}</span>
-                  <span>{{ (item as ArticleResponse).authorName }}</span>
-                  <span>{{ formatDate((item as ArticleResponse).createdAt) }}</span>
-                  <span v-if="(item as ArticleResponse).notice" class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    공지
-                  </span>
-                </div>
-                <div class="font-semibold text-ink">
-                  {{ (item as ArticleResponse).title }}
-                </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
-                  <span>조회 {{ (item as ArticleResponse).hit }}</span>
-                  <span>댓글 {{ (item as ArticleResponse).commentCount }}</span>
-                  <span>좋아요 {{ (item as ArticleResponse).likeCount }}</span>
-                  <span>싫어요 {{ (item as ArticleResponse).dislikeCount }}</span>
-                </div>
-              </button>
-              <button v-else type="button" class="flex w-full flex-col gap-2 text-left" @click="handleActivityClick(item as CommentResponse)">
-                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
-                  <span>{{ (item as CommentResponse).boardName }}</span>
-                  <span>{{ (item as CommentResponse).articleTitle }}</span>
-                  <span>{{ (item as CommentResponse).authorName }}</span>
-                  <span>{{ formatDate((item as CommentResponse).createdAt) }}</span>
-                </div>
-                <p class="line-clamp-2 text-sm text-ink">
-                  {{ (item as CommentResponse).content }}
-                </p>
               </button>
             </div>
           </div>

@@ -222,7 +222,7 @@ onMounted(async () => {
         <div v-if="board && hasPermission" class="space-y-6">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 class="ui-heading-page text-2xl">콘텐츠 관리</h1>
+              <h1 class="ui-heading-page">콘텐츠 관리</h1>
               <p class="text-sm text-muted">게시글과 댓글을 관리합니다.</p>
             </div>
             <div class="flex items-center gap-2 rounded-full border border-line bg-surface px-2 py-1 text-xs font-semibold text-muted">

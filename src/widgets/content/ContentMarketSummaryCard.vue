@@ -54,7 +54,7 @@ const formattedChange = computed(() => {
       </div>
       <span
         class="rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.12em] uppercase"
-        :class="active ? 'bg-white/15 text-white' : 'bg-surface-2 bg-surface-soft text-muted dark:text-subtle'"
+        :class="active ? 'bg-on-strong/15 text-on-strong' : 'bg-surface-soft text-muted'"
       >
         {{ item.marketGroup === 'FX' ? '환율' : '금 시세' }}
       </span>
