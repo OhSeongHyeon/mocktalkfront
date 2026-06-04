@@ -1,3 +1,4 @@
+import { translate } from '../../../shared/i18n/translate';
 import { request } from '../../../shared/lib/http/api';
 
 interface ApiEnvelope<T> {
@@ -80,7 +81,7 @@ const uploadBinary = async (uploadUrl: string, file: File, headers: Record<strin
     body: file,
   });
   if (!response.ok) {
-    throw new Error('파일 업로드에 실패했습니다.');
+    throw new Error(translate('editor.file.uploadFailed'));
   }
 };
 
@@ -103,7 +104,7 @@ const uploadBinaryTask = (uploadUrl: string, file: File, headers: Record<string,
 
     xhr.onload = () => {
       if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new Error('파일 업로드에 실패했습니다.'));
+        reject(new Error(translate('editor.file.uploadFailed')));
         return;
       }
       onProgress?.(100);
@@ -111,11 +112,11 @@ const uploadBinaryTask = (uploadUrl: string, file: File, headers: Record<string,
     };
 
     xhr.onerror = () => {
-      reject(new Error('파일 업로드에 실패했습니다.'));
+      reject(new Error(translate('editor.file.uploadFailed')));
     };
 
     xhr.onabort = () => {
-      reject(new DOMException('업로드가 취소되었습니다.', 'AbortError'));
+      reject(new DOMException(translate('editor.file.uploadCancelled'), 'AbortError'));
     };
 
     xhr.send(file);

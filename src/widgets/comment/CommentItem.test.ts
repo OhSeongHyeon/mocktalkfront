@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
 import type { CommentTreeResponse } from '../../features/comment';
+import { i18n } from '../../test/plugins';
 import CommentItem from './CommentItem.vue';
 
 const createComment = (overrides: Partial<CommentTreeResponse> = {}): CommentTreeResponse => ({
@@ -26,6 +27,9 @@ describe('widgets/comment/CommentItem', () => {
   it('답글 입력 후 Enter를 누르면 reply 이벤트를 trim 처리해 전달한다', async () => {
     // given
     const wrapper = mount(CommentItem, {
+      global: {
+        plugins: [i18n],
+      },
       props: {
         comment: createComment(),
         currentUserId: 20,
@@ -52,6 +56,9 @@ describe('widgets/comment/CommentItem', () => {
   it('수정/삭제/반응 동작 시 update, delete, reaction 이벤트를 전달한다', async () => {
     // given
     const wrapper = mount(CommentItem, {
+      global: {
+        plugins: [i18n],
+      },
       props: {
         comment: createComment(),
         currentUserId: 20,

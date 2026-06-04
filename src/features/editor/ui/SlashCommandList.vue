@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { SlashCommandItem } from '../lib/slashTypes';
 
@@ -9,6 +10,7 @@ interface SlashCommandListProps {
 }
 
 const props = defineProps<SlashCommandListProps>();
+const { t } = useI18n();
 
 const selectedIndex = ref(0);
 
@@ -52,8 +54,8 @@ defineExpose({ onKeyDown });
 
 <template>
   <div class="w-72 overflow-hidden rounded-xl border border-line bg-surface shadow-lg dark:border-line">
-    <div class="border-b border-line px-3 py-2 text-xs text-muted dark:border-line">슬래시 명령어</div>
-    <div v-if="items.length === 0" class="px-3 py-2 text-xs text-subtle">검색 결과가 없습니다.</div>
+    <div class="border-b border-line px-3 py-2 text-xs text-muted dark:border-line">{{ t('editor.slash.title') }}</div>
+    <div v-if="items.length === 0" class="px-3 py-2 text-xs text-subtle">{{ t('editor.slash.empty') }}</div>
     <button
       v-for="(item, index) in items"
       :key="item.id"

@@ -1,3 +1,7 @@
+import { type AppLocale, i18n, toIntlLocaleTag } from '../i18n';
+
+const resolveIntlLocale = () => toIntlLocaleTag(i18n.global.locale.value as AppLocale);
+
 const formatKoreanDate = (
   value: string,
   options: Intl.DateTimeFormatOptions = {
@@ -10,7 +14,7 @@ const formatKoreanDate = (
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleDateString('ko-KR', options);
+  return date.toLocaleDateString(resolveIntlLocale(), options);
 };
 
 const formatKoreanDateTime = (value: string | null, fallback = '-') => {
@@ -21,7 +25,7 @@ const formatKoreanDateTime = (value: string | null, fallback = '-') => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleString('ko-KR');
+  return date.toLocaleString(resolveIntlLocale());
 };
 
 export { formatKoreanDate, formatKoreanDateTime };

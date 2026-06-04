@@ -1,32 +1,34 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin, isManagerOrAdmin } = storeToRefs(authStore);
 
 const adminTools = computed(() => {
   const base = [
     {
-      title: '게시글 임포트',
-      description: 'manifest.yml과 Markdown 묶음을 검토하고 일괄 생성합니다.',
+      title: t('admin.backoffice.tools.articleImports.title'),
+      description: t('admin.backoffice.tools.articleImports.description'),
       path: '/admin/article-imports',
       tone: 'emerald',
     },
     {
-      title: '콘텐츠 시세 운영',
-      description: '환율/금 시세를 즉시 최신화하고 CSV/XLSX 파일로 과거 데이터를 반영합니다.',
+      title: t('admin.backoffice.tools.contentMarket.title'),
+      description: t('admin.backoffice.tools.contentMarket.description'),
       path: '/admin/content-market',
       tone: 'sky',
     },
     {
-      title: '뉴스봇 운영',
-      description: '외부 공개 API/RSS를 주기적으로 수집해 게시판 새소식을 자동 발행합니다.',
+      title: t('admin.backoffice.tools.newsBot.title'),
+      description: t('admin.backoffice.tools.newsBot.description'),
       path: '/admin/news-bot',
       tone: 'violet',
     },
@@ -39,32 +41,32 @@ const adminTools = computed(() => {
   return [
     ...base,
     {
-      title: '사용자 관리',
-      description: '회원 상태와 시스템 권한을 관리합니다.',
+      title: t('admin.backoffice.tools.users.title'),
+      description: t('admin.backoffice.tools.users.description'),
       path: '/admin/users',
       tone: 'neutral',
     },
     {
-      title: '게시판 관리',
-      description: '게시판 생성 상태와 공개 범위를 점검합니다.',
+      title: t('admin.backoffice.tools.boards.title'),
+      description: t('admin.backoffice.tools.boards.description'),
       path: '/admin/boards',
       tone: 'amber',
     },
     {
-      title: '신고 관리',
-      description: '처리 대기 신고를 검토하고 상태를 갱신합니다.',
+      title: t('admin.backoffice.tools.reports.title'),
+      description: t('admin.backoffice.tools.reports.description'),
       path: '/admin/reports',
       tone: 'rose',
     },
     {
-      title: '제재 관리',
-      description: '제재 등록과 해제를 수행합니다.',
+      title: t('admin.backoffice.tools.sanctions.title'),
+      description: t('admin.backoffice.tools.sanctions.description'),
       path: '/admin/sanctions',
       tone: 'violet',
     },
     {
-      title: '운영 로그',
-      description: '백오피스 작업 이력을 추적합니다.',
+      title: t('admin.backoffice.tools.auditLogs.title'),
+      description: t('admin.backoffice.tools.auditLogs.description'),
       path: '/admin/audit-logs',
       tone: 'sky',
     },
@@ -99,19 +101,19 @@ const resolveCardClass = (tone: string) => {
     <PageContainer width="wide">
       <div>
         <section class="ui-panel p-6 sm:p-8">
-          <p class="text-xs font-semibold tracking-[0.28em] text-red-400 uppercase dark:text-red-300">Backoffice</p>
+          <p class="text-xs font-semibold tracking-[0.28em] text-red-400 uppercase dark:text-red-300">{{ t('admin.backoffice.eyebrow') }}</p>
           <div class="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 class="text-3xl font-semibold text-ink">운영 작업 공간</h1>
+              <h1 class="text-3xl font-semibold text-ink">{{ t('admin.backoffice.title') }}</h1>
               <p class="mt-2 text-sm text-muted">
-                서비스 탐색 메뉴와 분리된 관리자 전용 진입 화면입니다. 작업 성격에 맞는 도구만 선택해서 이동합니다.
+                {{ t('admin.backoffice.description') }}
               </p>
             </div>
             <RouterLink
               to="/"
               class="inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
             >
-              서비스 홈으로 이동
+              {{ t('admin.backoffice.goHome') }}
             </RouterLink>
           </div>
         </section>
@@ -119,9 +121,9 @@ const resolveCardClass = (tone: string) => {
         <section class="mt-6">
           <div class="flex items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-ink">관리 도구</h2>
+              <h2 class="text-lg font-semibold text-ink">{{ t('admin.backoffice.toolsTitle') }}</h2>
               <p class="mt-1 text-sm text-muted">
-                {{ isAdmin ? '시스템 관리자 권한으로 모든 백오피스 도구를 사용할 수 있습니다.' : '운영 권한 범위 내 도구만 노출합니다.' }}
+                {{ isAdmin ? t('admin.backoffice.toolsAdminHint') : t('admin.backoffice.toolsManagerHint') }}
               </p>
             </div>
             <span

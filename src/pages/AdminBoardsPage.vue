@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 
 import { ApiError } from '../shared/lib/http/api';
@@ -19,6 +20,7 @@ import AppShell from '../widgets/layout/AppShell.vue';
 type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
 
 const page = ref(0);
+const { t } = useI18n();
 const size = ref(10);
 const totalPages = ref(0);
 const boards = ref<BoardResponse[]>([]);
@@ -65,21 +67,21 @@ const editPreviewUrl = ref<string | null>(null);
 const createFileInputKey = ref(0);
 const editFileInputKey = ref(0);
 
-const visibilityOptions = [
-  { value: 'PUBLIC', label: '전체 공개' },
-  { value: 'GROUP', label: '회원 공개' },
-  { value: 'PRIVATE', label: '비공개' },
-  { value: 'UNLISTED', label: '비공개(링크 공개)' },
-];
+const visibilityOptions = computed(() =>
+  (['PUBLIC', 'GROUP', 'PRIVATE', 'UNLISTED'] as BoardVisibility[]).map((value) => ({
+    value,
+    label: t(`admin.visibility.${value}`),
+  })),
+);
 const visibilityFilterOptions: Array<BoardVisibility | 'ALL'> = ['ALL', 'PUBLIC', 'GROUP', 'PRIVATE', 'UNLISTED'];
-const sortOptions: Array<{ value: 'DESC' | 'ASC'; label: string }> = [
-  { value: 'DESC', label: '최신순' },
-  { value: 'ASC', label: '오래된 순' },
-];
-const sortByOptions: Array<{ value: 'CREATED_AT' | 'UPDATED_AT'; label: string }> = [
-  { value: 'CREATED_AT', label: '생성일' },
-  { value: 'UPDATED_AT', label: '수정일' },
-];
+const sortOptions = computed(() => [
+  { value: 'DESC' as const, label: t('admin.common.sortNewest') },
+  { value: 'ASC' as const, label: t('admin.common.sortOldest') },
+]);
+const sortByOptions = computed(() => [
+  { value: 'CREATED_AT' as const, label: t('admin.common.sortByCreated') },
+  { value: 'UPDATED_AT' as const, label: t('admin.common.sortByUpdated') },
+]);
 
 const formatDate = (value: string) => {
   const date = new Date(value);
@@ -87,42 +89,39 @@ const formatDate = (value: string) => {
 };
 
 const visibilityLabel = (value: string) => {
-  if (value === 'PUBLIC') {
-    return '전체 공개';
+  if (value === 'ALL') {
+    return t('admin.visibility.allScope');
   }
-  if (value === 'GROUP') {
-    return '회원 공개';
+  if (value === 'PUBLIC' || value === 'GROUP' || value === 'PRIVATE' || value === 'UNLISTED') {
+    return t(`admin.visibility.${value}`);
   }
-  if (value === 'PRIVATE') {
-    return '비공개';
-  }
-  return '비공개(링크 공개)';
+  return value;
 };
 
 const filterSummary = computed(() => {
   const parts: string[] = [];
   if (visibilityFilter.value !== 'ALL') {
-    parts.push(`공개 범위 ${visibilityLabel(visibilityFilter.value)}`);
+    parts.push(t('admin.common.visibilitySummary', { visibility: visibilityLabel(visibilityFilter.value) }));
   }
   if (includeDeleted.value) {
-    parts.push('삭제 포함');
+    parts.push(t('admin.common.includeDeleted'));
   }
-  const sortLabel = sortOrder.value === 'DESC' ? '최신순' : '오래된 순';
-  const sortByLabel = sortBy.value === 'UPDATED_AT' ? '수정일' : '생성일';
-  parts.push(`정렬 ${sortByLabel} ${sortLabel}`);
+  const sortLabel = sortOrder.value === 'DESC' ? t('admin.common.sortNewest') : t('admin.common.sortOldest');
+  const sortByLabel = sortBy.value === 'UPDATED_AT' ? t('admin.common.sortByUpdated') : t('admin.common.sortByCreated');
+  parts.push(t('admin.common.sortSummary', { sortBy: sortByLabel, sortOrder: sortLabel }));
   if (keyword.value.trim()) {
-    parts.push(`검색 ${keyword.value.trim()}`);
+    parts.push(t('admin.common.filterSummarySearch', { keyword: keyword.value.trim() }));
   }
-  return parts.length ? parts.join(' · ') : '전체 게시판';
+  return parts.length ? parts.join(' · ') : t('admin.common.allBoards');
 });
 
 const resolveBoardErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof ApiError) {
     if (error.message.includes('uq_tb_boards_slug')) {
-      return '이미 사용 중인 슬러그입니다.';
+      return t('admin.boards.errors.slugDuplicate');
     }
     if (error.message.includes('uq_tb_boards_board_name')) {
-      return '이미 사용 중인 게시판명입니다.';
+      return t('admin.boards.errors.nameDuplicate');
     }
     return error.message || fallback;
   }
@@ -194,7 +193,7 @@ const loadBoards = async () => {
       selectedBoardId.value = null;
     }
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '게시판 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boards.errors.loadList');
   } finally {
     isLoading.value = false;
   }
@@ -218,7 +217,7 @@ const deleteBoard = async () => {
   if (!selectedBoard.value) {
     return;
   }
-  if (!window.confirm(`"${selectedBoard.value.boardName}" 게시판을 삭제할까요?`)) {
+  if (!window.confirm(t('admin.boards.confirm.deleteBoard', { name: selectedBoard.value.boardName }))) {
     return;
   }
   editError.value = '';
@@ -226,11 +225,11 @@ const deleteBoard = async () => {
   isUpdating.value = true;
   try {
     await deleteAdminBoard(selectedBoard.value.id);
-    editSuccess.value = '게시판이 삭제되었습니다.';
+    editSuccess.value = t('admin.boards.success.deleted');
     await loadBoards();
     selectedBoardId.value = null;
   } catch (error) {
-    editError.value = resolveBoardErrorMessage(error, '게시판 삭제에 실패했습니다.');
+    editError.value = resolveBoardErrorMessage(error, t('admin.boards.errors.deleteFailed'));
   } finally {
     isUpdating.value = false;
   }
@@ -267,19 +266,19 @@ const submitCreate = async () => {
   const slug = createForm.slug.trim();
   const description = createForm.description.trim();
   if (!boardName) {
-    createError.value = '게시판명을 입력해주세요.';
+    createError.value = t('admin.boardForm.errors.nameRequired');
     return;
   }
   if (!slug) {
-    createError.value = '슬러그를 입력해주세요.';
+    createError.value = t('admin.boardForm.errors.slugRequired');
     return;
   }
   if (boardName.length > 255) {
-    createError.value = '게시판명은 255자 이하로 입력해주세요.';
+    createError.value = t('admin.boardForm.errors.nameMaxLength');
     return;
   }
   if (slug.length > 80) {
-    createError.value = '슬러그는 80자 이하로 입력해주세요.';
+    createError.value = t('admin.boardForm.errors.slugMaxLength');
     return;
   }
   isCreating.value = true;
@@ -295,11 +294,11 @@ const submitCreate = async () => {
       try {
         await uploadAdminBoardImage(created.id, createImageFile.value);
       } catch (error) {
-        createError.value = error instanceof ApiError ? error.message : '게시판은 생성됐지만 대표 이미지 업로드에 실패했습니다.';
+        createError.value = error instanceof ApiError ? error.message : t('admin.boardForm.errors.createImageUploadFailed');
       }
     }
 
-    createSuccess.value = '게시판이 생성되었습니다.';
+    createSuccess.value = t('admin.boards.success.created');
     createForm.boardName = '';
     createForm.slug = '';
     createForm.description = '';
@@ -309,7 +308,7 @@ const submitCreate = async () => {
     await loadBoards();
     selectedBoardId.value = created.id;
   } catch (error) {
-    createError.value = resolveBoardErrorMessage(error, '게시판 생성에 실패했습니다.');
+    createError.value = resolveBoardErrorMessage(error, t('admin.boards.errors.createFailed'));
   } finally {
     isCreating.value = false;
   }
@@ -325,19 +324,19 @@ const submitUpdate = async () => {
   const slug = editForm.slug.trim();
   const description = editForm.description.trim();
   if (!boardName) {
-    editError.value = '게시판명을 입력해주세요.';
+    editError.value = t('admin.boardForm.errors.nameRequired');
     return;
   }
   if (!slug) {
-    editError.value = '슬러그를 입력해주세요.';
+    editError.value = t('admin.boardForm.errors.slugRequired');
     return;
   }
   if (boardName.length > 255) {
-    editError.value = '게시판명은 255자 이하로 입력해주세요.';
+    editError.value = t('admin.boardForm.errors.nameMaxLength');
     return;
   }
   if (slug.length > 80) {
-    editError.value = '슬러그는 80자 이하로 입력해주세요.';
+    editError.value = t('admin.boardForm.errors.slugMaxLength');
     return;
   }
   isUpdating.value = true;
@@ -349,9 +348,9 @@ const submitUpdate = async () => {
       visibility: editForm.visibility,
     });
     applyBoardUpdate(updated);
-    editSuccess.value = '게시판 정보가 저장되었습니다.';
+    editSuccess.value = t('admin.boards.success.updated');
   } catch (error) {
-    editError.value = resolveBoardErrorMessage(error, '게시판 수정에 실패했습니다.');
+    editError.value = resolveBoardErrorMessage(error, t('admin.boards.errors.updateFailed'));
   } finally {
     isUpdating.value = false;
   }
@@ -367,10 +366,10 @@ const uploadImage = async () => {
   try {
     const updated = await uploadAdminBoardImage(selectedBoard.value.id, editImageFile.value);
     applyBoardUpdate(updated);
-    imageSuccess.value = '대표 이미지가 업로드되었습니다.';
+    imageSuccess.value = t('admin.boardForm.success.imageUploaded');
     resetEditImage();
   } catch (error) {
-    imageError.value = resolveBoardErrorMessage(error, '대표 이미지 업로드에 실패했습니다.');
+    imageError.value = resolveBoardErrorMessage(error, t('admin.boards.errors.imageUploadFailed'));
   } finally {
     isUploading.value = false;
   }
@@ -380,7 +379,7 @@ const deleteImage = async () => {
   if (!selectedBoard.value || !selectedBoard.value.boardImage) {
     return;
   }
-  if (!window.confirm('대표 이미지를 삭제할까요?')) {
+  if (!window.confirm(t('admin.boardForm.confirm.deleteImage'))) {
     return;
   }
   imageError.value = '';
@@ -389,10 +388,10 @@ const deleteImage = async () => {
   try {
     const updated = await deleteAdminBoardImage(selectedBoard.value.id);
     applyBoardUpdate(updated);
-    imageSuccess.value = '대표 이미지가 삭제되었습니다.';
+    imageSuccess.value = t('admin.boardForm.success.imageDeleted');
     resetEditImage();
   } catch (error) {
-    imageError.value = resolveBoardErrorMessage(error, '대표 이미지 삭제에 실패했습니다.');
+    imageError.value = resolveBoardErrorMessage(error, t('admin.boards.errors.imageDeleteFailed'));
   } finally {
     isRemoving.value = false;
   }
@@ -417,33 +416,38 @@ onBeforeUnmount(() => {
   <AppShell>
     <PageContainer width="wide">
       <div class="space-y-6">
-        <PageHeader eyebrow="Admin Boards" title="게시판 관리" description="전체 게시판 목록, 생성, 수정, 대표 이미지 관리를 한 화면에서 처리합니다.">
+        <PageHeader eyebrow="Admin Boards" :title="t('admin.boards.title')" :description="t('admin.boards.description')">
           <template #meta>
-            <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-            <span class="ui-badge ui-badge-accent">표시 {{ boards.length }}건</span>
+            <span class="ui-badge ui-badge-muted">{{ t('admin.common.currentPage', { current: page + 1, total: Math.max(totalPages, 1) }) }}</span>
+            <span class="ui-badge ui-badge-accent">{{ t('admin.common.displayCount', { count: boards.length }) }}</span>
             <span class="text-xs text-muted">{{ filterSummary }}</span>
           </template>
           <div class="grid gap-3 md:grid-cols-3">
             <div class="ui-data-panel p-4">
               <p class="ui-eyebrow">Filter</p>
               <p class="bbs-row-title mt-2 text-sm">
-                {{ visibilityFilter === 'ALL' ? '전체 공개 범위' : visibilityLabel(visibilityFilter) }}
+                {{ visibilityLabel(visibilityFilter) }}
               </p>
               <p class="mt-1 text-xs text-muted">
-                삭제 포함 {{ includeDeleted ? 'ON' : 'OFF' }} · 정렬 {{ sortBy === 'UPDATED_AT' ? '수정일' : '생성일' }}
+                {{
+                  t('admin.boards.includeDeletedSummary', {
+                    state: includeDeleted ? t('admin.common.on') : t('admin.common.off'),
+                    sortBy: sortBy === 'UPDATED_AT' ? t('admin.common.sortByUpdated') : t('admin.common.sortByCreated'),
+                  })
+                }}
               </p>
             </div>
             <div class="ui-data-panel p-4">
               <p class="ui-eyebrow">Selected</p>
               <p class="bbs-row-title mt-2 text-sm">
-                {{ selectedBoard ? selectedBoard.boardName : '게시판 미선택' }}
+                {{ selectedBoard ? selectedBoard.boardName : t('admin.common.boardNotSelected') }}
               </p>
-              <p class="mt-1 text-xs text-muted">우측 편집 패널은 선택한 게시판 기준으로 동작합니다.</p>
+              <p class="mt-1 text-xs text-muted">{{ t('admin.common.editPanelHint') }}</p>
             </div>
             <div class="ui-data-panel p-4">
               <p class="ui-eyebrow">Create</p>
-              <p class="bbs-row-title mt-2 text-sm">새 게시판 생성</p>
-              <p class="mt-1 text-xs text-muted">슬러그와 공개 범위를 지정한 뒤 바로 생성할 수 있습니다.</p>
+              <p class="bbs-row-title mt-2 text-sm">{{ t('admin.boards.createTitle') }}</p>
+              <p class="mt-1 text-xs text-muted">{{ t('admin.boards.createHint') }}</p>
             </div>
           </div>
         </PageHeader>
@@ -452,16 +456,16 @@ onBeforeUnmount(() => {
           <section class="ui-panel p-5">
             <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
               <div>
-                <h2 class="bbs-row-title text-lg">게시판 목록</h2>
-                <p class="mt-1 text-sm text-muted">필터와 검색을 적용한 결과만 좌측 큐에 표시합니다.</p>
+                <h2 class="bbs-row-title text-lg">{{ t('admin.boards.listTitle') }}</h2>
+                <p class="mt-1 text-sm text-muted">{{ t('admin.boards.listDescription') }}</p>
               </div>
-              <span class="ui-badge ui-badge-muted">총 {{ boards.length }}건</span>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.common.totalCount', { count: boards.length }) }}</span>
             </div>
 
             <div class="ui-toolbar mt-4">
               <select v-model="visibilityFilter" class="ui-select min-w-[10rem]">
                 <option v-for="option in visibilityFilterOptions" :key="option" :value="option">
-                  {{ option === 'ALL' ? '전체 공개 범위' : visibilityLabel(option) }}
+                  {{ visibilityLabel(option) }}
                 </option>
               </select>
               <select v-model="sortBy" class="ui-select min-w-[8.5rem]">
@@ -476,10 +480,10 @@ onBeforeUnmount(() => {
               </select>
               <label class="flex items-center gap-2 text-xs font-semibold text-muted">
                 <input v-model="includeDeleted" type="checkbox" class="h-4 w-4 rounded border-line text-ink focus:ring-[color:var(--accent-ring)]" />
-                삭제 포함
+                {{ t('admin.common.includeDeleted') }}
               </label>
-              <input v-model="keyword" type="search" class="ui-input min-w-[13rem] flex-1" placeholder="게시판명 또는 슬러그 검색" />
-              <button type="button" class="ui-button-primary h-10 px-4 text-xs" @click="applyFilters">적용</button>
+              <input v-model="keyword" type="search" class="ui-input min-w-[13rem] flex-1" :placeholder="t('admin.common.searchBoardPlaceholder')" />
+              <button type="button" class="ui-button-primary h-10 px-4 text-xs" @click="applyFilters">{{ t('admin.common.apply') }}</button>
             </div>
             <p class="mt-2 text-xs text-subtle">{{ filterSummary }}</p>
 
@@ -489,7 +493,7 @@ onBeforeUnmount(() => {
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
               <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-              불러오는 중...
+              {{ t('common.loading') }}
             </div>
 
             <div v-else class="mt-4 flex flex-col gap-3">
@@ -507,7 +511,7 @@ onBeforeUnmount(() => {
                       v-if="item.boardImage"
                       :file="item.boardImage"
                       variant="thumb"
-                      alt="게시판 대표 이미지"
+                      :alt="t('admin.boards.boardImageAlt')"
                       class="h-full w-full object-cover"
                     />
                     <div v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-subtle">NO</div>
@@ -516,7 +520,7 @@ onBeforeUnmount(() => {
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span :class="item.deletedAt ? 'ui-badge ui-badge-danger' : 'ui-badge ui-badge-success'">
-                        {{ item.deletedAt ? '삭제됨' : '활성' }}
+                        {{ item.deletedAt ? t('admin.common.deleted') : t('admin.common.active') }}
                       </span>
                       <span class="ui-badge ui-badge-muted">{{ visibilityLabel(item.visibility) }}</span>
                       <span>ID {{ item.id }}</span>
@@ -526,22 +530,22 @@ onBeforeUnmount(() => {
                       <span class="bbs-row-title text-sm">{{ item.boardName }}</span>
                       <span class="text-xs text-subtle">/b/{{ item.slug }}</span>
                     </div>
-                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-muted">{{ item.description || '설명이 없습니다.' }}</p>
+                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-muted">{{ item.description || t('admin.common.noDescription') }}</p>
                   </div>
 
                   <div class="text-xs text-subtle md:text-right">
-                    <p>생성 {{ formatDate(item.createdAt) }}</p>
-                    <p class="mt-1">수정 {{ formatDate(item.updatedAt) }}</p>
+                    <p>{{ t('admin.common.createdAt') }} {{ formatDate(item.createdAt) }}</p>
+                    <p class="mt-1">{{ t('admin.common.updatedAt') }} {{ formatDate(item.updatedAt) }}</p>
                   </div>
                 </div>
               </button>
 
-              <div v-if="boards.length === 0" class="ui-state ui-state-empty px-4 py-10">등록된 게시판이 없습니다.</div>
+              <div v-if="boards.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ t('admin.boards.empty') }}</div>
             </div>
 
             <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
               <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
-                이전
+                {{ t('common.previous') }}
               </button>
               <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <button
@@ -550,7 +554,7 @@ onBeforeUnmount(() => {
                 :disabled="page + 1 >= totalPages"
                 @click="movePage(1)"
               >
-                다음
+                {{ t('common.next') }}
               </button>
             </div>
           </section>
@@ -560,23 +564,29 @@ onBeforeUnmount(() => {
               <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
                 <div>
                   <p class="ui-eyebrow">Create</p>
-                  <h2 class="bbs-row-title mt-1 text-lg">새 게시판 생성</h2>
+                  <h2 class="bbs-row-title mt-1 text-lg">{{ t('admin.boards.createTitle') }}</h2>
                 </div>
               </div>
 
               <form class="mt-6 space-y-4" @submit.prevent="submitCreate">
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  게시판명
-                  <input v-model="createForm.boardName" type="text" maxlength="255" class="ui-input" placeholder="게시판 이름을 입력하세요" />
+                  {{ t('admin.boardForm.boardName') }}
+                  <input
+                    v-model="createForm.boardName"
+                    type="text"
+                    maxlength="255"
+                    class="ui-input"
+                    :placeholder="t('admin.boardAdmin.settings.boardNamePlaceholder')"
+                  />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  슬러그
-                  <input v-model="createForm.slug" type="text" maxlength="80" class="ui-input" placeholder="예: notice" />
+                  {{ t('admin.boardForm.slug') }}
+                  <input v-model="createForm.slug" type="text" maxlength="80" class="ui-input" :placeholder="t('admin.boardForm.slugPlaceholder')" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  공개 범위
+                  {{ t('admin.boardForm.visibility') }}
                   <select v-model="createForm.visibility" class="ui-select">
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
@@ -585,23 +595,33 @@ onBeforeUnmount(() => {
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  게시판 설명
-                  <textarea v-model="createForm.description" rows="3" class="ui-textarea" placeholder="게시판 소개를 입력하세요"></textarea>
+                  {{ t('admin.boards.boardDescription') }}
+                  <textarea
+                    v-model="createForm.description"
+                    rows="3"
+                    class="ui-textarea"
+                    :placeholder="t('admin.boardForm.descriptionPlaceholder')"
+                  ></textarea>
                 </label>
 
                 <div class="rounded-ui border border-dashed border-line bg-surface-soft/70 p-4 dark:border-line">
                   <div class="flex items-center justify-between text-sm font-semibold text-muted">
-                    대표 이미지(선택)
-                    <span class="text-xs text-subtle">생성 후 업로드</span>
+                    {{ t('admin.boards.featuredImageOptional') }}
+                    <span class="text-xs text-subtle">{{ t('admin.boards.uploadAfterCreate') }}</span>
                   </div>
                   <div class="mt-3 flex flex-col gap-3">
                     <div class="overflow-hidden rounded-ui bg-surface-soft">
-                      <img v-if="createPreviewUrl" :src="createPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
-                      <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">선택된 이미지가 없습니다.</div>
+                      <img
+                        v-if="createPreviewUrl"
+                        :src="createPreviewUrl"
+                        :alt="t('admin.boardForm.featuredImagePreview')"
+                        class="h-40 w-full object-cover"
+                      />
+                      <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">{{ t('admin.boards.noImageSelected') }}</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
                       <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`admin-create-image-${createFileInputKey}`">
-                        이미지 선택
+                        {{ t('admin.boardForm.selectImage') }}
                       </label>
                       <input
                         :id="`admin-create-image-${createFileInputKey}`"
@@ -617,7 +637,7 @@ onBeforeUnmount(() => {
                         :disabled="!createImageFile"
                         @click="resetCreateImage"
                       >
-                        선택 취소
+                        {{ t('admin.boardForm.cancelSelection') }}
                       </button>
                     </div>
                   </div>
@@ -635,7 +655,7 @@ onBeforeUnmount(() => {
 
                 <div class="flex flex-wrap items-center gap-3">
                   <button type="submit" class="ui-button-accent h-11 px-6 text-sm disabled:opacity-60" :disabled="isCreating">
-                    {{ isCreating ? '생성 중...' : '게시판 생성' }}
+                    {{ isCreating ? t('admin.boards.creating') : t('admin.boards.createSubmit') }}
                   </button>
                 </div>
               </form>
@@ -645,26 +665,26 @@ onBeforeUnmount(() => {
               <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
                 <div>
                   <p class="ui-eyebrow">Edit</p>
-                  <h2 class="bbs-row-title mt-1 text-lg">선택 게시판 수정</h2>
+                  <h2 class="bbs-row-title mt-1 text-lg">{{ t('admin.boards.editSelectedTitle') }}</h2>
                 </div>
                 <span v-if="selectedBoard" class="ui-badge ui-badge-muted">ID {{ selectedBoard.id }}</span>
               </div>
 
-              <div v-if="!selectedBoard" class="ui-state ui-state-empty mt-6 px-4 py-10">목록에서 게시판을 선택해주세요.</div>
+              <div v-if="!selectedBoard" class="ui-state ui-state-empty mt-6 px-4 py-10">{{ t('admin.boards.selectFromList') }}</div>
 
               <form v-else class="mt-6 space-y-4" @submit.prevent="submitUpdate">
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  게시판명
+                  {{ t('admin.boardForm.boardName') }}
                   <input v-model="editForm.boardName" type="text" maxlength="255" class="ui-input" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  슬러그
+                  {{ t('admin.boardForm.slug') }}
                   <input v-model="editForm.slug" type="text" maxlength="80" class="ui-input" />
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  공개 범위
+                  {{ t('admin.boardForm.visibility') }}
                   <select v-model="editForm.visibility" class="ui-select">
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
@@ -673,30 +693,37 @@ onBeforeUnmount(() => {
                 </label>
 
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  게시판 설명
+                  {{ t('admin.boards.boardDescription') }}
                   <textarea v-model="editForm.description" rows="3" class="ui-textarea"></textarea>
                 </label>
 
                 <div class="rounded-ui border border-dashed border-line bg-surface-soft/70 p-4 dark:border-line">
                   <div class="flex items-center justify-between text-sm font-semibold text-muted">
-                    대표 이미지
-                    <span class="text-xs text-subtle">{{ selectedBoard.boardImage ? '설정됨' : '없음' }}</span>
+                    {{ t('admin.boardForm.featuredImage') }}
+                    <span class="text-xs text-subtle">{{
+                      selectedBoard.boardImage ? t('admin.boardAdmin.settings.featuredSet') : t('admin.boardAdmin.settings.featuredUnset')
+                    }}</span>
                   </div>
                   <div class="mt-3 grid gap-3">
                     <div class="overflow-hidden rounded-ui bg-surface-soft">
-                      <img v-if="editPreviewUrl" :src="editPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
+                      <img
+                        v-if="editPreviewUrl"
+                        :src="editPreviewUrl"
+                        :alt="t('admin.boardForm.featuredImagePreview')"
+                        class="h-40 w-full object-cover"
+                      />
                       <FileImage
                         v-else-if="selectedBoard?.boardImage"
                         :file="selectedBoard.boardImage"
                         variant="medium"
-                        alt="대표 이미지 미리보기"
+                        :alt="t('admin.boardForm.featuredImagePreview')"
                         class="h-40 w-full object-cover"
                       />
-                      <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">대표 이미지가 없습니다.</div>
+                      <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">{{ t('admin.boardForm.noFeaturedImage') }}</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
                       <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`admin-edit-image-${editFileInputKey}`">
-                        이미지 선택
+                        {{ t('admin.boardForm.selectImage') }}
                       </label>
                       <input
                         :id="`admin-edit-image-${editFileInputKey}`"
@@ -712,7 +739,7 @@ onBeforeUnmount(() => {
                         :disabled="!editImageFile || isUploading"
                         @click="uploadImage"
                       >
-                        {{ isUploading ? '업로드 중...' : '업로드' }}
+                        {{ isUploading ? t('admin.common.uploading') : t('admin.boards.upload') }}
                       </button>
                       <button
                         type="button"
@@ -720,7 +747,7 @@ onBeforeUnmount(() => {
                         :disabled="!editImageFile"
                         @click="resetEditImage"
                       >
-                        선택 취소
+                        {{ t('admin.boardForm.cancelSelection') }}
                       </button>
                       <button
                         type="button"
@@ -728,7 +755,7 @@ onBeforeUnmount(() => {
                         :disabled="!selectedBoard.boardImage || isRemoving"
                         @click="deleteImage"
                       >
-                        {{ isRemoving ? '삭제 중...' : '이미지 삭제' }}
+                        {{ isRemoving ? t('admin.common.removing') : t('admin.boardForm.deleteImage') }}
                       </button>
                     </div>
                   </div>
@@ -755,10 +782,10 @@ onBeforeUnmount(() => {
 
                 <div class="flex flex-wrap items-center gap-3">
                   <button type="submit" class="ui-button-accent h-11 px-6 text-sm disabled:opacity-60" :disabled="isUpdating">
-                    {{ isUpdating ? '저장 중...' : '게시판 저장' }}
+                    {{ isUpdating ? t('admin.boardForm.saving') : t('admin.boards.saveSubmit') }}
                   </button>
                   <button type="button" class="ui-button-danger h-11 px-6 text-sm disabled:opacity-50" :disabled="isUpdating" @click="deleteBoard">
-                    게시판 삭제
+                    {{ t('admin.boards.deleteBoard') }}
                   </button>
                 </div>
               </form>

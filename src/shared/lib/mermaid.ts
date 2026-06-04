@@ -1,3 +1,5 @@
+import { translate } from '../i18n/translate';
+
 let mermaidPromise: Promise<typeof import('mermaid').default> | null = null;
 const SUPPORTED_MERMAID_DIAGRAM_TYPES = new Set(['graph', 'flowchart', 'sequencediagram', 'erdiagram']);
 
@@ -90,14 +92,8 @@ const renderMermaidDiagrams = async (root: HTMLElement | null) => {
 
     const diagramType = detectMermaidDiagramType(source);
     if (!isSupportedMermaidDiagramType(diagramType)) {
-      const typeLabel = diagramType ?? '알 수 없는 타입';
-      pre.replaceWith(
-        createFallbackPanel(
-          `현재 지원하지 않는 Mermaid 다이어그램(${typeLabel})입니다. 원본 코드를 그대로 표시합니다.`,
-          source,
-          'ui-mermaid-unsupported',
-        ),
-      );
+      const typeLabel = diagramType ?? translate('editor.mermaid.unknownType');
+      pre.replaceWith(createFallbackPanel(translate('editor.mermaid.unsupported', { type: typeLabel }), source, 'ui-mermaid-unsupported'));
       continue;
     }
 
@@ -123,7 +119,7 @@ const renderMermaidDiagrams = async (root: HTMLElement | null) => {
       bindFunctions?.(renderHost);
       pre.replaceWith(renderHost);
     } catch {
-      pre.replaceWith(createFallbackPanel('Mermaid 렌더링에 실패했습니다.', source, 'ui-mermaid-error'));
+      pre.replaceWith(createFallbackPanel(translate('editor.mermaid.renderFailed'), source, 'ui-mermaid-error'));
     }
   }
 };

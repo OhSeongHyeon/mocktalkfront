@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { ApiError } from '../shared/lib/http/api';
 import { exchangeOAuth2Code } from '../features/auth';
 import { useAuthStore } from '../stores/auth';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -23,20 +25,23 @@ const error = computed(() => {
   return typeof raw === 'string' ? raw : '';
 });
 
+const pageTitle = computed(() => (isLoading.value ? t('auth.oauth.loadingTitle') : t('auth.oauth.resultTitle')));
+const pageDescription = computed(() => (isLoading.value ? t('auth.oauth.loadingDescription') : t('auth.oauth.resultDescription')));
+
 const resolveErrorMessage = (code: string) => {
   switch (code) {
     case 'unsupported_provider':
-      return '지원하지 않는 소셜 로그인입니다.';
+      return t('auth.oauth.errors.unsupportedProvider');
     case 'missing_provider_id':
-      return '제공자 정보가 부족합니다. 다시 시도해주세요.';
+      return t('auth.oauth.errors.missingProviderId');
     case 'provider_already_linked':
-      return '이미 연결된 계정입니다. 다른 계정으로 시도해주세요.';
+      return t('auth.oauth.errors.providerAlreadyLinked');
     case 'user_disabled':
-      return '계정이 비활성화/잠금 상태입니다. 관리자에게 문의하세요.';
+      return t('auth.oauth.errors.userDisabled');
     case 'oauth2_login_failed':
-      return '소셜 로그인에 실패했습니다. 다시 시도해주세요.';
+      return t('auth.oauth.errors.oauth2LoginFailed');
     default:
-      return '소셜 로그인 처리 중 오류가 발생했습니다.';
+      return t('auth.oauth.errors.default');
   }
 };
 
@@ -51,7 +56,7 @@ const handleExchange = async () => {
   }
 
   if (!code.value) {
-    errorMessage.value = '인증 코드가 없습니다. 다시 시도해주세요.';
+    errorMessage.value = t('auth.oauth.errors.missingCode');
     isLoading.value = false;
     return;
   }
@@ -62,9 +67,9 @@ const handleExchange = async () => {
     await router.replace('/');
   } catch (err) {
     if (err instanceof ApiError) {
-      errorMessage.value = err.status === 401 ? '인증이 만료되었습니다. 다시 로그인해주세요.' : err.message;
+      errorMessage.value = err.status === 401 ? t('auth.oauth.errors.expired') : err.message;
     } else {
-      errorMessage.value = '로그인 처리에 실패했습니다. 다시 시도해주세요.';
+      errorMessage.value = t('auth.oauth.errors.exchangeFailed');
     }
   } finally {
     isLoading.value = false;
@@ -80,12 +85,12 @@ onMounted(() => {
   <div class="min-h-screen text-ink">
     <main class="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-6 px-4 text-center sm:px-6">
       <div class="ui-panel w-full max-w-md p-8">
-        <p class="text-sm font-semibold tracking-[0.3em] text-subtle uppercase">OAuth Callback</p>
+        <p class="text-sm font-semibold tracking-[0.3em] text-subtle uppercase">{{ t('auth.oauth.eyebrow') }}</p>
         <h1 class="mt-4 text-2xl font-semibold text-ink">
-          {{ isLoading ? '로그인 확인 중' : '로그인 결과' }}
+          {{ pageTitle }}
         </h1>
         <p class="mt-3 text-sm text-muted">
-          {{ isLoading ? '잠시만 기다려주세요. 인증 상태를 확인하고 있습니다.' : '로그인 상태를 확인했습니다.' }}
+          {{ pageDescription }}
         </p>
 
         <p v-if="errorMessage" class="ui-state ui-state-danger mt-6 text-sm font-semibold" role="alert">
@@ -98,14 +103,14 @@ onMounted(() => {
             class="h-11 w-full rounded-ui bg-[color:var(--accent-strong)] text-sm font-semibold text-white shadow-sm transition hover:brightness-110"
             @click="retryLogin"
           >
-            다시 로그인하기
+            {{ t('auth.oauth.retry') }}
           </button>
           <button
             type="button"
             class="ui-panel h-11 w-full text-sm font-semibold text-ink shadow-sm transition hover:bg-surface-soft"
             @click="redirectToLogin"
           >
-            로그인 페이지로 이동
+            {{ t('auth.oauth.goToLogin') }}
           </button>
         </div>
       </div>

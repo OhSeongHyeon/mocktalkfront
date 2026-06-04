@@ -1,3 +1,5 @@
+import { resolveAcceptLanguage } from '../../i18n/localeHeader';
+import { translate } from '../../i18n/translate';
 import { useAuthStore } from '../../../stores/auth';
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -124,8 +126,11 @@ const shouldAttemptRefresh = (path: string) => {
 
 const tryRefreshAccessToken = async () => {
   try {
+    const headers = new Headers();
+    applyRequestHeaders(headers);
     const response = await fetch(buildApiUrl('/auth/refresh'), {
       method: 'POST',
+      headers,
       credentials: 'include',
     });
     if (!response.ok) {
@@ -144,6 +149,12 @@ const tryRefreshAccessToken = async () => {
     return true;
   } catch {
     return false;
+  }
+};
+
+const applyRequestHeaders = (headers: Headers) => {
+  if (!headers.has('Accept-Language')) {
+    headers.set('Accept-Language', resolveAcceptLanguage());
   }
 };
 
@@ -170,6 +181,7 @@ const fetchWithAuth = async (path: string, init: RequestInit = {}, options: Fetc
   if (accessToken && !headers.has('Authorization')) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
+  applyRequestHeaders(headers);
 
   const response = await fetch(buildApiUrl(path), {
     ...init,
@@ -231,14 +243,17 @@ const requestRedirectLocation = async (path: string, init: RequestInit = {}, ret
   );
   const location = response.headers.get('location') ?? response.headers.get('Location');
   if (!location) {
-    throw new ApiError(500, '리다이렉트 위치가 비어있습니다.');
+    throw new ApiError(500, translate('common.redirectLocationEmpty'));
   }
   return location;
 };
 
 const requestBlobWithoutAuth = async (path: string, init: RequestInit = {}) => {
+  const headers = new Headers(init.headers ?? {});
+  applyRequestHeaders(headers);
   const response = await fetch(path, {
     ...init,
+    headers,
     credentials: 'include',
   });
   if (!response.ok) {

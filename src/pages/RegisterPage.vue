@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { ApiError } from '../shared/lib/http/api';
 import { register } from '../features/auth';
 
+const { t } = useI18n();
 const router = useRouter();
 const loginId = ref('');
 const email = ref('');
@@ -15,6 +17,7 @@ const displayName = ref('');
 const handle = ref('');
 const isSubmitting = ref(false);
 const errorMessage = ref('');
+const submitLabel = computed(() => (isSubmitting.value ? t('auth.register.submitting') : t('auth.register.submit')));
 
 const handleSubmit = async () => {
   errorMessage.value = '';
@@ -30,17 +33,17 @@ const handleSubmit = async () => {
   };
 
   if (!payload.loginId || !payload.email || !payload.password || !payload.confirmPassword) {
-    errorMessage.value = '필수 항목을 입력하세요.';
+    errorMessage.value = t('auth.register.errors.required');
     return;
   }
 
   if (payload.password.length < 8) {
-    errorMessage.value = '비밀번호는 8자 이상이어야 합니다.';
+    errorMessage.value = t('auth.register.errors.passwordMinLength');
     return;
   }
 
   if (payload.password !== payload.confirmPassword) {
-    errorMessage.value = '비밀번호가 일치하지 않습니다.';
+    errorMessage.value = t('auth.register.errors.passwordMismatch');
     return;
   }
 
@@ -52,7 +55,7 @@ const handleSubmit = async () => {
     if (error instanceof ApiError) {
       errorMessage.value = error.message;
     } else {
-      errorMessage.value = '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.';
+      errorMessage.value = t('auth.register.errors.failed');
     }
   } finally {
     isSubmitting.value = false;
@@ -65,32 +68,32 @@ const handleSubmit = async () => {
     <header class="auth-header">
       <div class="mx-auto flex h-[3.75rem] max-w-md items-center justify-between px-4">
         <RouterLink to="/" class="app-brand-title">MockTalk</RouterLink>
-        <RouterLink to="/" class="ui-button-ghost h-8 px-2.5 text-xs">홈</RouterLink>
+        <RouterLink to="/" class="ui-button-ghost h-8 px-2.5 text-xs">{{ t('nav.home') }}</RouterLink>
       </div>
     </header>
 
     <main class="mx-auto w-full max-w-md px-4 py-8">
       <form class="bbs-box p-4" @submit.prevent="handleSubmit">
-        <h1 class="ui-heading-page">회원가입</h1>
-        <p class="ui-caption mt-1">필수 항목만 입력하면 가입을 완료할 수 있습니다. 프로필은 나중에 마이페이지에서 수정할 수 있습니다.</p>
+        <h1 class="ui-heading-page">{{ t('auth.register.title') }}</h1>
+        <p class="ui-caption mt-1">{{ t('auth.register.subtitle') }}</p>
 
         <div class="mt-4 space-y-3">
           <div>
-            <label for="register-login-id" class="ui-field-label">로그인 아이디</label>
+            <label for="register-login-id" class="ui-field-label">{{ t('auth.register.loginId') }}</label>
             <input
               id="register-login-id"
               v-model="loginId"
               name="loginId"
               type="text"
               autocomplete="username"
-              placeholder="아이디를 입력하세요"
+              :placeholder="t('auth.register.placeholders.loginId')"
               class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
           <div>
-            <label for="register-email" class="ui-field-label">이메일</label>
+            <label for="register-email" class="ui-field-label">{{ t('auth.register.email') }}</label>
             <input
               id="register-email"
               v-model="email"
@@ -104,71 +107,71 @@ const handleSubmit = async () => {
           </div>
 
           <div>
-            <label for="register-password" class="ui-field-label">비밀번호</label>
+            <label for="register-password" class="ui-field-label">{{ t('auth.register.password') }}</label>
             <input
               id="register-password"
               v-model="password"
               name="password"
               type="password"
               autocomplete="new-password"
-              placeholder="비밀번호를 입력하세요"
+              :placeholder="t('auth.register.placeholders.password')"
               class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
-            <p class="ui-caption mt-1">8자 이상 입력하세요.</p>
+            <p class="ui-caption mt-1">{{ t('auth.register.passwordHint') }}</p>
           </div>
 
           <div>
-            <label for="register-confirm-password" class="ui-field-label">비밀번호 확인</label>
+            <label for="register-confirm-password" class="ui-field-label">{{ t('auth.register.confirmPassword') }}</label>
             <input
               id="register-confirm-password"
               v-model="confirmPassword"
               name="confirmPassword"
               type="password"
               autocomplete="new-password"
-              placeholder="비밀번호를 다시 입력하세요"
+              :placeholder="t('auth.register.placeholders.confirmPassword')"
               class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
           <div>
-            <label for="register-user-name" class="ui-field-label">사용자명</label>
+            <label for="register-user-name" class="ui-field-label">{{ t('auth.register.userName') }}</label>
             <input
               id="register-user-name"
               v-model="userName"
               name="userName"
               type="text"
               autocomplete="name"
-              placeholder="이름을 입력하세요"
+              :placeholder="t('auth.register.placeholders.userName')"
               class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
           <div>
-            <label for="register-display-name" class="ui-field-label">표시명 (선택)</label>
+            <label for="register-display-name" class="ui-field-label">{{ t('auth.register.displayName') }}</label>
             <input
               id="register-display-name"
               v-model="displayName"
               name="displayName"
               type="text"
               autocomplete="nickname"
-              placeholder="입력하지 않으면 사용자명으로 대체됩니다"
+              :placeholder="t('auth.register.placeholders.displayName')"
               class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
           <div>
-            <label for="register-handle" class="ui-field-label">핸들 (선택)</label>
+            <label for="register-handle" class="ui-field-label">{{ t('auth.register.handle') }}</label>
             <input
               id="register-handle"
               v-model="handle"
               name="handle"
               type="text"
               autocomplete="off"
-              placeholder="입력하지 않으면 자동 생성됩니다"
+              :placeholder="t('auth.register.placeholders.handle')"
               class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
@@ -176,14 +179,14 @@ const handleSubmit = async () => {
         </div>
 
         <button type="submit" class="ui-button-accent mt-4 h-9 w-full text-sm" :disabled="isSubmitting">
-          {{ isSubmitting ? '가입 처리 중...' : '회원가입' }}
+          {{ submitLabel }}
         </button>
 
         <p v-if="errorMessage" class="ui-state ui-state-danger mt-3 text-sm" role="alert">{{ errorMessage }}</p>
 
         <p class="mt-4 text-center text-xs text-muted">
-          이미 계정이 있나요?
-          <RouterLink to="/login" class="font-semibold text-link hover:underline">로그인</RouterLink>
+          {{ t('auth.register.hasAccount') }}
+          <RouterLink to="/login" class="font-semibold text-link hover:underline">{{ t('auth.register.signIn') }}</RouterLink>
         </p>
       </form>
     </main>

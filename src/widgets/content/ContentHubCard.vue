@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 
 const props = defineProps<{
@@ -7,14 +8,20 @@ const props = defineProps<{
   description: string;
   badge?: string;
   to?: string;
-  accent: 'amber' | 'cyan';
 }>();
 
-const accentClass = computed(() => (props.accent === 'amber' ? 'ui-feature-tile--amber' : 'ui-feature-tile--cyan'));
+const { t } = useI18n();
+
+const actionLabel = computed(() => (props.to ? t('content.card.viewNow') : t('content.card.comingSoon')));
 </script>
 
 <template>
-  <component :is="to ? RouterLink : 'div'" :to="to" class="group ui-feature-tile" :class="accentClass">
+  <component
+    :is="to ? RouterLink : 'div'"
+    :to="to"
+    class="group ui-feature-tile"
+    :class="to ? 'ui-feature-tile--interactive' : 'ui-feature-tile--static'"
+  >
     <div class="space-y-4">
       <div class="flex items-start justify-between gap-3">
         <h2 class="text-xl font-semibold text-ink">{{ title }}</h2>
@@ -29,7 +36,7 @@ const accentClass = computed(() => (props.accent === 'amber' ? 'ui-feature-tile-
     </div>
 
     <div class="mt-8 flex items-center justify-between text-sm font-semibold">
-      <span class="text-muted">{{ to ? '지금 확인하기' : '곧 공개됩니다' }}</span>
+      <span class="text-muted">{{ actionLabel }}</span>
       <span class="text-ink transition group-hover:translate-x-1">{{ to ? '→' : '·' }}</span>
     </div>
   </component>

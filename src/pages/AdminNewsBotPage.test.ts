@@ -17,11 +17,13 @@ vi.mock('../features/admin/system', () => ({
   runAdminNewsBotJobNow: newsBotApiMocks.runAdminNewsBotJobNow,
 }));
 
+import { i18n } from '../test/plugins';
 import AdminNewsBotPage from './AdminNewsBotPage.vue';
 
 const mountPage = async () => {
   const wrapper = mount(AdminNewsBotPage, {
     global: {
+      plugins: [i18n],
       stubs: {
         RouterLink: {
           template: '<a><slot /></a>',

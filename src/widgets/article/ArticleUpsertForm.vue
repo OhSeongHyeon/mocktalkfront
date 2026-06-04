@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import ArticleContentEditor from '../../features/editor/ui/ArticleContentEditor.vue';
 import type { MarkdownImportMetadata } from '../../features/editor/lib/markdownImport';
@@ -37,6 +38,7 @@ interface ArticleUpsertFormProps {
 }
 
 const props = defineProps<ArticleUpsertFormProps>();
+const { t } = useI18n();
 
 const emit = defineEmits<{
   (event: 'update:title', value: string): void;
@@ -128,39 +130,39 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
     <section class="ui-panel p-5">
       <div class="flex flex-col gap-4">
         <label class="text-sm font-semibold text-ink">
-          제목
+          {{ t('editor.upsert.title') }}
           <input
             v-model="titleModel"
             type="text"
             class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-sm text-ink focus:border-[color:var(--accent-strong)] focus:outline-none dark:border-line"
-            placeholder="제목을 입력하세요"
+            :placeholder="t('editor.upsert.titlePlaceholder')"
           />
         </label>
 
         <div class="flex flex-col gap-4">
           <label class="text-sm font-semibold text-ink">
-            카테고리
+            {{ t('editor.upsert.category') }}
             <select
               v-model="categoryIdModel"
               class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-sm text-ink focus:border-[color:var(--accent-strong)] focus:outline-none dark:border-line"
               :disabled="isCategoryLoading || isCategoryAccessDenied || categories.length === 0"
             >
-              <option :value="null">선택 안 함</option>
+              <option :value="null">{{ t('editor.upsert.categoryNone') }}</option>
               <option v-for="category in categories" :key="category.id" :value="category.id">
                 {{ category.categoryName }}
               </option>
             </select>
-            <p v-if="isCategoryLoading" class="mt-1 text-xs text-muted">카테고리 목록을 불러오는 중입니다...</p>
-            <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-muted">카테고리 목록을 조회할 수 없습니다.</p>
+            <p v-if="isCategoryLoading" class="mt-1 text-xs text-muted">{{ t('editor.upsert.categoryLoading') }}</p>
+            <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-muted">{{ t('editor.upsert.categoryAccessDenied') }}</p>
             <p v-else-if="categoryErrorMessage" class="mt-1 text-xs text-danger">{{ categoryErrorMessage }}</p>
             <p v-else-if="categories.length === 0" class="mt-1 text-xs text-muted">
-              등록된 카테고리가 없습니다.
-              <span v-if="canManageCategories">커뮤니티 관리에서 카테고리를 등록해 주세요.</span>
+              {{ t('editor.upsert.categoryEmpty') }}
+              <span v-if="canManageCategories">{{ t('editor.upsert.categoryManageHint') }}</span>
             </p>
           </label>
 
           <label class="text-sm font-semibold text-ink">
-            공개 범위
+            {{ t('editor.upsert.visibility') }}
             <select
               v-model="visibilityModel"
               class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-sm text-ink focus:border-[color:var(--accent-strong)] focus:outline-none dark:border-line"
@@ -181,7 +183,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         :board-slug="boardSlug"
         :available-visibilities="visibilityOptions.map((option) => option.value)"
         :allow-board-slug-import="allowBoardSlugImport"
-        placeholder="본문을 입력하세요."
+        :placeholder="t('editor.placeholder.body')"
         @apply-import-metadata="applyImportedMetadata"
       />
     </section>
@@ -195,8 +197,8 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
           aria-controls="article-upsert-attachment-panel"
           @click="isAttachmentExpanded = !isAttachmentExpanded"
         >
-          <span>첨부파일 {{ attachments.length }}개</span>
-          <span>{{ isAttachmentExpanded ? '접기' : '펼치기' }}</span>
+          <span>{{ t('editor.upsert.attachments', { count: attachments.length }) }}</span>
+          <span>{{ isAttachmentExpanded ? t('editor.upsert.collapse') : t('editor.upsert.expand') }}</span>
         </button>
         <div class="flex items-center gap-2">
           <button
@@ -205,23 +207,23 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
             :disabled="isSubmitting || isAttachmentUploading"
             @click="openAttachmentPicker"
           >
-            파일 추가
+            {{ t('editor.upsert.addFile') }}
           </button>
         </div>
       </div>
       <div v-show="isAttachmentExpanded" id="article-upsert-attachment-panel" class="mt-2">
-        <p class="text-xs text-muted">최대 50MB</p>
-        <p class="mt-1 text-xs text-muted">허용 확장자: {{ ATTACHMENT_ALLOWED_EXTENSION_LABEL }}</p>
+        <p class="text-xs text-muted">{{ t('editor.upload.maxSize') }}</p>
+        <p class="mt-1 text-xs text-muted">{{ t('editor.upsert.allowedExtensions', { extensions: ATTACHMENT_ALLOWED_EXTENSION_LABEL }) }}</p>
         <p class="mt-1 text-xs font-medium text-amber-600 dark:text-amber-300">
-          첨부파일 업로드 시 원본 파일을 저장하기 때문에 메타데이터가 보존됩니다. 민감정보에 유의하세요.
+          {{ t('editor.upsert.attachmentPrivacy') }}
         </p>
-        <p v-if="isAttachmentUploading" class="mt-2 text-xs font-semibold text-success">첨부파일 업로드 중...</p>
+        <p v-if="isAttachmentUploading" class="mt-2 text-xs font-semibold text-success">{{ t('editor.upsert.attachmentUploading') }}</p>
         <p v-if="attachmentErrorMessage" class="mt-2 text-xs font-semibold text-danger">{{ attachmentErrorMessage }}</p>
         <div
           v-if="attachments.length === 0"
           class="mt-3 rounded-xl border border-dashed border-line px-4 py-4 text-sm text-muted dark:border-line dark:text-subtle"
         >
-          첨부파일이 없습니다.
+          {{ t('editor.upsert.attachmentEmpty') }}
         </div>
         <div v-else class="mt-3 space-y-2">
           <div
@@ -239,7 +241,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
               :disabled="isSubmitting || isAttachmentUploading"
               @click="removeAttachment(file.id)"
             >
-              제거
+              {{ t('editor.upsert.remove') }}
             </button>
           </div>
         </div>
@@ -254,14 +256,14 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         :disabled="isSubmitting || isInvalid || isSubmitBlocked"
         @click="$emit('submit')"
       >
-        저장
+        {{ t('editor.upsert.save') }}
       </button>
       <button
         type="button"
         class="rounded-full border border-line px-5 py-2 text-sm font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
         @click="$emit('cancel')"
       >
-        취소
+        {{ t('editor.upsert.cancel') }}
       </button>
       <span v-if="hasPermissionMessage" class="text-xs text-danger">
         {{ submitPermissionMessage }}

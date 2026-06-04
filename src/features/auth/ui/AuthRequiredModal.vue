@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import ConfirmModal from '../../../shared/ui/ConfirmModal.vue';
 import { useAuthPromptStore } from '../../../stores/authPrompt';
 
+const { t } = useI18n();
 const router = useRouter();
 const authPromptStore = useAuthPromptStore();
 const { isOpen, requestedPath } = storeToRefs(authPromptStore);
 const { closePrompt } = authPromptStore;
+
+const confirmLabel = computed(() => t('auth.modal.confirm'));
+const cancelLabel = computed(() => t('common.close'));
 
 const handleConfirm = async () => {
   const redirectPath = requestedPath.value;
@@ -31,12 +37,12 @@ const handleConfirm = async () => {
 <template>
   <ConfirmModal
     :open="isOpen"
-    title="로그인이 필요한 화면입니다."
-    description="이 화면은 로그인 후 이용할 수 있습니다. 로그인 페이지로 이동할까요?"
-    confirm-label="로그인하기"
-    cancel-label="닫기"
+    :title="t('auth.modal.title')"
+    :description="t('auth.modal.description')"
+    :confirm-label="confirmLabel"
+    :cancel-label="cancelLabel"
     overlay-class="bg-[var(--surface-overlay)]"
-    aria-label="로그인 안내"
+    :aria-label="t('auth.modal.ariaLabel')"
     @close="closePrompt"
     @confirm="handleConfirm"
   />

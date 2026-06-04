@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { ApiError } from '../../shared/lib/http/api';
@@ -27,6 +28,7 @@ const emit = defineEmits<{
   (event: 'select', payload: ArticleSelectPayload): void;
 }>();
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const articleListStore = useArticleListStore();
@@ -57,12 +59,12 @@ const selectedUncategorized = ref(false);
 const hasCategoryFilter = computed(() => selectedCategoryId.value !== null || selectedUncategorized.value);
 const selectedCategoryLabel = computed(() => {
   if (selectedUncategorized.value) {
-    return '미분류';
+    return t('board.panel.categoryUncategorized');
   }
   if (selectedCategoryId.value === null) {
-    return '전체';
+    return t('board.panel.categoryAll');
   }
-  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName ?? '카테고리';
+  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName ?? t('board.defaults.categoryFallback');
 });
 
 const resolveCategoryFromRoute = () => {
@@ -124,7 +126,7 @@ const loadCategories = async () => {
     categories.value = await getBoardCategories(props.boardId);
   } catch (error) {
     categories.value = [];
-    categoryErrorMessage.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+    categoryErrorMessage.value = error instanceof ApiError ? error.message : t('board.errors.loadCategoriesFailed');
   } finally {
     isCategoryLoading.value = false;
   }
@@ -185,18 +187,18 @@ const loadPage = async (pageIndex: number) => {
     hasPrevious.value = response.page.hasPrevious;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      listError.value = '게시판을 찾을 수 없습니다.';
+      listError.value = t('board.errors.notFound');
       hasNext.value = false;
       hasPrevious.value = false;
       return;
     }
     if (error instanceof ApiError && error.status === 403) {
-      listError.value = '게시글 접근 권한이 없습니다.';
+      listError.value = t('board.errors.articlesForbidden');
       hasNext.value = false;
       hasPrevious.value = false;
       return;
     }
-    listError.value = error instanceof ApiError ? error.message : '게시글을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('board.errors.loadArticlesFailed');
     hasNext.value = false;
     hasPrevious.value = false;
   } finally {
@@ -380,19 +382,18 @@ watch(
     <div class="px-4 py-4 sm:px-5">
       <div class="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-3">
         <div class="min-w-0">
-          <p class="ui-eyebrow">Board Feed</p>
-          <h2 class="ui-heading-section mt-1">게시글 탐색</h2>
-          <p class="ui-lead mt-1">카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 좁혀볼 수 있습니다.</p>
+          <p class="ui-eyebrow">{{ t('board.panel.eyebrow') }}</p>
+          <h2 class="ui-heading-section mt-1">{{ t('board.panel.title') }}</h2>
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <span class="ui-badge ui-badge-muted">카테고리 {{ categories.length }}개</span>
+          <span class="ui-badge ui-badge-muted">{{ t('board.panel.categoryCount', { count: categories.length }) }}</span>
           <span class="ui-badge" :class="hasCategoryFilter ? 'ui-badge-accent' : 'ui-badge-muted'">{{ selectedCategoryLabel }}</span>
-          <span v-if="isSearching" class="ui-badge ui-badge-success">검색 결과</span>
+          <span v-if="isSearching" class="ui-badge ui-badge-success">{{ t('board.panel.searchResults') }}</span>
         </div>
       </div>
 
-      <div v-if="isCategoryLoading" class="mt-3 text-sm text-muted">카테고리 목록을 불러오는 중입니다...</div>
+      <div v-if="isCategoryLoading" class="mt-3 text-sm text-muted">{{ t('board.panel.loadingCategories') }}</div>
       <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-4">
         {{ categoryErrorMessage }}
       </div>
@@ -403,7 +404,7 @@ watch(
           :class="selectedCategoryId === null && !selectedUncategorized ? 'ui-button-primary h-9 px-4 text-xs' : 'ui-button-ghost h-9 px-4 text-xs'"
           @click="applyAllFilter"
         >
-          전체
+          {{ t('board.panel.categoryAll') }}
         </button>
         <button
           type="button"
@@ -411,7 +412,7 @@ watch(
           :class="selectedUncategorized ? 'ui-button-primary h-9 px-4 text-xs' : 'ui-button-ghost h-9 px-4 text-xs'"
           @click="applyUncategorizedFilter"
         >
-          미분류
+          {{ t('board.panel.categoryUncategorized') }}
         </button>
         <button
           v-for="category in categories"
@@ -428,14 +429,20 @@ watch(
   </section>
 
   <form class="ui-toolbar mt-4 text-sm" @submit.prevent="handleSearch">
-    <label for="board-search" class="ui-field-label">게시글 검색</label>
-    <input id="board-search" v-model="searchKeyword" type="search" placeholder="게시글 제목/본문/작성자 검색" class="ui-input min-w-[220px] flex-1" />
+    <label for="board-search" class="ui-field-label">{{ t('board.panel.searchLabel') }}</label>
+    <input
+      id="board-search"
+      v-model="searchKeyword"
+      type="search"
+      :placeholder="t('board.panel.searchPlaceholder')"
+      class="ui-input min-w-[220px] flex-1"
+    />
     <button
       type="submit"
       class="ui-button-primary h-9 px-3.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
       :disabled="!searchKeyword.trim() || isLoading"
     >
-      검색
+      {{ t('board.panel.search') }}
     </button>
     <button
       v-if="isSearching"
@@ -444,9 +451,9 @@ watch(
       :disabled="isLoading"
       @click="clearSearch"
     >
-      초기화
+      {{ t('board.panel.reset') }}
     </button>
-    <span v-if="hasCategoryFilter" class="ui-badge ui-badge-accent">{{ selectedCategoryLabel }} 필터</span>
+    <span v-if="hasCategoryFilter" class="ui-badge ui-badge-accent">{{ t('board.panel.filterSuffix', { label: selectedCategoryLabel }) }}</span>
   </form>
 
   <div v-if="listError" class="ui-state ui-state-danger mt-4">
@@ -472,5 +479,5 @@ watch(
     @update:page="handlePageChange"
   />
 
-  <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-muted">게시글을 불러오는 중...</div>
+  <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-muted">{{ t('board.panel.loadingArticles') }}</div>
 </template>

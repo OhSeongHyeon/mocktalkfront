@@ -1,16 +1,18 @@
+import { translate } from '../../../shared/i18n/translate';
+
 type BoardRoleLabelSource = 'OWNER' | 'MODERATOR' | 'MEMBER' | 'PENDING' | 'BANNED' | string;
 
-const resolveBoardSummaryDescription = (description: string | null, fallback = '설명이 없습니다.') => {
+const resolveBoardSummaryDescription = (description: string | null, fallback?: string) => {
   const trimmed = description?.trim();
-  return trimmed ? trimmed : fallback;
+  return trimmed ? trimmed : (fallback ?? translate('board.defaults.noDescription'));
 };
 
 const resolveBoardRoleLabel = (role: BoardRoleLabelSource) => {
   if (role === 'OWNER') {
-    return '소유';
+    return translate('boardMeta.role.OWNER');
   }
   if (role === 'MODERATOR') {
-    return '운영';
+    return translate('boardMeta.role.MODERATOR');
   }
   return role;
 };

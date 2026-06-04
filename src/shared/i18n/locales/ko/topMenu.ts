@@ -1,0 +1,25 @@
+const topMenu = {
+  openSideMenu: '사이드 메뉴 열기',
+  searchLabel: '검색',
+  searchPlaceholder: '검색',
+  searchSubmit: '검색 실행',
+  openSearchPage: '검색 페이지 열기',
+  notifications: '알림',
+  notificationsWithCount: '알림 {count}개',
+  notificationsCaption: '최근 상호작용을 빠르게 확인합니다.',
+  deleteAll: '전체 삭제',
+  markAllRead: '모두 읽음',
+  noNotifications: '새 알림이 없습니다.',
+  read: '읽음',
+  new: '새 알림',
+  profile: '프로필',
+  profileImageAlt: '프로필 이미지',
+  points: '포인트 {point}P',
+  myPage: '마이페이지',
+  createCommunity: '커뮤니티 개설',
+  themeDark: '다크',
+  themeLight: '화이트',
+  themeToggle: '테마 전환, 현재 {current}, 클릭 시 {next}',
+} as const;
+
+export default topMenu;

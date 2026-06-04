@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type { Editor } from '@tiptap/core';
 
 type MobileAccordionKey = 'text' | 'font' | 'structure' | 'insert' | 'table';
@@ -78,6 +79,7 @@ interface Props {
 }
 
 defineProps<Props>();
+const { t } = useI18n();
 const emit = defineEmits<{
   (event: 'update:fontFamily', value: string): void;
   (event: 'update:fontSize', value: string): void;
@@ -139,14 +141,16 @@ const onYoutubeSizeChange = (event: Event) => {
 <template>
   <div class="space-y-1 md:hidden">
     <div :class="sectionClass">
-      <span :class="sectionLabelClass">빠른 작업</span>
-      <button type="button" :class="buttonClass(editor?.isActive('bold'))" @click="actions.toggleBold">굵게</button>
-      <button type="button" :class="buttonClass(editor?.isActive('italic'))" @click="actions.toggleItalic">기울임</button>
-      <button type="button" :class="buttonClass(editor?.isActive('link'))" @click="actions.setLink">링크</button>
-      <button type="button" :class="buttonClass()" @click="actions.openImagePicker">이미지</button>
-      <button type="button" :class="buttonClass(editor?.isActive('taskList'))" @click="actions.toggleTaskList">체크</button>
-      <button type="button" :class="buttonClass()" @click="actions.undo">되돌리기</button>
-      <button type="button" :class="buttonClass()" @click="actions.redo">다시</button>
+      <span :class="sectionLabelClass">{{ t('editor.toolbar.section.quick') }}</span>
+      <button type="button" :class="buttonClass(editor?.isActive('bold'))" @click="actions.toggleBold">{{ t('editor.toolbar.bold') }}</button>
+      <button type="button" :class="buttonClass(editor?.isActive('italic'))" @click="actions.toggleItalic">{{ t('editor.toolbar.italic') }}</button>
+      <button type="button" :class="buttonClass(editor?.isActive('link'))" @click="actions.setLink">{{ t('editor.toolbar.link') }}</button>
+      <button type="button" :class="buttonClass()" @click="actions.openImagePicker">{{ t('editor.toolbar.image') }}</button>
+      <button type="button" :class="buttonClass(editor?.isActive('taskList'))" @click="actions.toggleTaskList">
+        {{ t('editor.toolbar.check') }}
+      </button>
+      <button type="button" :class="buttonClass()" @click="actions.undo">{{ t('editor.toolbar.undo') }}</button>
+      <button type="button" :class="buttonClass()" @click="actions.redo">{{ t('editor.toolbar.redo') }}</button>
       <button
         type="button"
         :class="buttonClass(isMobileMoreOpen, true)"
@@ -154,7 +158,7 @@ const onYoutubeSizeChange = (event: Event) => {
         :aria-expanded="isMobileMoreOpen"
         @click="actions.toggleMobileMore"
       >
-        {{ isMobileMoreOpen ? '더보기 닫기' : '더보기' }}
+        {{ isMobileMoreOpen ? t('editor.toolbar.moreClose') : t('editor.toolbar.more') }}
       </button>
     </div>
 
@@ -171,7 +175,7 @@ const onYoutubeSizeChange = (event: Event) => {
           :aria-expanded="mobileAccordionKey === 'text'"
           @click="actions.toggleMobileAccordion('text')"
         >
-          텍스트
+          {{ t('editor.toolbar.section.text') }}
         </button>
         <button
           type="button"
@@ -180,7 +184,7 @@ const onYoutubeSizeChange = (event: Event) => {
           :aria-expanded="mobileAccordionKey === 'font'"
           @click="actions.toggleMobileAccordion('font')"
         >
-          폰트·색상
+          {{ t('editor.toolbar.section.fontColor') }}
         </button>
         <button
           type="button"
@@ -189,7 +193,7 @@ const onYoutubeSizeChange = (event: Event) => {
           :aria-expanded="mobileAccordionKey === 'structure'"
           @click="actions.toggleMobileAccordion('structure')"
         >
-          문단·목록
+          {{ t('editor.toolbar.section.paragraph') }}
         </button>
         <button
           type="button"
@@ -198,7 +202,7 @@ const onYoutubeSizeChange = (event: Event) => {
           :aria-expanded="mobileAccordionKey === 'insert'"
           @click="actions.toggleMobileAccordion('insert')"
         >
-          코드·삽입
+          {{ t('editor.toolbar.section.codeInsert') }}
         </button>
         <button
           type="button"
@@ -207,26 +211,34 @@ const onYoutubeSizeChange = (event: Event) => {
           :aria-expanded="mobileAccordionKey === 'table'"
           @click="actions.toggleMobileAccordion('table')"
         >
-          테이블
+          {{ t('editor.toolbar.section.table') }}
         </button>
       </div>
 
       <div v-if="mobileAccordionKey === 'text'" id="mobile-accordion-text" :class="sectionClass">
-        <button type="button" :class="buttonClass(editor?.isActive('underline'))" @click="actions.toggleUnderline">밑줄</button>
-        <button type="button" :class="buttonClass(editor?.isActive('strike'))" @click="actions.toggleStrike">취소선</button>
-        <button type="button" :class="buttonClass(editor?.isActive('code'))" @click="actions.toggleInlineCode">인라인코드</button>
-        <button type="button" :class="buttonClass(editor?.isActive('subscript'))" @click="actions.toggleSubscript">아래첨자</button>
-        <button type="button" :class="buttonClass(editor?.isActive('superscript'))" @click="actions.toggleSuperscript">위첨자</button>
+        <button type="button" :class="buttonClass(editor?.isActive('underline'))" @click="actions.toggleUnderline">
+          {{ t('editor.toolbar.underline') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('strike'))" @click="actions.toggleStrike">{{ t('editor.toolbar.strike') }}</button>
+        <button type="button" :class="buttonClass(editor?.isActive('code'))" @click="actions.toggleInlineCode">
+          {{ t('editor.toolbar.inlineCode') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('subscript'))" @click="actions.toggleSubscript">
+          {{ t('editor.toolbar.subscript') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('superscript'))" @click="actions.toggleSuperscript">
+          {{ t('editor.toolbar.superscript') }}
+        </button>
       </div>
 
       <div v-if="mobileAccordionKey === 'font'" id="mobile-accordion-font" class="dark:border-line/80 ui-card space-y-2 p-2">
         <div class="flex flex-wrap items-center gap-2">
-          <select :value="fontFamily" :class="selectClass" aria-label="폰트 패밀리" @change="onFontFamilyChange">
+          <select :value="fontFamily" :class="selectClass" :aria-label="t('editor.toolbar.aria.fontFamily')" @change="onFontFamilyChange">
             <option v-for="option in fontFamilyOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </option>
           </select>
-          <select :value="fontSize" :class="selectClass" aria-label="폰트 크기" @change="onFontSizeChange">
+          <select :value="fontSize" :class="selectClass" :aria-label="t('editor.toolbar.aria.fontSize')" @change="onFontSizeChange">
             <option v-for="option in fontSizeOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </option>
@@ -234,13 +246,13 @@ const onYoutubeSizeChange = (event: Event) => {
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
-            글자색
+            {{ t('editor.toolbar.textColor') }}
             <input :value="textColor" type="color" class="h-7 w-7 rounded border border-line p-0.5 dark:border-line" @input="onTextColorChange" />
           </label>
-          <button type="button" :class="buttonClass()" @click="actions.applyTextColor">적용</button>
-          <button type="button" :class="buttonClass()" @click="actions.clearTextColor">해제</button>
+          <button type="button" :class="buttonClass()" @click="actions.applyTextColor">{{ t('editor.toolbar.apply') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.clearTextColor">{{ t('editor.toolbar.clear') }}</button>
           <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
-            형광
+            {{ t('editor.toolbar.highlight') }}
             <input
               :value="highlightColor"
               type="color"
@@ -248,8 +260,10 @@ const onYoutubeSizeChange = (event: Event) => {
               @input="onHighlightColorChange"
             />
           </label>
-          <button type="button" :class="buttonClass(editor?.isActive('highlight'))" @click="actions.applyHighlightColor">적용</button>
-          <button type="button" :class="buttonClass()" @click="actions.clearHighlightColor">해제</button>
+          <button type="button" :class="buttonClass(editor?.isActive('highlight'))" @click="actions.applyHighlightColor">
+            {{ t('editor.toolbar.apply') }}
+          </button>
+          <button type="button" :class="buttonClass()" @click="actions.clearHighlightColor">{{ t('editor.toolbar.clear') }}</button>
         </div>
       </div>
 
@@ -257,60 +271,82 @@ const onYoutubeSizeChange = (event: Event) => {
         <button type="button" :class="buttonClass(editor?.isActive('heading', { level: 1 }))" @click="actions.setHeading(1)">H1</button>
         <button type="button" :class="buttonClass(editor?.isActive('heading', { level: 2 }))" @click="actions.setHeading(2)">H2</button>
         <button type="button" :class="buttonClass(editor?.isActive('heading', { level: 3 }))" @click="actions.setHeading(3)">H3</button>
-        <button type="button" :class="buttonClass(editor?.isActive('paragraph'))" @click="actions.setParagraph">문단</button>
-        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'left' }))" @click="actions.setTextAlign('left')">좌측</button>
-        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'center' }))" @click="actions.setTextAlign('center')">중앙</button>
-        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'right' }))" @click="actions.setTextAlign('right')">우측</button>
-        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'justify' }))" @click="actions.setTextAlign('justify')">양쪽</button>
-        <button type="button" :class="buttonClass(editor?.isActive('bulletList'))" @click="actions.toggleBulletList">글머리</button>
-        <button type="button" :class="buttonClass(editor?.isActive('orderedList'))" @click="actions.toggleOrderedList">번호</button>
-        <button type="button" :class="buttonClass(editor?.isActive('taskList'))" @click="actions.toggleTaskList">체크리스트</button>
-        <button type="button" :class="buttonClass(editor?.isActive('blockquote'))" @click="actions.toggleBlockquote">인용</button>
-        <button type="button" :class="buttonClass()" @click="actions.setHorizontalRule">구분선</button>
+        <button type="button" :class="buttonClass(editor?.isActive('paragraph'))" @click="actions.setParagraph">
+          {{ t('editor.toolbar.paragraph') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'left' }))" @click="actions.setTextAlign('left')">
+          {{ t('editor.toolbar.alignLeft') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'center' }))" @click="actions.setTextAlign('center')">
+          {{ t('editor.toolbar.alignCenter') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'right' }))" @click="actions.setTextAlign('right')">
+          {{ t('editor.toolbar.alignRight') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive({ textAlign: 'justify' }))" @click="actions.setTextAlign('justify')">
+          {{ t('editor.toolbar.alignJustify') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('bulletList'))" @click="actions.toggleBulletList">
+          {{ t('editor.toolbar.bulletList') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('orderedList'))" @click="actions.toggleOrderedList">
+          {{ t('editor.toolbar.orderedList') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('taskList'))" @click="actions.toggleTaskList">
+          {{ t('editor.toolbar.taskList') }}
+        </button>
+        <button type="button" :class="buttonClass(editor?.isActive('blockquote'))" @click="actions.toggleBlockquote">
+          {{ t('editor.toolbar.blockquote') }}
+        </button>
+        <button type="button" :class="buttonClass()" @click="actions.setHorizontalRule">{{ t('editor.toolbar.horizontalRule') }}</button>
       </div>
 
       <div v-if="mobileAccordionKey === 'insert'" id="mobile-accordion-insert" class="dark:border-line/80 ui-card space-y-2 p-2">
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" :class="buttonClass(editor?.isActive('codeBlock'))" @click="actions.toggleCodeBlock">코드블록</button>
-          <select :value="codeLanguage" :class="selectClass" aria-label="코드 언어" @change="onCodeLanguageChange">
+          <button type="button" :class="buttonClass(editor?.isActive('codeBlock'))" @click="actions.toggleCodeBlock">
+            {{ t('editor.toolbar.codeBlock') }}
+          </button>
+          <select :value="codeLanguage" :class="selectClass" :aria-label="t('editor.toolbar.aria.codeLanguage')" @change="onCodeLanguageChange">
             <option v-for="option in codeLanguageOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </option>
           </select>
-          <button type="button" :class="buttonClass()" @click="actions.startMention">멘션</button>
+          <button type="button" :class="buttonClass()" @click="actions.startMention">{{ t('editor.toolbar.mention') }}</button>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" :class="buttonClass()" @click="actions.openImagePicker">이미지</button>
-          <button type="button" :class="buttonClass()" @click="actions.openVideoPicker">영상</button>
-          <button type="button" :class="buttonClass()" @click="actions.openYoutubeModal">유튜브</button>
-          <select :value="youtubeSize" :class="selectClass" aria-label="유튜브 크기" @change="onYoutubeSizeChange">
+          <button type="button" :class="buttonClass()" @click="actions.openImagePicker">{{ t('editor.toolbar.image') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.openVideoPicker">{{ t('editor.toolbar.video') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.openYoutubeModal">{{ t('editor.toolbar.youtube') }}</button>
+          <select :value="youtubeSize" :class="selectClass" :aria-label="t('editor.toolbar.aria.youtubeSize')" @change="onYoutubeSizeChange">
             <option v-for="option in youtubeSizeOptions" :key="option.value" :value="option.value">
               {{ option.label }}
             </option>
           </select>
-          <button type="button" :class="buttonClass()" @click="actions.applyYoutubeSize">크기 적용</button>
+          <button type="button" :class="buttonClass()" @click="actions.applyYoutubeSize">{{ t('editor.toolbar.youtubeSizeApply') }}</button>
         </div>
       </div>
 
       <div v-if="mobileAccordionKey === 'table'" id="mobile-accordion-table" class="dark:border-line/80 ui-card space-y-2 p-2">
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" :class="buttonClass(editor?.isActive('table'))" @click="actions.insertTable">테이블 삽입</button>
+          <button type="button" :class="buttonClass(editor?.isActive('table'))" @click="actions.insertTable">
+            {{ t('editor.toolbar.insertTable') }}
+          </button>
         </div>
         <div v-if="isTableSelected" class="flex flex-wrap items-center gap-2">
-          <button type="button" :class="buttonClass()" @click="actions.addRowBefore">행+앞</button>
-          <button type="button" :class="buttonClass()" @click="actions.addRowAfter">행+뒤</button>
-          <button type="button" :class="buttonClass()" @click="actions.deleteRow">행삭제</button>
-          <button type="button" :class="buttonClass()" @click="actions.addColumnBefore">열+앞</button>
-          <button type="button" :class="buttonClass()" @click="actions.addColumnAfter">열+뒤</button>
-          <button type="button" :class="buttonClass()" @click="actions.deleteColumn">열삭제</button>
-          <button type="button" :class="buttonClass()" @click="actions.mergeCells">셀병합</button>
-          <button type="button" :class="buttonClass()" @click="actions.splitCell">셀분할</button>
-          <button type="button" :class="buttonClass()" @click="actions.toggleHeaderRow">헤더행</button>
-          <button type="button" :class="buttonClass()" @click="actions.toggleHeaderColumn">헤더열</button>
-          <button type="button" :class="buttonClass()" @click="actions.toggleHeaderCell">헤더셀</button>
-          <button type="button" :class="buttonClass()" @click="actions.deleteTable">표삭제</button>
+          <button type="button" :class="buttonClass()" @click="actions.addRowBefore">{{ t('editor.toolbar.rowAddBefore') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.addRowAfter">{{ t('editor.toolbar.rowAddAfter') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.deleteRow">{{ t('editor.toolbar.rowDelete') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.addColumnBefore">{{ t('editor.toolbar.colAddBefore') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.addColumnAfter">{{ t('editor.toolbar.colAddAfter') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.deleteColumn">{{ t('editor.toolbar.colDelete') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.mergeCells">{{ t('editor.toolbar.mergeCells') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.splitCell">{{ t('editor.toolbar.splitCell') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.toggleHeaderRow">{{ t('editor.toolbar.headerRow') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.toggleHeaderColumn">{{ t('editor.toolbar.headerColumn') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.toggleHeaderCell">{{ t('editor.toolbar.headerCell') }}</button>
+          <button type="button" :class="buttonClass()" @click="actions.deleteTable">{{ t('editor.toolbar.deleteTable') }}</button>
         </div>
-        <p v-else class="text-[11px] font-semibold text-muted">테이블 안에 커서를 두면 편집 버튼이 활성화됩니다.</p>
+        <p v-else class="text-[11px] font-semibold text-muted">{{ t('editor.toolbar.tableCursorHint') }}</p>
       </div>
     </div>
   </div>

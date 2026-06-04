@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { getBoards, resolveBoardWritePolicyLabel, type BoardResponse } from '../../entities/board';
 import { ApiError } from '../../shared/lib/http/api';
 import SectionHeader from '../../shared/ui/SectionHeader.vue';
+
+const { t } = useI18n();
 
 const boards = ref<BoardResponse[]>([]);
 const isLoading = ref(false);
@@ -40,7 +43,7 @@ const loadPublicBoards = async () => {
 
     boards.value = collected.slice(0, targetCount);
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '공개 커뮤니티를 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('home.community.error');
     boards.value = [];
   } finally {
     isLoading.value = false;
@@ -54,14 +57,14 @@ onMounted(() => {
 
 <template>
   <section class="bbs-box">
-    <SectionHeader title="공개 게시판">
+    <SectionHeader :title="t('home.community.title')">
       <template #actions>
-        <RouterLink to="/boards" class="ui-button-ghost h-8 px-2.5 text-xs">더보기</RouterLink>
+        <RouterLink to="/boards" class="ui-button-ghost h-8 px-2.5 text-xs">{{ t('home.community.more') }}</RouterLink>
       </template>
     </SectionHeader>
 
     <div v-if="listError" class="ui-state ui-state-danger ui-section-message">{{ listError }}</div>
-    <div v-else-if="isLoading" class="ui-section-loading">불러오는 중...</div>
+    <div v-else-if="isLoading" class="ui-section-loading">{{ t('common.loading') }}</div>
     <template v-else-if="boards.length > 0">
       <RouterLink v-for="board in boards" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row">
         <span class="bbs-tag">{{ resolveBoardWritePolicyLabel(board.articleWritePolicy) }}</span>
@@ -69,6 +72,6 @@ onMounted(() => {
         <span class="bbs-meta ml-2">/{{ board.slug }}</span>
       </RouterLink>
     </template>
-    <div v-else class="ui-state ui-state-empty ui-section-message">게시판이 없습니다.</div>
+    <div v-else class="ui-state ui-state-empty ui-section-message">{{ t('home.community.empty') }}</div>
   </section>
 </template>

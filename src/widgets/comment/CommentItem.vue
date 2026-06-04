@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { ThumbsDown, ThumbsUp } from '@lucide/vue';
 
 import type { CommentTreeResponse } from '../../features/comment';
 import AppIcon from '../../shared/ui/AppIcon.vue';
+import { toIntlLocaleTag } from '../../shared/i18n';
 
 interface CommentItemProps {
   comment: CommentTreeResponse;
@@ -15,6 +17,7 @@ interface CommentItemProps {
 }
 
 const props = defineProps<CommentItemProps>();
+const { t, locale } = useI18n();
 const emit = defineEmits<{
   (event: 'reply', payload: { parentId: number; content: string }): void;
   (event: 'update', payload: { commentId: number; content: string }): void;
@@ -30,7 +33,7 @@ const editTextareaRef = ref<HTMLTextAreaElement | null>(null);
 const replyTextareaRef = ref<HTMLTextAreaElement | null>(null);
 const COMMENT_TEXTAREA_MAX_HEIGHT = 240;
 
-const isDeleted = computed(() => props.comment.deletedAt !== null || props.comment.content === '삭제된 댓글입니다.');
+const isDeleted = computed(() => props.comment.deletedAt !== null);
 const isOwner = computed(() => props.currentUserId !== null && props.comment.userId === props.currentUserId);
 const isArticleAuthor = computed(() => props.articleAuthorId !== null && props.comment.userId === props.articleAuthorId);
 const cardClass = computed(() => ['bbs-comment', isDeleted.value ? 'bbs-comment-deleted' : ''].filter(Boolean).join(' '));
@@ -144,7 +147,7 @@ const formattedCreatedAt = computed(() => {
   if (Number.isNaN(date.getTime())) {
     return props.comment.createdAt;
   }
-  return date.toLocaleString('ko-KR', {
+  return date.toLocaleString(toIntlLocaleTag(locale.value), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -161,7 +164,7 @@ const formattedUpdatedAt = computed(() => {
   if (Number.isNaN(date.getTime())) {
     return props.comment.updatedAt;
   }
-  return date.toLocaleString('ko-KR', {
+  return date.toLocaleString(toIntlLocaleTag(locale.value), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -216,32 +219,48 @@ watch(
           v-if="isOwner && !isArticleAuthor"
           class="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200"
         >
-          내 댓글
+          {{ t('comment.item.myComment') }}
         </span>
         <span
           v-if="isArticleAuthor"
           class="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200"
         >
-          게시글 작성자
+          {{ t('comment.item.articleAuthor') }}
         </span>
         <span>{{ formattedCreatedAt }}</span>
-        <span v-if="isEdited" class="text-[11px] font-semibold">수정 {{ formattedUpdatedAt }}</span>
+        <span v-if="isEdited" class="text-[11px] font-semibold">{{ t('comment.item.edited', { date: formattedUpdatedAt }) }}</span>
       </div>
       <div v-if="!isDeleted" class="flex flex-wrap items-center gap-3 text-[11px]">
         <div class="flex items-center gap-2">
-          <button type="button" :class="likeButtonClass" :disabled="!isAuthenticated" aria-label="댓글 좋아요" @click="toggleReaction(1)">
+          <button
+            type="button"
+            :class="likeButtonClass"
+            :disabled="!isAuthenticated"
+            :aria-label="t('comment.item.likeAria')"
+            @click="toggleReaction(1)"
+          >
             <AppIcon :icon="ThumbsUp" :size="14" />
             <span>{{ comment.likeCount }}</span>
           </button>
-          <button type="button" :class="dislikeButtonClass" :disabled="!isAuthenticated" aria-label="댓글 싫어요" @click="toggleReaction(-1)">
+          <button
+            type="button"
+            :class="dislikeButtonClass"
+            :disabled="!isAuthenticated"
+            :aria-label="t('comment.item.dislikeAria')"
+            @click="toggleReaction(-1)"
+          >
             <AppIcon :icon="ThumbsDown" :size="14" />
             <span>{{ comment.dislikeCount }}</span>
           </button>
         </div>
         <div v-if="isAuthenticated" class="flex items-center gap-2 text-[11px]">
-          <button type="button" class="text-xs font-semibold text-link hover:underline" @click="toggleReply">답글</button>
-          <button v-if="isOwner" type="button" class="text-xs font-semibold text-muted hover:text-ink" @click="toggleEdit">수정</button>
-          <button v-if="isOwner" type="button" class="text-xs font-semibold text-danger hover:opacity-80" @click="remove">삭제</button>
+          <button type="button" class="text-xs font-semibold text-link hover:underline" @click="toggleReply">{{ t('comment.item.reply') }}</button>
+          <button v-if="isOwner" type="button" class="text-xs font-semibold text-muted hover:text-ink" @click="toggleEdit">
+            {{ t('comment.item.edit') }}
+          </button>
+          <button v-if="isOwner" type="button" class="text-xs font-semibold text-danger hover:opacity-80" @click="remove">
+            {{ t('comment.item.delete') }}
+          </button>
         </div>
       </div>
     </div>
@@ -257,8 +276,8 @@ watch(
           @input="handleEditInput"
         ></textarea>
         <div class="mt-2 flex items-center gap-2">
-          <button type="button" class="ui-button-accent h-8 px-3 text-xs" @click="submitEdit">저장</button>
-          <button type="button" class="ui-button-ghost h-8 px-3 text-xs" @click="toggleEdit">취소</button>
+          <button type="button" class="ui-button-accent h-8 px-3 text-xs" @click="submitEdit">{{ t('comment.item.save') }}</button>
+          <button type="button" class="ui-button-ghost h-8 px-3 text-xs" @click="toggleEdit">{{ t('common.cancel') }}</button>
         </div>
       </template>
       <template v-else>
@@ -271,15 +290,15 @@ watch(
         ref="replyTextareaRef"
         v-model="replyContent"
         rows="2"
-        placeholder="답글을 입력하세요"
+        :placeholder="t('comment.item.replyPlaceholder')"
         class="ui-textarea min-h-[4.5rem]"
         @focus="resizeReplyTextarea"
         @input="handleReplyInput"
         @keydown="handleReplyInputKeydown"
       ></textarea>
       <div class="mt-2 flex items-center gap-2">
-        <button type="button" class="ui-button-accent h-8 px-3 text-xs" @click="submitReply">등록</button>
-        <button type="button" class="ui-button-ghost h-8 px-3 text-xs" @click="toggleReply">취소</button>
+        <button type="button" class="ui-button-accent h-8 px-3 text-xs" @click="submitReply">{{ t('comment.item.submitReply') }}</button>
+        <button type="button" class="ui-button-ghost h-8 px-3 text-xs" @click="toggleReply">{{ t('common.cancel') }}</button>
       </div>
     </div>
   </div>

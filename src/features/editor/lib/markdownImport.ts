@@ -1,3 +1,5 @@
+import { translate } from '../../../shared/i18n/translate';
+
 export interface MarkdownImportMetadata {
   title?: string;
   tags: string[];
@@ -151,7 +153,7 @@ export const parseMarkdownImport = (rawText: string, fileName?: string | null): 
     if (fallbackTitle) {
       metadata.title = fallbackTitle;
     }
-    warnings.push('frontmatter 닫힘 구분자를 찾지 못해 파일 본문 전체를 그대로 불러왔습니다.');
+    warnings.push(translate('editor.markdown.import.frontmatterUnclosed'));
     return {
       content: normalizedText,
       contentSource: normalizedText,
@@ -176,7 +178,7 @@ export const parseMarkdownImport = (rawText: string, fileName?: string | null): 
 
     const separatorIndex = line.indexOf(':');
     if (separatorIndex === -1) {
-      warnings.push(`frontmatter 줄을 해석하지 못해 무시했습니다: ${trimmed}`);
+      warnings.push(translate('editor.markdown.import.lineIgnored', { line: trimmed }));
       index += 1;
       continue;
     }

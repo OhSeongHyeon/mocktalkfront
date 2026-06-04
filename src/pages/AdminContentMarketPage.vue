@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
@@ -8,6 +9,8 @@ import type { AdminContentMarketImportResponse, AdminContentMarketRefreshRespons
 import { ApiError } from '../shared/lib/http/api';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
+
+const { t } = useI18n();
 
 type ImportMode = 'UNIFIED' | 'SINGLE';
 
@@ -22,15 +25,15 @@ const actionSuccessMessage = ref('');
 const refreshResult = ref<AdminContentMarketRefreshResponse | null>(null);
 const importResult = ref<AdminContentMarketImportResponse | null>(null);
 
-const instrumentOptions: Array<{ value: MarketInstrumentCode; label: string }> = [
+const instrumentOptions = computed<Array<{ value: MarketInstrumentCode; label: string }>>(() => [
   { value: 'USD_KRW', label: 'USD/KRW' },
   { value: 'EUR_KRW', label: 'EUR/KRW' },
   { value: 'JPY_KRW', label: 'JPY/KRW' },
-  { value: 'XAU_USD', label: '금 시세 (USD)' },
-  { value: 'XAU_KRW', label: '금 시세 (KRW)' },
-];
+  { value: 'XAU_USD', label: t('admin.contentMarket.instrumentXauUsd') },
+  { value: 'XAU_KRW', label: t('admin.contentMarket.instrumentXauKrw') },
+]);
 
-const selectedFileName = computed(() => selectedFile.value?.name ?? '선택된 파일이 없습니다.');
+const selectedFileName = computed(() => selectedFile.value?.name ?? t('admin.contentMarket.noFileSelected'));
 const canImport = computed(() => Boolean(selectedFile.value) && !isImportLoading.value && !isRefreshLoading.value);
 
 const resolveErrorMessage = (error: unknown, fallback: string) => {
@@ -70,9 +73,12 @@ const handleRefresh = async () => {
 
   try {
     refreshResult.value = await refreshContentMarket();
-    actionSuccessMessage.value = `최신화가 완료되었습니다. 생성 ${refreshResult.value.createdCount}건, 갱신 ${refreshResult.value.updatedCount}건입니다.`;
+    actionSuccessMessage.value = t('admin.contentMarket.refreshSuccess', {
+      created: refreshResult.value.createdCount,
+      updated: refreshResult.value.updatedCount,
+    });
   } catch (error) {
-    actionErrorMessage.value = resolveErrorMessage(error, '시세 최신화에 실패했습니다.');
+    actionErrorMessage.value = resolveErrorMessage(error, t('admin.contentMarket.errors.refreshFailed'));
   } finally {
     isRefreshLoading.value = false;
   }
@@ -80,7 +86,7 @@ const handleRefresh = async () => {
 
 const handleImport = async () => {
   if (!selectedFile.value) {
-    actionErrorMessage.value = '업로드할 CSV 또는 XLSX 파일을 먼저 선택해 주세요.';
+    actionErrorMessage.value = t('admin.contentMarket.errors.fileRequired');
     return;
   }
 
@@ -90,9 +96,13 @@ const handleImport = async () => {
 
   try {
     importResult.value = await importContentMarketSnapshots(selectedFile.value, importMode.value === 'SINGLE' ? selectedInstrument.value : undefined);
-    actionSuccessMessage.value = `임포트가 완료되었습니다. 생성 ${importResult.value.createdCount}건, 갱신 ${importResult.value.updatedCount}건, 실패 ${importResult.value.failedCount}건입니다.`;
+    actionSuccessMessage.value = t('admin.contentMarket.importSuccess', {
+      created: importResult.value.createdCount,
+      updated: importResult.value.updatedCount,
+      failed: importResult.value.failedCount,
+    });
   } catch (error) {
-    actionErrorMessage.value = resolveErrorMessage(error, '시세 데이터 임포트에 실패했습니다.');
+    actionErrorMessage.value = resolveErrorMessage(error, t('admin.contentMarket.errors.importFailed'));
   } finally {
     isImportLoading.value = false;
   }
@@ -105,16 +115,16 @@ const handleImport = async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page">콘텐츠 시세 운영</h1>
+            <h1 class="ui-heading-page">{{ t('admin.contentMarket.title') }}</h1>
             <p class="mt-1 text-sm text-muted">
-              공개 콘텐츠에서 사용하는 환율/금 시세를 수동으로 최신화하거나 CSV/XLSX 파일로 과거 데이터를 반영합니다.
+              {{ t('admin.contentMarket.description') }}
             </p>
           </div>
           <RouterLink
             to="/admin"
             class="inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
           >
-            백오피스 홈
+            {{ t('admin.common.backofficeHome') }}
           </RouterLink>
         </div>
 
@@ -128,8 +138,8 @@ const handleImport = async () => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-ink">지금 최신화</h2>
-              <p class="mt-1 text-sm text-muted">외부 시세 공급자에서 현재 값을 다시 읽어와 스냅샷을 즉시 갱신합니다.</p>
+              <h2 class="text-lg font-semibold text-ink">{{ t('admin.contentMarket.refreshTitle') }}</h2>
+              <p class="mt-1 text-sm text-muted">{{ t('admin.contentMarket.refreshDescription') }}</p>
             </div>
             <button
               type="button"
@@ -137,25 +147,25 @@ const handleImport = async () => {
               :disabled="isRefreshLoading || isImportLoading"
               @click="handleRefresh"
             >
-              {{ isRefreshLoading ? '최신화 중...' : '지금 최신화' }}
+              {{ isRefreshLoading ? t('admin.contentMarket.refreshSubmitting') : t('admin.contentMarket.refreshSubmit') }}
             </button>
           </div>
 
           <div v-if="refreshResult" class="mt-5 grid gap-3 md:grid-cols-4">
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실행 시각</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.executedAt') }}</p>
               <p class="mt-2 text-sm font-semibold text-ink">{{ formatDateTime(refreshResult.executedAt) }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.created') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.createdCount }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">갱신</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.updated') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.updatedCount }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">스킵</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.skipped') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.skippedCount }}</p>
             </div>
           </div>
@@ -164,8 +174,8 @@ const handleImport = async () => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-ink">시세 데이터 임포트</h2>
-              <p class="mt-1 text-sm text-muted">통합 파일 또는 종목별 파일을 업로드해 과거 시세 데이터를 보강합니다. 허용 형식은 CSV, XLSX입니다.</p>
+              <h2 class="text-lg font-semibold text-ink">{{ t('admin.contentMarket.importTitle') }}</h2>
+              <p class="mt-1 text-sm text-muted">{{ t('admin.contentMarket.importDescription') }}</p>
             </div>
             <button
               type="button"
@@ -173,7 +183,7 @@ const handleImport = async () => {
               :disabled="!selectedFile || isImportLoading"
               @click="resetFileSelection"
             >
-              파일 초기화
+              {{ t('admin.contentMarket.resetFile') }}
             </button>
           </div>
 
@@ -189,7 +199,7 @@ const handleImport = async () => {
                 "
                 @click="importMode = 'UNIFIED'"
               >
-                통합 파일
+                {{ t('admin.contentMarket.unifiedFile') }}
               </button>
               <button
                 type="button"
@@ -201,40 +211,29 @@ const handleImport = async () => {
                 "
                 @click="importMode = 'SINGLE'"
               >
-                종목별 파일
+                {{ t('admin.contentMarket.perInstrumentFile') }}
               </button>
             </div>
 
             <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div class="ui-card">
-                <h3 class="text-sm font-semibold text-ink">업로드 가이드</h3>
+                <h3 class="text-sm font-semibold text-ink">{{ t('admin.contentMarket.uploadGuideTitle') }}</h3>
                 <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
-                  <li>
-                    필수 컬럼은 <code class="font-mono text-[0.95em]">instrument_code</code>,
-                    <code class="font-mono text-[0.95em]">observed_at</code>, <code class="font-mono text-[0.95em]">price_value</code>입니다.
-                  </li>
-                  <li>
-                    종목별 파일은 <code class="font-mono text-[0.95em]">observed_at</code>, <code class="font-mono text-[0.95em]">price_value</code>만
-                    있어도 됩니다.
-                  </li>
-                  <li>
-                    <code class="font-mono text-[0.95em]">observed_at</code>은 <code class="font-mono text-[0.95em]">2026-03-15</code> 또는 ISO
-                    datetime 형식을 허용합니다.
-                  </li>
-                  <li>
-                    같은 <code class="font-mono text-[0.95em]">instrument_code + observed_at</code> row가 이미 있으면 update 기준으로 반영합니다.
-                  </li>
+                  <li>{{ t('admin.contentMarket.uploadGuideRequired') }}</li>
+                  <li>{{ t('admin.contentMarket.uploadGuidePerInstrument') }}</li>
+                  <li>{{ t('admin.contentMarket.uploadGuideObservedAt') }}</li>
+                  <li>{{ t('admin.contentMarket.uploadGuideDuplicate') }}</li>
                 </ul>
               </div>
 
               <div class="ui-card">
-                <p class="text-sm font-semibold text-ink">선택 파일</p>
+                <p class="text-sm font-semibold text-ink">{{ t('admin.contentMarket.selectedFile') }}</p>
                 <p class="mt-2 text-sm text-muted">{{ selectedFileName }}</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                   <label
                     class="inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
                   >
-                    CSV / XLSX 선택
+                    {{ t('admin.contentMarket.selectCsvXlsx') }}
                     <input :key="fileInputKey" type="file" class="hidden" accept=".csv,.xlsx" @change="onFileChange" />
                   </label>
                   <button
@@ -243,12 +242,14 @@ const handleImport = async () => {
                     :disabled="!canImport"
                     @click="handleImport"
                   >
-                    {{ isImportLoading ? '임포트 중...' : '임포트 실행' }}
+                    {{ isImportLoading ? t('admin.contentMarket.importSubmitting') : t('admin.contentMarket.importSubmit') }}
                   </button>
                 </div>
 
                 <label v-if="importMode === 'SINGLE'" class="mt-5 block space-y-2 text-sm text-muted">
-                  <span class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">종목 선택</span>
+                  <span class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{
+                    t('admin.contentMarket.instrumentSelect')
+                  }}</span>
                   <select
                     v-model="selectedInstrument"
                     class="ui-panel w-full px-4 py-3 text-sm text-ink transition outline-none focus:border-cyan-400"
@@ -264,36 +265,36 @@ const handleImport = async () => {
 
           <div v-if="importResult" class="mt-6 grid gap-3 md:grid-cols-5">
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">전체 row</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.totalRows') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.totalCount }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.created') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.createdCount }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">갱신</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.updated') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.updatedCount }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">스킵</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.skipped') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.skippedCount }}</p>
             </div>
             <div class="ui-stat-card">
-              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실패</p>
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">{{ t('admin.contentMarket.failed') }}</p>
               <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.failedCount }}</p>
             </div>
           </div>
 
           <div v-if="importResult?.failures.length" class="ui-card mt-5 border-rose-200 bg-rose-50/70 dark:border-rose-900/60 dark:bg-rose-950/20">
-            <h3 class="text-sm font-semibold text-rose-900 dark:text-rose-100">실패 row</h3>
+            <h3 class="text-sm font-semibold text-rose-900 dark:text-rose-100">{{ t('admin.contentMarket.failedRows') }}</h3>
             <ul class="mt-3 space-y-2 text-sm leading-6 text-rose-700 dark:text-rose-200">
               <li v-for="failure in importResult.failures.slice(0, 20)" :key="`${failure.rowNumber}-${failure.message}`">
-                {{ failure.rowNumber }}행: {{ failure.message }}
+                {{ t('admin.contentMarket.failedRowLine', { row: failure.rowNumber, message: failure.message }) }}
               </li>
             </ul>
             <p v-if="importResult.failures.length > 20" class="mt-2 text-xs text-rose-600 dark:text-rose-300">
-              실패 row가 많아 상위 20건만 표시합니다.
+              {{ t('admin.contentMarket.failedRowsTruncated') }}
             </p>
           </div>
         </section>

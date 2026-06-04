@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import '../../../shared/styles/ui-content.css';
 import { EditorContent, useEditor } from '@tiptap/vue-3';
 import type { Editor } from '@tiptap/core';
@@ -45,8 +46,8 @@ import {
 } from '../lib/imageEditing';
 import { RichImage } from '../lib/richImage';
 import { mentionSuggestion } from '../lib/mentionSuggestion';
-import { createSlashCommandExtension, createSlashCommandItems } from '../lib/slashSuggestion';
-import { CODE_LANGUAGE_OPTIONS, FONT_FAMILY_OPTIONS, FONT_SIZE_OPTIONS, YOUTUBE_SIZE_OPTIONS } from '../lib/toolbarOptions';
+import { createSlashCommandExtension } from '../lib/slashSuggestion';
+import { getCodeLanguageOptions, getFontFamilyOptions, getFontSizeOptions, getYoutubeSizeOptions } from '../lib/toolbarOptions';
 import type { YoutubeSizeValue } from '../lib/toolbarOptions';
 import { useUploadQueue } from '../lib/useUploadQueue';
 import type { UploadKind } from '../lib/useUploadQueue';
@@ -72,6 +73,12 @@ const emit = defineEmits<{
 }>();
 const authStore = useAuthStore();
 const { isAuthenticated } = storeToRefs(authStore);
+const { t } = useI18n();
+
+const fontFamilyOptions = computed(() => [...getFontFamilyOptions()]);
+const fontSizeOptions = computed(() => [...getFontSizeOptions()]);
+const codeLanguageOptions = computed(() => [...getCodeLanguageOptions()]);
+const youtubeSizeOptions = computed(() => [...getYoutubeSizeOptions()]);
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 const SUCCESS_UPLOAD_AUTO_REMOVE_DELAY_MS = 1000;
@@ -151,11 +158,11 @@ function openLinkModal() {
   isLinkModalOpen.value = true;
 }
 
-const slashCommandItems = createSlashCommandItems({
+const slashCommandContext = {
   openImagePicker,
   openVideoPicker,
   openYoutubeModal,
-});
+};
 
 function syncSelectionState(instance: Editor) {
   const textStyleAttrs = instance.getAttributes('textStyle') as {
@@ -279,9 +286,9 @@ const editor = useEditor({
       },
     }),
     CustomHardBreak,
-    createSlashCommandExtension(slashCommandItems),
+    createSlashCommandExtension(slashCommandContext),
     Placeholder.configure({
-      placeholder: props.placeholder ?? '본문을 입력하세요.',
+      placeholder: props.placeholder ?? t('editor.placeholder.body'),
     }),
   ],
   editorProps: {
@@ -658,15 +665,15 @@ const { uploads, uploadInProgressCount, handleFiles, retryUpload, cancelUpload, 
   resolveImageNaturalSize: resolveImageNaturalSizeForUpload,
   onInsertUploadedFile: insertUploadedFile,
   onError: showError,
-  unsupportedFileMessage: '이미지 또는 MP4/WebM 영상만 업로드할 수 있습니다.',
-  maxSizeExceededMessage: '파일 사이즈 제한 50MB',
+  unsupportedFileMessage: t('editor.upload.unsupportedFile'),
+  maxSizeExceededMessage: t('editor.upload.maxSizeExceeded'),
 });
 
 onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
-const resolveYoutubeSize = () => YOUTUBE_SIZE_OPTIONS.find((option) => option.value === youtubeSize.value) ?? YOUTUBE_SIZE_OPTIONS[1];
+const resolveYoutubeSize = () => youtubeSizeOptions.value.find((option) => option.value === youtubeSize.value) ?? youtubeSizeOptions.value[1];
 
 const isFileDrag = (event: DragEvent) => {
   const types = event.dataTransfer?.types ? Array.from(event.dataTransfer.types) : [];
@@ -741,7 +748,7 @@ const applyHtmlSource = () => {
     syncSelectionState(editor.value);
     return true;
   } catch {
-    showError('HTML 적용에 실패했습니다.');
+    showError(t('editor.mode.applyHtmlFailed'));
     return false;
   }
 };
@@ -888,12 +895,12 @@ const confirmLink = () => {
   }
   const trimmed = linkUrlInput.value.trim();
   if (!trimmed) {
-    linkErrorMessage.value = '링크 URL을 입력하세요.';
+    linkErrorMessage.value = t('editor.link.urlRequired');
     return;
   }
   const normalized = normalizeLinkUrl(trimmed);
   if (!normalized) {
-    linkErrorMessage.value = '링크 URL 형식이 올바르지 않습니다.';
+    linkErrorMessage.value = t('editor.link.urlInvalid');
     return;
   }
   editor.value.chain().focus().extendMarkRange('link').setLink({ href: normalized }).run();
@@ -911,12 +918,12 @@ const confirmYoutube = () => {
   }
   const trimmed = youtubeUrlInput.value.trim();
   if (!trimmed) {
-    youtubeErrorMessage.value = '유튜브 URL을 입력하세요.';
+    youtubeErrorMessage.value = t('editor.youtube.urlRequired');
     return;
   }
   const embedUrl = normalizeYoutubeUrl(trimmed);
   if (!embedUrl) {
-    youtubeErrorMessage.value = '유튜브 URL 형식이 올바르지 않습니다.';
+    youtubeErrorMessage.value = t('editor.youtube.urlInvalid');
     return;
   }
   const size = resolveYoutubeSize();
@@ -973,7 +980,7 @@ const applyYoutubeSize = () => {
     return;
   }
   if (!editor.value.isActive('youtube')) {
-    showError('크기를 변경할 유튜브를 선택하세요.');
+    showError(t('editor.youtube.selectForResize'));
     return;
   }
   const size = resolveYoutubeSize();
@@ -985,7 +992,7 @@ const applyYoutubeSize = () => {
 const setImageAlign = (align: ImageAlign) => {
   const applied = updateImageNodeAttributes({ align });
   if (!applied) {
-    showError('이미지를 먼저 선택하세요.');
+    showError(t('editor.image.selectFirst'));
   }
 };
 
@@ -1008,14 +1015,14 @@ const applyImageScale = (silent = false) => {
   const imageInfo = resolveEditableImageInfo();
   if (!editor.value || !imageInfo) {
     if (!silent) {
-      showError('이미지를 먼저 선택하세요.');
+      showError(t('editor.image.selectFirst'));
     }
     return;
   }
   const scale = parsePositiveInteger(imageScalePercent.value);
   if (scale === null || scale < IMAGE_SCALE_MIN_PERCENT || scale > IMAGE_SCALE_MAX_PERCENT) {
     if (!silent) {
-      showError(`배율(%)은 ${IMAGE_SCALE_MIN_PERCENT}~${IMAGE_SCALE_MAX_PERCENT} 사이 숫자로 입력해 주세요.`);
+      showError(t('editor.image.scaleRange', { min: IMAGE_SCALE_MIN_PERCENT, max: IMAGE_SCALE_MAX_PERCENT }));
     }
     return;
   }
@@ -1038,7 +1045,7 @@ const applyImageScale = (silent = false) => {
     originalHeight,
   });
   if (!applied && !silent) {
-    showError('이미지를 먼저 선택하세요.');
+    showError(t('editor.image.selectFirst'));
   }
 };
 
@@ -1060,7 +1067,7 @@ const applyImageCaption = () => {
   const caption = imageCaption.value.trim();
   const applied = updateImageNodeAttributes({ caption: caption || null });
   if (!applied) {
-    showError('이미지를 먼저 선택하세요.');
+    showError(t('editor.image.selectFirst'));
   }
 };
 
@@ -1163,13 +1170,13 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       class="dark:to-surface-0 space-y-1 border-b border-line bg-gradient-to-b from-surface-soft/80 to-surface/80 px-4 py-1.5 dark:border-line dark:from-surface-1"
     >
       <div class="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface px-2.5 py-1.5 dark:border-line">
-        <button type="button" :class="buttonClass(!isHtmlMode, true)" @click="setEditorMode('wysiwyg')">에디터</button>
-        <button type="button" :class="buttonClass(isHtmlMode, true)" @click="setEditorMode('html')">HTML</button>
+        <button type="button" :class="buttonClass(!isHtmlMode, true)" @click="setEditorMode('wysiwyg')">{{ t('editor.mode.wysiwyg') }}</button>
+        <button type="button" :class="buttonClass(isHtmlMode, true)" @click="setEditorMode('html')">{{ t('editor.mode.html') }}</button>
         <span
           v-if="uploadInProgressCount > 0"
           class="inline-flex h-7 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
         >
-          업로드 {{ uploadInProgressCount }}건 진행중
+          {{ t('editor.upload.inProgress', { count: uploadInProgressCount }) }}
         </span>
       </div>
       <template v-if="!isHtmlMode">
@@ -1184,10 +1191,10 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
           :highlight-color="highlightColor"
           :code-language="codeLanguage"
           :youtube-size="youtubeSize"
-          :font-family-options="FONT_FAMILY_OPTIONS"
-          :font-size-options="FONT_SIZE_OPTIONS"
-          :code-language-options="CODE_LANGUAGE_OPTIONS"
-          :youtube-size-options="YOUTUBE_SIZE_OPTIONS"
+          :font-family-options="fontFamilyOptions"
+          :font-size-options="fontSizeOptions"
+          :code-language-options="codeLanguageOptions"
+          :youtube-size-options="youtubeSizeOptions"
           :button-class="buttonClass"
           :select-class="selectClass"
           :section-class="sectionClass"
@@ -1208,10 +1215,10 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
           :highlight-color="highlightColor"
           :code-language="codeLanguage"
           :youtube-size="youtubeSize"
-          :font-family-options="FONT_FAMILY_OPTIONS"
-          :font-size-options="FONT_SIZE_OPTIONS"
-          :code-language-options="CODE_LANGUAGE_OPTIONS"
-          :youtube-size-options="YOUTUBE_SIZE_OPTIONS"
+          :font-family-options="fontFamilyOptions"
+          :font-size-options="fontSizeOptions"
+          :code-language-options="codeLanguageOptions"
+          :youtube-size-options="youtubeSizeOptions"
           :button-class="buttonClass"
           :select-class="selectClass"
           :section-class="sectionClass"
@@ -1227,8 +1234,8 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       </template>
       <template v-else>
         <div :class="sectionClass">
-          <span class="text-xs font-semibold text-muted">HTML 소스를 직접 수정하고 적용할 수 있습니다.</span>
-          <button type="button" :class="buttonClass()" @click="applyHtmlSource">HTML 적용</button>
+          <span class="text-xs font-semibold text-muted">{{ t('editor.mode.htmlSourceHint') }}</span>
+          <button type="button" :class="buttonClass()" @click="applyHtmlSource">{{ t('editor.mode.applyHtml') }}</button>
         </div>
       </template>
     </div>
@@ -1236,14 +1243,20 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       v-if="!isHtmlMode && isImageSelected"
       class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-soft/70 px-4 py-2 dark:border-line"
     >
-      <span :class="sectionLabelClass">이미지 편집</span>
-      <button type="button" :class="buttonClass(activeImageAlign === 'left')" @click="setImageAlign('left')">좌측</button>
-      <button type="button" :class="buttonClass(activeImageAlign === 'center')" @click="setImageAlign('center')">중앙</button>
-      <button type="button" :class="buttonClass(activeImageAlign === 'right')" @click="setImageAlign('right')">우측</button>
+      <span :class="sectionLabelClass">{{ t('editor.toolbar.section.imageEdit') }}</span>
+      <button type="button" :class="buttonClass(activeImageAlign === 'left')" @click="setImageAlign('left')">
+        {{ t('editor.toolbar.alignLeft') }}
+      </button>
+      <button type="button" :class="buttonClass(activeImageAlign === 'center')" @click="setImageAlign('center')">
+        {{ t('editor.toolbar.alignCenter') }}
+      </button>
+      <button type="button" :class="buttonClass(activeImageAlign === 'right')" @click="setImageAlign('right')">
+        {{ t('editor.toolbar.alignRight') }}
+      </button>
       <label
         class="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-2 py-1 text-xs font-semibold text-muted dark:text-subtle"
       >
-        배율
+        {{ t('editor.toolbar.scale') }}
         <input
           v-model.number="imageScalePercent"
           type="range"
@@ -1256,33 +1269,35 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
         />
         <span class="w-11 text-right">{{ imageScalePercent }}%</span>
       </label>
-      <button type="button" :class="buttonClass()" @click="resetImageScale">100%</button>
-      <span class="text-[11px] font-semibold text-muted"> 원본 {{ imageOriginalWidth ?? '-' }} x {{ imageOriginalHeight ?? '-' }} </span>
+      <button type="button" :class="buttonClass()" @click="resetImageScale">{{ t('editor.toolbar.scaleReset') }}</button>
+      <span class="text-[11px] font-semibold text-muted">
+        {{ t('editor.toolbar.originalSize', { width: imageOriginalWidth ?? '-', height: imageOriginalHeight ?? '-' }) }}
+      </span>
       <input
         v-model="imageCaption"
         type="text"
         class="h-7 min-w-[180px] rounded-lg border border-line bg-surface px-2 text-xs text-ink shadow-sm transition focus:border-emerald-400 focus:outline-none"
-        placeholder="이미지 캡션"
+        :placeholder="t('editor.toolbar.captionPlaceholder')"
       />
-      <button type="button" :class="buttonClass()" @click="applyImageCaption">캡션 적용</button>
+      <button type="button" :class="buttonClass()" @click="applyImageCaption">{{ t('editor.toolbar.captionApply') }}</button>
     </div>
     <div
       v-if="!isHtmlMode && isTableSelected"
       class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-soft/70 px-4 py-2 dark:border-line"
     >
-      <span :class="sectionLabelClass">테이블 편집</span>
-      <button type="button" :class="buttonClass()" @click="addRowBefore">행+앞</button>
-      <button type="button" :class="buttonClass()" @click="addRowAfter">행+뒤</button>
-      <button type="button" :class="buttonClass()" @click="deleteRow">행삭제</button>
-      <button type="button" :class="buttonClass()" @click="addColumnBefore">열+앞</button>
-      <button type="button" :class="buttonClass()" @click="addColumnAfter">열+뒤</button>
-      <button type="button" :class="buttonClass()" @click="deleteColumn">열삭제</button>
-      <button type="button" :class="buttonClass()" @click="mergeCells">셀병합</button>
-      <button type="button" :class="buttonClass()" @click="splitCell">셀분할</button>
-      <button type="button" :class="buttonClass()" @click="toggleHeaderRow">헤더행</button>
-      <button type="button" :class="buttonClass()" @click="toggleHeaderColumn">헤더열</button>
-      <button type="button" :class="buttonClass()" @click="toggleHeaderCell">헤더셀</button>
-      <button type="button" :class="buttonClass()" @click="deleteTable">표삭제</button>
+      <span :class="sectionLabelClass">{{ t('editor.toolbar.section.tableEdit') }}</span>
+      <button type="button" :class="buttonClass()" @click="addRowBefore">{{ t('editor.toolbar.rowAddBefore') }}</button>
+      <button type="button" :class="buttonClass()" @click="addRowAfter">{{ t('editor.toolbar.rowAddAfter') }}</button>
+      <button type="button" :class="buttonClass()" @click="deleteRow">{{ t('editor.toolbar.rowDelete') }}</button>
+      <button type="button" :class="buttonClass()" @click="addColumnBefore">{{ t('editor.toolbar.colAddBefore') }}</button>
+      <button type="button" :class="buttonClass()" @click="addColumnAfter">{{ t('editor.toolbar.colAddAfter') }}</button>
+      <button type="button" :class="buttonClass()" @click="deleteColumn">{{ t('editor.toolbar.colDelete') }}</button>
+      <button type="button" :class="buttonClass()" @click="mergeCells">{{ t('editor.toolbar.mergeCells') }}</button>
+      <button type="button" :class="buttonClass()" @click="splitCell">{{ t('editor.toolbar.splitCell') }}</button>
+      <button type="button" :class="buttonClass()" @click="toggleHeaderRow">{{ t('editor.toolbar.headerRow') }}</button>
+      <button type="button" :class="buttonClass()" @click="toggleHeaderColumn">{{ t('editor.toolbar.headerColumn') }}</button>
+      <button type="button" :class="buttonClass()" @click="toggleHeaderCell">{{ t('editor.toolbar.headerCell') }}</button>
+      <button type="button" :class="buttonClass()" @click="deleteTable">{{ t('editor.toolbar.deleteTable') }}</button>
     </div>
     <div
       v-if="!isHtmlMode"
@@ -1297,17 +1312,19 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       @dragleave="handleDropZoneDragLeave"
       @drop.prevent="handleDropZoneDrop"
     >
-      <span>이미지/영상 파일을 여기에 드래그하세요.</span>
-      <span class="text-[10px] font-semibold text-subtle">최대 50MB</span>
+      <span>{{ t('editor.upload.dropzone') }}</span>
+      <span class="text-[10px] font-semibold text-subtle">{{ t('editor.upload.maxSize') }}</span>
     </div>
     <div v-if="uploads.length > 0" class="mx-4 mt-3 rounded-ui border border-line bg-surface p-3 shadow-sm dark:border-line">
-      <p class="text-xs font-semibold text-muted">업로드 큐</p>
+      <p class="text-xs font-semibold text-muted">{{ t('editor.upload.queue') }}</p>
       <div class="mt-2 space-y-2">
         <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-line px-3 py-2 text-xs dark:border-line">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
               <p class="truncate font-semibold text-ink">{{ item.file.name }}</p>
-              <p class="text-[11px] text-muted">{{ item.kind === 'image' ? '이미지' : '영상' }} · {{ item.message }}</p>
+              <p class="text-[11px] text-muted">
+                {{ item.kind === 'image' ? t('editor.upload.kind.image') : t('editor.upload.kind.video') }} · {{ item.message }}
+              </p>
             </div>
             <div class="flex items-center gap-2">
               <button
@@ -1316,7 +1333,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="rounded border border-rose-200 px-2 py-1 text-[11px] font-semibold text-rose-600 hover:border-rose-300 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                 @click="cancelUpload(item.id)"
               >
-                취소
+                {{ t('editor.upload.cancel') }}
               </button>
               <button
                 v-if="item.status === 'error' || item.status === 'canceled'"
@@ -1324,7 +1341,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="rounded border border-amber-200 px-2 py-1 text-[11px] font-semibold text-amber-700 hover:border-amber-300 hover:bg-amber-50 dark:border-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-950/40"
                 @click="retryUpload(item.id)"
               >
-                재시도
+                {{ t('editor.upload.retry') }}
               </button>
               <button
                 v-if="item.status !== 'uploading'"
@@ -1332,7 +1349,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="rounded border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:border-line hover:bg-surface-soft dark:text-subtle"
                 @click="removeUpload(item.id)"
               >
-                지우기
+                {{ t('editor.upload.remove') }}
               </button>
             </div>
           </div>
@@ -1356,7 +1373,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
     </div>
     <EditorContent v-if="!isHtmlMode" :editor="editor" class="bg-surface/80" />
     <div v-else class="space-y-2 bg-surface/80 px-4 py-4">
-      <p class="text-xs font-semibold text-muted">저장 시 sanitize 정책에 따라 위험 태그/속성은 제거됩니다.</p>
+      <p class="text-xs font-semibold text-muted">{{ t('editor.mode.sanitizeNotice') }}</p>
       <textarea
         v-model="htmlSource"
         class="min-h-[360px] w-full rounded-xl border border-line bg-surface-soft px-3 py-2 font-mono text-xs text-ink focus:border-emerald-400 focus:bg-surface focus:outline-none dark:border-line"
@@ -1365,8 +1382,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       ></textarea>
     </div>
     <div class="border-t border-line bg-surface-soft/60 px-4 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
-      단축키: Ctrl/Cmd+B 굵게, Ctrl/Cmd+I 기울임, Ctrl/Cmd+K 링크, Ctrl/Cmd+Z 되돌리기, Ctrl/Cmd+Y 다시, / 슬래시 명령어, Enter 문단/다음 항목,
-      Shift+Enter 줄바꿈.
+      {{ t('editor.shortcuts') }}
     </div>
     <div v-if="errorMessage" class="border-t border-line px-4 py-2 text-xs text-danger dark:border-line">
       {{ errorMessage }}
@@ -1374,16 +1390,16 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
     <input ref="imageInputRef" type="file" accept="image/*" class="hidden" multiple @change="onImagePicked" />
     <input ref="videoInputRef" type="file" accept="video/mp4,video/webm" class="hidden" multiple @change="onVideoPicked" />
 
-    <BaseModal :open="isLinkModalOpen" aria-label="링크 입력" @close="closeLinkModal">
+    <BaseModal :open="isLinkModalOpen" :aria-label="t('editor.link.modalAria')" @close="closeLinkModal">
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-ink">링크 추가</h2>
-            <p class="mt-1 text-xs text-muted">URL을 입력하면 선택한 텍스트에 링크가 적용됩니다.</p>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">{{ t('editor.link.title') }}</h2>
+            <p class="mt-1 text-xs text-muted">{{ t('editor.link.description') }}</p>
           </div>
           <form class="space-y-3" @submit.prevent="confirmLink">
             <label class="block text-sm font-semibold text-ink">
-              URL
+              {{ t('editor.link.urlLabel') }}
               <input
                 ref="linkInputRef"
                 v-model="linkUrlInput"
@@ -1400,7 +1416,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="rounded-full border border-rose-200 px-4 py-2 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-300 dark:hover:bg-rose-950/40"
                 @click="removeLink"
               >
-                링크 해제
+                {{ t('editor.link.remove') }}
               </button>
               <div class="flex items-center gap-2">
                 <button
@@ -1408,10 +1424,10 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                   class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
                   @click="closeLinkModal"
                 >
-                  취소
+                  {{ t('editor.upload.cancel') }}
                 </button>
                 <button type="submit" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600">
-                  적용
+                  {{ t('editor.link.apply') }}
                 </button>
               </div>
             </div>
@@ -1420,16 +1436,16 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       </template>
     </BaseModal>
 
-    <BaseModal :open="isYoutubeModalOpen" aria-label="유튜브 링크 입력" @close="closeYoutubeModal">
+    <BaseModal :open="isYoutubeModalOpen" :aria-label="t('editor.youtube.modalAria')" @close="closeYoutubeModal">
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-ink">유튜브 링크 추가</h2>
-            <p class="mt-1 text-xs text-muted">유튜브 URL을 입력하면 자동으로 임베드됩니다.</p>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">{{ t('editor.youtube.title') }}</h2>
+            <p class="mt-1 text-xs text-muted">{{ t('editor.youtube.description') }}</p>
           </div>
           <form class="space-y-3" @submit.prevent="confirmYoutube">
             <label class="block text-sm font-semibold text-ink">
-              URL
+              {{ t('editor.link.urlLabel') }}
               <input
                 ref="youtubeInputRef"
                 v-model="youtubeUrlInput"
@@ -1446,10 +1462,10 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
                 @click="closeYoutubeModal"
               >
-                취소
+                {{ t('editor.upload.cancel') }}
               </button>
               <button type="submit" class="rounded-full bg-emerald-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600">
-                추가
+                {{ t('editor.youtube.add') }}
               </button>
             </div>
           </form>

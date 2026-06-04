@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import '../shared/styles/mermaid.css';
 import '../shared/styles/ui-content.css';
 import { useRoute, useRouter } from 'vue-router';
@@ -23,6 +24,7 @@ import { recordHistoryItem } from '../shared/lib/history';
 import { renderMermaidDiagrams } from '../shared/lib/mermaid';
 import { sanitizeHtml } from '../shared/lib/sanitize';
 import { requestArticleAttachmentBlob } from '../entities/article';
+import { toIntlLocaleTag } from '../shared/i18n';
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
@@ -36,6 +38,7 @@ type AppShellExposed = {
   getMainElement: () => HTMLElement | null;
 };
 
+const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const articleId = computed(() => Number(route.params.articleId));
@@ -93,7 +96,7 @@ const formatDateTime = (value: string) => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return date.toLocaleString('ko-KR', {
+  return date.toLocaleString(toIntlLocaleTag(locale.value), {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -126,18 +129,13 @@ const articleCategoryLabel = computed(() => {
   return trimmed ? trimmed : null;
 });
 const articleVisibilityLabel = computed(() => {
-  switch (article.value?.visibility) {
-    case 'PUBLIC':
-      return '공개';
-    case 'GROUP':
-      return '구독형';
-    case 'PRIVATE':
-      return '비공개';
-    case 'UNLISTED':
-      return '운영자 전용';
-    default:
-      return '일반';
+  const visibility = article.value?.visibility;
+  if (!visibility) {
+    return t('article.visibility.GENERAL');
   }
+  const key = `article.visibility.${visibility}`;
+  const translated = t(key);
+  return translated !== key ? translated : t('article.visibility.GENERAL');
 });
 
 const renderArticleMermaid = async () => {
@@ -262,7 +260,7 @@ const currentUserId = computed(() => profile.value?.userId ?? null);
 const loadArticle = async () => {
   errorMessage.value = '';
   if (!Number.isFinite(articleId.value)) {
-    errorMessage.value = '게시글 정보가 올바르지 않습니다.';
+    errorMessage.value = t('article.errors.invalidId');
     return;
   }
   isLoading.value = true;
@@ -280,14 +278,14 @@ const loadArticle = async () => {
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      errorMessage.value = '게시글을 찾을 수 없습니다.';
+      errorMessage.value = t('article.errors.notFound');
       return;
     }
     if (error instanceof ApiError && error.status === 403) {
-      errorMessage.value = '게시글 접근 권한이 없습니다.';
+      errorMessage.value = t('article.errors.forbidden');
       return;
     }
-    errorMessage.value = error instanceof ApiError ? error.message : '게시글을 불러오지 못했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('article.errors.loadFailed');
   } finally {
     isLoading.value = false;
   }
@@ -374,7 +372,7 @@ const confirmDelete = async () => {
       query: boardPath === '/' ? {} : resolveBoardFilterQuery(),
     });
   } catch (error) {
-    deleteError.value = error instanceof ApiError ? error.message : '게시글 삭제에 실패했습니다.';
+    deleteError.value = error instanceof ApiError ? error.message : t('article.errors.deleteFailed');
   } finally {
     isDeleting.value = false;
   }
@@ -441,7 +439,7 @@ const loadCommentsPage = async (page: number) => {
     const response = await getArticleCommentSnapshot(articleId.value, page, commentPageSize);
     applyCommentSnapshot(response);
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.loadFailed');
   } finally {
     isCommentLoading.value = false;
   }
@@ -463,7 +461,7 @@ const loadLastCommentPage = async () => {
       applyCommentSnapshot(last);
     }
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.loadFailed');
   } finally {
     isCommentLoading.value = false;
   }
@@ -495,7 +493,7 @@ const loadCommentPageWithTarget = async (targetId: number) => {
     applyCommentSnapshot(first);
     return false;
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글을 불러오지 못했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.loadFailed');
     return false;
   } finally {
     isCommentLoading.value = false;
@@ -763,7 +761,7 @@ const submitComment = async () => {
     resizeCommentTextarea();
     await refreshComments();
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글 작성에 실패했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.createFailed');
   } finally {
     isCommentSubmitting.value = false;
   }
@@ -811,7 +809,7 @@ const handleReply = async (payload: { parentId: number; content: string }) => {
     await createReply(article.value.id, payload.parentId, payload.content);
     await refreshComments();
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '답글 작성에 실패했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.replyFailed');
   } finally {
     isCommentSubmitting.value = false;
   }
@@ -823,7 +821,7 @@ const handleUpdate = async (payload: { commentId: number; content: string }) => 
     await updateComment(payload.commentId, payload.content);
     await refreshComments();
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글 수정에 실패했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.updateFailed');
   } finally {
     isCommentSubmitting.value = false;
   }
@@ -835,7 +833,7 @@ const handleDelete = async (commentId: number) => {
     await deleteComment(commentId);
     await refreshComments();
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글 삭제에 실패했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.deleteFailed');
   } finally {
     isCommentSubmitting.value = false;
   }
@@ -875,7 +873,7 @@ const handleCommentReaction = async (payload: { commentId: number; reactionType:
     const summary = await toggleCommentReaction(payload.commentId, payload.reactionType);
     updateCommentReaction(comments.value.items, summary);
   } catch (error) {
-    commentError.value = error instanceof ApiError ? error.message : '댓글 반응 처리에 실패했습니다.';
+    commentError.value = error instanceof ApiError ? error.message : t('comment.errors.reactionFailed');
   } finally {
     setCommentReactionLoading(payload.commentId, false);
   }
@@ -892,7 +890,7 @@ const handleReaction = async (reactionType: number) => {
     article.value.dislikeCount = summary.dislikeCount;
     article.value.myReaction = summary.myReaction;
   } catch (error) {
-    errorMessage.value = error instanceof ApiError ? error.message : '반응 처리에 실패했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('article.errors.reactionFailed');
   } finally {
     isReactionLoading.value = false;
   }
@@ -907,7 +905,7 @@ const handleBookmark = async () => {
     const response = article.value.bookmarked ? await unbookmarkArticle(article.value.id) : await bookmarkArticle(article.value.id);
     article.value.bookmarked = response.bookmarked;
   } catch (error) {
-    errorMessage.value = error instanceof ApiError ? error.message : '북마크 처리에 실패했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('article.errors.bookmarkFailed');
   } finally {
     isBookmarkLoading.value = false;
   }
@@ -1002,21 +1000,21 @@ onUnmounted(() => {
     <PageContainer width="auto">
       <div>
         <BoardHeaderCard
-          :title="article?.board?.boardName ?? '커뮤니티'"
-          :description="article?.board?.description ?? '설명이 없습니다.'"
+          :title="article?.board?.boardName ?? t('board.defaults.communityName')"
+          :description="article?.board?.description ?? t('board.defaults.noDescription')"
           :image-file="article?.board?.boardImage ?? null"
           :link-to="article?.board?.slug ? boardLinkWithFilter : undefined"
         >
           <template #actions>
             <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
-              <button type="button" class="ui-chip-button ui-chip-button-muted" @click="goBoard">게시판으로</button>
+              <button type="button" class="ui-chip-button ui-chip-button-muted" @click="goBoard">{{ t('board.actions.backToBoard') }}</button>
               <button
                 v-if="isAuthor"
                 type="button"
                 class="ui-chip-button border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
                 @click="goEdit"
               >
-                수정
+                {{ t('article.detail.edit') }}
               </button>
               <button
                 v-if="isAuthor"
@@ -1024,7 +1022,7 @@ onUnmounted(() => {
                 class="ui-chip-button border-rose-200 bg-rose-50 text-rose-600 hover:border-rose-300 hover:bg-rose-100 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200"
                 @click="openDeleteModal"
               >
-                삭제
+                {{ t('article.detail.delete') }}
               </button>
             </div>
           </template>
@@ -1038,39 +1036,30 @@ onUnmounted(() => {
           <article class="ui-panel overflow-hidden">
             <div class="border-b border-line px-5 py-5 sm:px-6">
               <div class="flex flex-wrap items-center gap-2">
-                <span v-if="article?.notice" class="ui-badge ui-badge-warning">공지</span>
+                <span v-if="article?.notice" class="ui-badge ui-badge-warning">{{ t('article.detail.notice') }}</span>
                 <span v-if="articleCategoryLabel" class="ui-badge ui-badge-success">{{ articleCategoryLabel }}</span>
                 <span class="ui-badge ui-badge-muted">{{ articleVisibilityLabel }}</span>
-                <span class="ui-badge ui-badge-muted">댓글 {{ article?.commentCount ?? 0 }}</span>
+                <span class="ui-badge ui-badge-muted">{{ t('article.detail.commentsCount', { count: article?.commentCount ?? 0 }) }}</span>
               </div>
               <h1 class="ui-heading-page mt-3">
                 {{ article?.title ?? '' }}
               </h1>
               <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
-                <span>{{ article?.authorName ?? '작성자' }}</span>
-                <span>조회 {{ article?.hit ?? 0 }}</span>
+                <span>{{ article?.authorName ?? t('article.detail.authorFallback') }}</span>
+                <span>{{ t('article.detail.views', { count: article?.hit ?? 0 }) }}</span>
                 <span>{{ article?.createdAt ? formatDateTime(article.createdAt) : '' }}</span>
-                <span v-if="article?.updatedAt">수정 {{ formatDateTime(article.updatedAt) }}</span>
+                <span v-if="article?.updatedAt">{{ t('article.detail.edited', { date: formatDateTime(article.updatedAt) }) }}</span>
               </div>
             </div>
 
             <div class="px-5 py-5 sm:px-6">
               <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
-              <div v-else class="text-sm text-muted">본문이 없습니다.</div>
+              <div v-else class="text-sm text-muted">{{ t('article.detail.noContent') }}</div>
             </div>
 
             <div class="space-y-0 border-t border-line">
               <section class="ui-panel-section ui-panel-section--bordered">
-                <div class="ui-panel-section-head">
-                  <div>
-                    <p class="ui-eyebrow">Reaction</p>
-                    <h2 class="ui-heading-section mt-1">반응과 보관</h2>
-                  </div>
-                  <span class="ui-badge" :class="isAuthenticated ? 'ui-badge-success' : 'ui-badge-muted'">
-                    {{ isAuthenticated ? '사용 가능' : '로그인 필요' }}
-                  </span>
-                </div>
-                <div class="mt-3 flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     class="h-10 px-4 text-sm"
@@ -1078,7 +1067,7 @@ onUnmounted(() => {
                     :disabled="!isAuthenticated || isReactionLoading"
                     @click="handleReaction(1)"
                   >
-                    좋아요 {{ article?.likeCount ?? 0 }}
+                    {{ t('article.detail.like') }} {{ article?.likeCount ?? 0 }}
                   </button>
                   <button
                     type="button"
@@ -1087,7 +1076,7 @@ onUnmounted(() => {
                     :disabled="!isAuthenticated || isReactionLoading"
                     @click="handleReaction(-1)"
                   >
-                    싫어요 {{ article?.dislikeCount ?? 0 }}
+                    {{ t('article.detail.dislike') }} {{ article?.dislikeCount ?? 0 }}
                   </button>
                   <button
                     type="button"
@@ -1096,17 +1085,17 @@ onUnmounted(() => {
                     :disabled="!isAuthenticated || isBookmarkLoading"
                     @click="handleBookmark"
                   >
-                    {{ article?.bookmarked ? '북마크됨' : '북마크' }}
+                    {{ article?.bookmarked ? t('article.detail.bookmarked') : t('article.detail.bookmark') }}
                   </button>
                 </div>
-                <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-muted">로그인 후 반응과 북마크를 사용할 수 있습니다.</p>
+                <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-muted">{{ t('article.detail.loginForReaction') }}</p>
               </section>
 
               <section class="ui-panel-section">
                 <div class="ui-panel-section-head">
                   <div>
-                    <p class="ui-eyebrow">Attachment</p>
-                    <h2 class="ui-heading-section mt-1">첨부파일 {{ attachments.length }}개</h2>
+                    <p class="ui-eyebrow">{{ t('article.detail.attachmentEyebrow') }}</p>
+                    <h2 class="ui-heading-section mt-1">{{ t('article.detail.attachmentTitle', { count: attachments.length }) }}</h2>
                   </div>
                   <div class="flex flex-wrap items-center gap-2">
                     <button
@@ -1116,7 +1105,7 @@ onUnmounted(() => {
                       :aria-controls="attachmentSectionId"
                       @click="isAttachmentExpanded = !isAttachmentExpanded"
                     >
-                      {{ isAttachmentExpanded ? '접기' : '펼치기' }}
+                      {{ isAttachmentExpanded ? t('article.detail.collapse') : t('article.detail.expand') }}
                     </button>
                     <button
                       type="button"
@@ -1124,13 +1113,13 @@ onUnmounted(() => {
                       :disabled="attachments.length === 0 || isDownloadingAllAttachments"
                       @click="downloadAllAttachments"
                     >
-                      {{ isDownloadingAllAttachments ? '다운로드 중...' : '전체 다운로드' }}
+                      {{ isDownloadingAllAttachments ? t('article.detail.downloadingAll') : t('article.detail.downloadAll') }}
                     </button>
                   </div>
                 </div>
 
                 <div v-show="isAttachmentExpanded" :id="attachmentSectionId" class="mt-3">
-                  <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">첨부파일이 없습니다.</div>
+                  <div v-if="attachments.length === 0" class="ui-state ui-state-empty px-4 py-6">{{ t('article.detail.noAttachments') }}</div>
                   <div v-else class="space-y-2">
                     <div v-for="file in attachments" :key="file.id" class="ui-list-row">
                       <div class="flex items-start justify-between gap-3">
@@ -1140,7 +1129,9 @@ onUnmounted(() => {
                         </div>
                         <span class="ui-badge ui-badge-muted">{{ formatFileSize(file.fileSize) }}</span>
                       </div>
-                      <button type="button" class="ui-button-ghost h-9 self-end px-4 text-xs" @click="downloadAttachment(file)">다운로드</button>
+                      <button type="button" class="ui-button-ghost h-9 self-end px-4 text-xs" @click="downloadAttachment(file)">
+                        {{ t('article.detail.download') }}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1152,10 +1143,10 @@ onUnmounted(() => {
             <div class="border-b border-line px-5 py-4 sm:px-6">
               <div class="flex items-center justify-between gap-3">
                 <div>
-                  <p class="ui-eyebrow">Comment</p>
-                  <h2 class="ui-heading-section mt-1">댓글</h2>
+                  <p class="ui-eyebrow">{{ t('comment.section.eyebrow') }}</p>
+                  <h2 class="ui-heading-section mt-1">{{ t('comment.section.title') }}</h2>
                 </div>
-                <span class="ui-badge ui-badge-muted">총 {{ article?.commentCount ?? 0 }}개</span>
+                <span class="ui-badge ui-badge-muted">{{ t('comment.section.total', { count: article?.commentCount ?? 0 }) }}</span>
               </div>
             </div>
 
@@ -1165,7 +1156,7 @@ onUnmounted(() => {
                   ref="commentTextareaRef"
                   v-model="newComment"
                   rows="3"
-                  placeholder="댓글을 입력하세요"
+                  :placeholder="t('comment.section.placeholder')"
                   class="ui-textarea"
                   @focus="resizeCommentTextarea"
                   @input="handleCommentInput"
@@ -1178,18 +1169,18 @@ onUnmounted(() => {
                     :disabled="isCommentSubmitting || !newComment.trim()"
                     @click="submitComment"
                   >
-                    댓글 등록
+                    {{ t('comment.section.submit') }}
                   </button>
                 </div>
               </div>
 
-              <div v-else class="ui-state ui-state-empty px-4 py-6">댓글 작성은 로그인 후 이용할 수 있습니다.</div>
+              <div v-else class="ui-state ui-state-empty px-4 py-6">{{ t('comment.section.loginRequired') }}</div>
 
               <div v-if="commentError" class="ui-state ui-state-danger mt-4">
                 {{ commentError }}
               </div>
 
-              <div v-if="comments && comments.items.length === 0" class="ui-state ui-state-empty mt-4">아직 댓글이 없습니다.</div>
+              <div v-if="comments && comments.items.length === 0" class="ui-state ui-state-empty mt-4">{{ t('comment.section.empty') }}</div>
 
               <div v-else-if="comments" class="mt-4">
                 <CommentList
@@ -1212,35 +1203,35 @@ onUnmounted(() => {
                   :disabled="!comments.hasPrevious || isCommentLoading"
                   @click="handleCommentPage(commentPage - 1)"
                 >
-                  이전
+                  {{ t('comment.section.previous') }}
                 </button>
-                <span>페이지 {{ commentPage + 1 }} / {{ comments.totalPages }}</span>
+                <span>{{ t('comment.section.pageSummary', { current: commentPage + 1, total: comments.totalPages }) }}</span>
                 <button
                   type="button"
                   class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="!comments.hasNext || isCommentLoading"
                   @click="handleCommentPage(commentPage + 1)"
                 >
-                  다음
+                  {{ t('comment.section.next') }}
                 </button>
               </div>
 
-              <div v-if="isCommentLoading" class="mt-3 text-xs text-muted">댓글을 불러오는 중입니다...</div>
+              <div v-if="isCommentLoading" class="mt-3 text-xs text-muted">{{ t('comment.section.loading') }}</div>
             </div>
           </section>
 
           <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
         </div>
 
-        <div v-if="isLoading" class="mt-6 text-sm text-muted">게시글을 불러오는 중입니다...</div>
+        <div v-if="isLoading" class="mt-6 text-sm text-muted">{{ t('article.detail.loading') }}</div>
       </div>
     </PageContainer>
 
     <ConfirmModal
       :open="isDeleteModalOpen"
-      title="게시글 삭제"
-      description="삭제한 게시글은 복구할 수 없습니다. 계속 진행하시겠어요?"
-      confirm-label="삭제"
+      :title="t('article.detail.deleteModal.title')"
+      :description="t('article.detail.deleteModal.description')"
+      :confirm-label="t('article.detail.deleteModal.confirm')"
       confirm-variant="danger"
       :confirm-disabled="isDeleting"
       :cancel-disabled="isDeleting"

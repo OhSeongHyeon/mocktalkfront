@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import ConfirmModal from '../shared/ui/ConfirmModal.vue';
@@ -10,6 +11,7 @@ import PageHeader from '../shared/ui/PageHeader.vue';
 import { formatKoreanDateTime } from '../shared/lib/date';
 import AppShell from '../widgets/layout/AppShell.vue';
 
+const { t } = useI18n();
 const router = useRouter();
 const items = ref<HistoryItem[]>([]);
 const searchKeyword = ref('');
@@ -71,16 +73,16 @@ onMounted(async () => {
   <AppShell>
     <PageContainer width="auto">
       <div class="space-y-6">
-        <PageHeader title="기록" description="최근 열람한 게시글을 확인할 수 있습니다. 이 기록은 브라우저에만 저장됩니다.">
+        <PageHeader :title="t('history.title')" :description="t('history.description')">
           <template #actions>
-            <button type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openClearModal">전체 삭제</button>
+            <button type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openClearModal">{{ t('history.clearAll') }}</button>
           </template>
         </PageHeader>
 
         <div class="ui-panel p-4">
           <div class="flex flex-wrap items-center gap-3">
-            <input v-model="searchKeyword" type="search" class="ui-input min-w-[200px] flex-1" placeholder="제목, 게시판명, 슬러그 검색" />
-            <span class="ui-badge ui-badge-muted">총 {{ filteredItems.length }}건</span>
+            <input v-model="searchKeyword" type="search" class="ui-input min-w-[200px] flex-1" :placeholder="t('history.searchPlaceholder')" />
+            <span class="ui-badge ui-badge-muted">{{ t('history.totalCount', { count: filteredItems.length }) }}</span>
           </div>
         </div>
 
@@ -94,21 +96,23 @@ onMounted(async () => {
               <p class="truncate text-sm font-semibold text-ink">
                 {{ item.title }}
               </p>
-              <p class="text-xs text-subtle">방문 {{ formatKoreanDateTime(item.visitedAt, item.visitedAt) }}</p>
+              <p class="text-xs text-subtle">
+                {{ t('history.visitedAt', { date: formatKoreanDateTime(item.visitedAt, item.visitedAt) }) }}
+              </p>
             </button>
-            <button type="button" class="ui-button-danger h-8 shrink-0 px-3 text-xs" @click="handleRemove(item)">삭제</button>
+            <button type="button" class="ui-button-danger h-8 shrink-0 px-3 text-xs" @click="handleRemove(item)">{{ t('common.delete') }}</button>
           </div>
         </div>
 
-        <div v-else class="ui-state ui-state-empty px-6 py-12">기록이 없습니다.</div>
+        <div v-else class="ui-state ui-state-empty px-6 py-12">{{ t('history.empty') }}</div>
       </div>
     </PageContainer>
 
     <ConfirmModal
       :open="isClearModalOpen"
-      title="기록 전체 삭제"
-      description="기록을 모두 삭제할까요? 삭제한 기록은 복구할 수 없습니다."
-      confirm-label="삭제"
+      :title="t('history.clearModal.title')"
+      :description="t('history.clearModal.description')"
+      :confirm-label="t('common.delete')"
       confirm-variant="danger"
       @close="closeClearModal"
       @confirm="handleClear"

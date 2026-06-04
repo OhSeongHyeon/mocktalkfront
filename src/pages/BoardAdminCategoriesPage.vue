@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -15,6 +16,7 @@ import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
@@ -33,7 +35,7 @@ const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus
 const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMember(board.value.memberStatus) : false));
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
-const boardName = computed(() => board.value?.boardName ?? '게시판');
+const boardName = computed(() => board.value?.boardName ?? t('admin.common.defaultBoardName'));
 
 const formatDate = (value: string) => {
   const date = new Date(value);
@@ -45,10 +47,10 @@ const loadBoard = async () => {
   try {
     board.value = await getBoardBySlug(boardSlug.value);
     if (!hasPermission.value) {
-      boardError.value = '게시판 관리자 권한이 없습니다.';
+      boardError.value = t('admin.common.noBoardAdmin');
     }
   } catch (error) {
-    boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : t('admin.common.loadBoardFailed');
   }
 };
 
@@ -61,7 +63,7 @@ const loadCategories = async () => {
   try {
     categories.value = await getBoardCategories(board.value.id);
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.categories.errors.loadList');
   } finally {
     isLoading.value = false;
   }
@@ -73,7 +75,7 @@ const submitCreate = async () => {
   }
   const name = createName.value.trim();
   if (!name) {
-    listError.value = '카테고리명을 입력해주세요.';
+    listError.value = t('admin.boardAdmin.categories.errors.nameRequired');
     return;
   }
   isSubmitting.value = true;
@@ -83,7 +85,7 @@ const submitCreate = async () => {
     categories.value = [...categories.value, created].sort((a, b) => a.categoryName.localeCompare(b.categoryName, 'ko'));
     createName.value = '';
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '카테고리 생성에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.categories.errors.createFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -105,7 +107,7 @@ const submitEdit = async (category: BoardCategoryResponse) => {
   }
   const name = editName.value.trim();
   if (!name) {
-    listError.value = '카테고리명을 입력해주세요.';
+    listError.value = t('admin.boardAdmin.categories.errors.nameRequired');
     return;
   }
   isSubmitting.value = true;
@@ -117,7 +119,7 @@ const submitEdit = async (category: BoardCategoryResponse) => {
       .sort((a, b) => a.categoryName.localeCompare(b.categoryName, 'ko'));
     cancelEdit();
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '카테고리 수정에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.categories.errors.updateFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -127,7 +129,7 @@ const removeCategory = async (category: BoardCategoryResponse) => {
   if (!board.value) {
     return;
   }
-  if (!window.confirm(`"${category.categoryName}" 카테고리를 삭제할까요?`)) {
+  if (!window.confirm(t('admin.boardAdmin.categories.confirmDelete', { name: category.categoryName }))) {
     return;
   }
   isSubmitting.value = true;
@@ -139,7 +141,7 @@ const removeCategory = async (category: BoardCategoryResponse) => {
       cancelEdit();
     }
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '카테고리 삭제에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.categories.errors.deleteFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -165,28 +167,28 @@ onMounted(async () => {
         <div v-if="board && hasPermission" class="space-y-6">
           <PageHeader
             eyebrow="Board Categories"
-            :title="`${boardName} 카테고리 관리`"
-            description="게시판 분류 체계를 빠르게 추가, 수정, 삭제합니다."
+            :title="t('admin.boardAdmin.categories.title', { boardName })"
+            :description="t('admin.boardAdmin.categories.description')"
           >
             <template #meta>
-              <span class="ui-badge ui-badge-muted">카테고리 {{ categories.length }}건</span>
-              <span class="text-xs text-muted">정렬 기준: 이름 오름차순</span>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.boardAdmin.categories.countBadge', { count: categories.length }) }}</span>
+              <span class="text-xs text-muted">{{ t('admin.boardAdmin.categories.sortHint') }}</span>
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Board</p>
                 <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-muted">현재 게시판 분류만 표시합니다.</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.categories.queueHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Create</p>
-                <p class="bbs-row-title mt-2 text-sm">새 카테고리 등록</p>
-                <p class="mt-1 text-xs text-muted">간단한 이름만 입력하면 바로 생성됩니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.boardAdmin.categories.addTitle') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.categories.addHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Edit</p>
-                <p class="bbs-row-title mt-2 text-sm">인라인 수정</p>
-                <p class="mt-1 text-xs text-muted">목록에서 바로 이름을 바꾸고 저장할 수 있습니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.boardAdmin.categories.inlineEditTitle') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.categories.inlineEditHint') }}</p>
               </div>
             </div>
           </PageHeader>
@@ -199,15 +201,15 @@ onMounted(async () => {
             <section class="ui-panel p-5">
               <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
-                  <h2 class="bbs-row-title text-lg">카테고리 목록</h2>
-                  <p class="mt-1 text-sm text-muted">등록 시각과 수정 액션을 한 줄에서 확인합니다.</p>
+                  <h2 class="bbs-row-title text-lg">{{ t('admin.boardAdmin.categories.listTitle') }}</h2>
+                  <p class="mt-1 text-sm text-muted">{{ t('admin.boardAdmin.categories.listDescription') }}</p>
                 </div>
-                <span class="ui-badge ui-badge-muted">총 {{ categories.length }}건</span>
+                <span class="ui-badge ui-badge-muted">{{ t('admin.common.totalCount', { count: categories.length }) }}</span>
               </div>
 
               <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
                 <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-                불러오는 중...
+                {{ t('common.loading') }}
               </div>
 
               <div v-else class="mt-4 flex flex-col gap-3">
@@ -218,7 +220,7 @@ onMounted(async () => {
                         <span class="bbs-row-title text-sm">{{ category.categoryName }}</span>
                         <span class="ui-badge ui-badge-muted">#{{ category.id }}</span>
                       </div>
-                      <p class="mt-2 text-xs text-muted">등록 {{ formatDate(category.createdAt) }}</p>
+                      <p class="mt-2 text-xs text-muted">{{ t('admin.boardAdmin.categories.registeredAt') }} {{ formatDate(category.createdAt) }}</p>
                     </div>
                     <div class="flex items-center gap-2">
                       <button
@@ -228,7 +230,7 @@ onMounted(async () => {
                         :disabled="isSubmitting"
                         @click="startEdit(category)"
                       >
-                        수정
+                        {{ t('common.edit') }}
                       </button>
                       <button
                         type="button"
@@ -236,13 +238,18 @@ onMounted(async () => {
                         :disabled="isSubmitting"
                         @click="removeCategory(category)"
                       >
-                        삭제
+                        {{ t('common.delete') }}
                       </button>
                     </div>
                   </div>
 
                   <div v-if="editingId === category.id" class="ui-toolbar justify-between">
-                    <input v-model="editName" type="text" class="ui-input min-w-[12rem] flex-1" placeholder="카테고리명 수정" />
+                    <input
+                      v-model="editName"
+                      type="text"
+                      class="ui-input min-w-[12rem] flex-1"
+                      :placeholder="t('admin.boardAdmin.categories.editPlaceholder')"
+                    />
                     <div class="flex flex-wrap items-center gap-2">
                       <button
                         type="button"
@@ -250,14 +257,16 @@ onMounted(async () => {
                         :disabled="isSubmitting"
                         @click="submitEdit(category)"
                       >
-                        저장
+                        {{ t('common.save') }}
                       </button>
-                      <button type="button" class="ui-button-ghost h-10 px-4 text-xs" :disabled="isSubmitting" @click="cancelEdit">취소</button>
+                      <button type="button" class="ui-button-ghost h-10 px-4 text-xs" :disabled="isSubmitting" @click="cancelEdit">
+                        {{ t('common.cancel') }}
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                <div v-if="categories.length === 0" class="ui-state ui-state-empty px-4 py-10">등록된 카테고리가 없습니다.</div>
+                <div v-if="categories.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ t('admin.boardAdmin.categories.empty') }}</div>
               </div>
             </section>
 
@@ -265,26 +274,26 @@ onMounted(async () => {
               <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
                   <p class="ui-eyebrow">Create</p>
-                  <h2 class="bbs-row-title mt-1 text-lg">카테고리 추가</h2>
+                  <h2 class="bbs-row-title mt-1 text-lg">{{ t('admin.boardAdmin.categories.addFormTitle') }}</h2>
                 </div>
               </div>
 
               <div class="mt-6 grid gap-4">
                 <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                  카테고리명
-                  <input v-model="createName" type="text" class="ui-input" placeholder="예: 자유" />
+                  {{ t('admin.boardAdmin.categories.nameLabel') }}
+                  <input v-model="createName" type="text" class="ui-input" :placeholder="t('admin.boardAdmin.categories.namePlaceholder')" />
                 </label>
               </div>
 
               <div class="ui-toolbar mt-5 justify-between text-xs text-muted">
-                <span>등록 후 목록에 즉시 반영됩니다.</span>
+                <span>{{ t('admin.boardAdmin.categories.registerReflectHint') }}</span>
                 <button
                   type="button"
                   class="ui-button-accent h-11 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="isSubmitting"
                   @click="submitCreate"
                 >
-                  {{ isSubmitting ? '등록 중...' : '카테고리 등록' }}
+                  {{ isSubmitting ? t('admin.common.registerSubmitting') : t('admin.boardAdmin.categories.registerSubmit') }}
                 </button>
               </div>
             </section>

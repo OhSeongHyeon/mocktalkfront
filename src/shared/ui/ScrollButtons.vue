@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 
 import AppIcon from './AppIcon.vue';
+
+const { t } = useI18n();
 
 const getScrollTarget = () => document.querySelector('main') as HTMLElement | null;
 
@@ -29,7 +32,7 @@ const scrollToBottom = () => {
   <div class="fixed right-6 bottom-6 z-50 hidden flex-col gap-2 md:flex">
     <button
       type="button"
-      aria-label="맨 위로 이동"
+      :aria-label="t('common.scrollToTop')"
       class="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-ink shadow-lg backdrop-blur transition hover:bg-surface-soft"
       @click="scrollToTop"
     >
@@ -37,7 +40,7 @@ const scrollToBottom = () => {
     </button>
     <button
       type="button"
-      aria-label="맨 아래로 이동"
+      :aria-label="t('common.scrollToBottom')"
       class="grid h-11 w-11 place-items-center rounded-full border border-line bg-surface text-ink shadow-lg backdrop-blur transition hover:bg-surface-soft"
       @click="scrollToBottom"
     >

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import BoardArticlePanel from '../widgets/board/BoardArticlePanel.vue';
@@ -18,6 +19,7 @@ interface ArticleSelectPayload {
   query: Record<string, string>;
 }
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const slug = computed(() => String(route.params.slug ?? ''));
@@ -31,38 +33,33 @@ const actionError = ref('');
 const isSubscribing = ref(false);
 const isJoining = ref(false);
 
-const ownerDisplayName = computed(() => board.value?.ownerDisplayName ?? '정보 없음');
+const ownerDisplayName = computed(() => board.value?.ownerDisplayName ?? t('board.defaults.unknownInfo'));
 const visibilityLabel = computed(() => {
-  switch (board.value?.visibility) {
-    case 'PUBLIC':
-      return '공개';
-    case 'GROUP':
-      return '구독형';
-    case 'PRIVATE':
-      return '비공개';
-    case 'UNLISTED':
-      return '운영자 전용';
-    default:
-      return '알 수 없음';
+  const visibility = board.value?.visibility;
+  if (!visibility) {
+    return t('board.defaults.unknownInfo');
   }
+  const key = `board.visibility.${visibility}`;
+  const translated = t(key);
+  return translated !== key ? translated : t('board.defaults.unknownInfo');
 });
 const memberStatusLabel = computed(() => {
   switch (board.value?.memberStatus) {
     case 'OWNER':
-      return '개설자';
+      return t('board.memberStatus.OWNER');
     case 'MODERATOR':
-      return '운영진';
+      return t('board.memberStatus.MODERATOR');
     case 'MEMBER':
-      return '멤버';
+      return t('board.memberStatus.MEMBER');
     case 'PENDING':
-      return '가입 대기';
+      return t('board.memberStatus.PENDING');
     case 'BANNED':
-      return '제한됨';
+      return t('board.memberStatus.BANNED');
     default:
-      return '방문자';
+      return t('board.memberStatus.VISITOR');
   }
 });
-const subscribeStatusLabel = computed(() => (board.value?.subscribed ? '구독 중' : '미구독'));
+const subscribeStatusLabel = computed(() => (board.value?.subscribed ? t('board.subscribe.subscribed') : t('board.subscribe.notSubscribed')));
 
 const canInteract = computed(() => Boolean(isAuthenticated.value && board.value));
 const canBoardAdmin = computed(() => {
@@ -77,18 +74,18 @@ const canWrite = computed(() => {
 const joinButtonLabel = computed(() => {
   const status = board.value?.memberStatus;
   if (status === 'PENDING') {
-    return '가입 요청 취소';
+    return t('board.join.cancelRequest');
   }
   if (status === 'MEMBER') {
-    return '가입 완료';
+    return t('board.join.completed');
   }
   if (status === 'MODERATOR' || status === 'OWNER') {
-    return '관리자';
+    return t('board.join.admin');
   }
   if (status === 'BANNED') {
-    return '가입 불가';
+    return t('board.join.blocked');
   }
-  return '가입 신청';
+  return t('board.join.request');
 });
 const joinDisabled = computed(() => {
   const status = board.value?.memberStatus;
@@ -100,7 +97,7 @@ const showJoinButton = computed(() => {
   }
   return board.value.visibility === 'PUBLIC' || board.value.visibility === 'GROUP';
 });
-const subscribeLabel = computed(() => (board.value?.subscribed ? '구독중' : '구독'));
+const subscribeLabel = computed(() => (board.value?.subscribed ? t('board.subscribe.subscribing') : t('board.subscribe.subscribeAction')));
 const subscribeDisabled = computed(() => !isAuthenticated.value || isSubscribing.value);
 const writeUnavailableReason = computed(() => {
   return resolveWriteUnavailableReason(board.value, isAuthenticated.value, isAdmin.value);
@@ -119,14 +116,14 @@ const loadBoard = async () => {
     board.value = await getBoardBySlug(slug.value);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      boardError.value = '게시판을 찾을 수 없습니다.';
+      boardError.value = t('board.errors.notFound');
       return;
     }
     if (error instanceof ApiError && error.status === 403) {
-      boardError.value = '게시판 접근 권한이 없습니다.';
+      boardError.value = t('board.errors.forbidden');
       return;
     }
-    boardError.value = error instanceof ApiError ? error.message : '게시판을 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : t('board.errors.loadFailed');
   } finally {
     isBoardLoading.value = false;
   }
@@ -148,10 +145,10 @@ const handleSubscribe = async () => {
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 409) {
-      actionError.value = '이미 처리된 요청입니다.';
+      actionError.value = t('board.errors.alreadyProcessed');
       return;
     }
-    actionError.value = error instanceof ApiError ? error.message : '구독 처리에 실패했습니다.';
+    actionError.value = error instanceof ApiError ? error.message : t('board.errors.subscribeFailed');
   } finally {
     isSubscribing.value = false;
   }
@@ -174,10 +171,10 @@ const handleJoin = async () => {
     board.value.memberStatus = response.memberStatus;
   } catch (error) {
     if (error instanceof ApiError && error.status === 409) {
-      actionError.value = '이미 가입 상태입니다.';
+      actionError.value = t('board.errors.alreadyJoined');
       return;
     }
-    actionError.value = error instanceof ApiError ? error.message : shouldCancel ? '가입 요청 취소에 실패했습니다.' : '가입 요청에 실패했습니다.';
+    actionError.value = error instanceof ApiError ? error.message : shouldCancel ? t('board.errors.joinCancelFailed') : t('board.errors.joinFailed');
   } finally {
     isJoining.value = false;
   }
@@ -221,15 +218,15 @@ watch(
     <PageContainer width="auto">
       <div class="space-y-6">
         <BoardHeaderCard
-          :title="board?.boardName ?? '커뮤니티'"
-          :description="board?.description ?? '설명이 없습니다.'"
+          :title="board?.boardName ?? t('board.defaults.communityName')"
+          :description="board?.description ?? t('board.defaults.noDescription')"
           :image-file="board?.boardImage ?? null"
           :link-to="board ? `/b/${board.slug}` : undefined"
         >
           <template #meta>
             <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span class="ui-badge ui-badge-accent">{{ visibilityLabel }} 커뮤니티</span>
-              <span class="ui-badge ui-badge-muted">운영자 {{ ownerDisplayName }}</span>
+              <span class="ui-badge ui-badge-accent">{{ t('board.visibility.communitySuffix', { label: visibilityLabel }) }}</span>
+              <span class="ui-badge ui-badge-muted">{{ t('board.memberStatus.operatorPrefix', { name: ownerDisplayName }) }}</span>
               <span class="ui-badge" :class="board?.memberStatus === 'BANNED' ? 'ui-badge-danger' : 'ui-badge-warning'">{{ memberStatusLabel }}</span>
               <span class="ui-badge" :class="board?.subscribed ? 'ui-badge-success' : 'ui-badge-muted'">{{ subscribeStatusLabel }}</span>
             </div>
@@ -237,7 +234,9 @@ watch(
           <template #actions>
             <div class="flex flex-col gap-3">
               <div v-if="canInteract" class="flex flex-wrap items-center gap-2">
-                <button v-if="canBoardAdmin" type="button" class="ui-button-primary h-10 px-4 text-xs" @click="goBoardAdmin">관리</button>
+                <button v-if="canBoardAdmin" type="button" class="ui-button-primary h-10 px-4 text-xs" @click="goBoardAdmin">
+                  {{ t('board.actions.manage') }}
+                </button>
                 <button
                   type="button"
                   class="h-10 px-4 text-xs"
@@ -264,12 +263,12 @@ watch(
                   :title="!canWrite ? writeUnavailableReason : undefined"
                   @click="goWrite"
                 >
-                  글쓰기
+                  {{ t('board.actions.write') }}
                 </button>
               </div>
 
               <div v-else class="flex flex-wrap items-center gap-2 text-xs text-muted">
-                <span class="ui-badge ui-badge-muted">로그인 후 구독과 글쓰기를 사용할 수 있습니다.</span>
+                <span class="ui-badge ui-badge-muted">{{ t('board.subscribe.loginHint') }}</span>
               </div>
 
               <div v-if="actionError" class="ui-state ui-state-danger text-xs font-semibold">
@@ -283,7 +282,7 @@ watch(
           {{ boardError }}
         </div>
 
-        <div v-if="isBoardLoading" class="mt-6 text-sm text-muted">게시판 정보를 불러오는 중입니다...</div>
+        <div v-if="isBoardLoading" class="mt-6 text-sm text-muted">{{ t('board.page.loadingBoard') }}</div>
 
         <BoardArticlePanel v-if="board" :board-id="board.id" :board-slug="board.slug" @select="goArticle" />
       </div>

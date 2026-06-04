@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
@@ -17,6 +18,7 @@ import AppShell from '../widgets/layout/AppShell.vue';
 type StatusFilter = BoardMemberStatus | 'ALL';
 
 const route = useRoute();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
@@ -38,15 +40,18 @@ const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus
 const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMember(board.value.memberStatus) : false));
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
-const boardName = computed(() => board.value?.boardName ?? '게시판');
+const boardName = computed(() => board.value?.boardName ?? t('admin.common.defaultBoardName'));
 
-const statusLabel = (status: BoardMemberStatus) => {
+const statusLabel = (status: BoardMemberStatus | 'ALL') => {
+  if (status === 'ALL') {
+    return t('admin.common.all');
+  }
   const labels: Record<BoardMemberStatus, string> = {
-    OWNER: '소유자',
-    MODERATOR: '관리자',
-    MEMBER: '멤버',
-    PENDING: '대기',
-    BANNED: '차단',
+    OWNER: t('admin.boardAdmin.members.roleOwner'),
+    MODERATOR: t('admin.boardAdmin.members.roleModerator'),
+    MEMBER: t('admin.boardAdmin.members.roleMember'),
+    PENDING: t('admin.boardAdmin.members.rolePending'),
+    BANNED: t('admin.boardAdmin.members.roleBanned'),
   };
   return labels[status] ?? status;
 };
@@ -77,10 +82,10 @@ const loadBoard = async () => {
   try {
     board.value = await getBoardBySlug(boardSlug.value);
     if (!hasPermission.value) {
-      boardError.value = '게시판 관리자 권한이 없습니다.';
+      boardError.value = t('admin.common.noBoardAdmin');
     }
   } catch (error) {
-    boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : t('admin.common.loadBoardFailed');
   }
 };
 
@@ -99,7 +104,7 @@ const loadMembers = async () => {
     members.value = response.items;
     totalPages.value = response.totalPages;
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '멤버 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.members.errors.loadList');
   } finally {
     isLoading.value = false;
   }
@@ -128,7 +133,7 @@ const handleApprove = async (member: BoardMemberListItemResponse) => {
     const updated = await approveBoardMember(board.value.id, member.id);
     updateMember(updated);
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '승인 처리에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.members.errors.approveFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -138,7 +143,7 @@ const handleReject = async (member: BoardMemberListItemResponse) => {
   if (!board.value) {
     return;
   }
-  if (!window.confirm('가입 요청을 거절할까요?')) {
+  if (!window.confirm(t('admin.boardAdmin.members.confirmReject'))) {
     return;
   }
   isSubmitting.value = true;
@@ -147,7 +152,7 @@ const handleReject = async (member: BoardMemberListItemResponse) => {
     await rejectBoardMember(board.value.id, member.id);
     members.value = members.value.filter((item) => item.id !== member.id);
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '거절 처리에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.members.errors.rejectFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -163,7 +168,7 @@ const handleRoleChange = async (member: BoardMemberListItemResponse, targetRole:
     const updated = await updateBoardMemberRole(board.value.id, member.id, { boardRole: targetRole });
     updateMember(updated);
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '역할 변경에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.members.errors.roleFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -179,7 +184,7 @@ const handleStatusChange = async (member: BoardMemberListItemResponse, targetRol
     const updated = await updateBoardMemberStatus(board.value.id, member.id, { boardRole: targetRole });
     updateMember(updated);
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '상태 변경에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.members.errors.statusFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -187,12 +192,12 @@ const handleStatusChange = async (member: BoardMemberListItemResponse, targetRol
 
 const actionLabel = (role: BoardMemberStatus) => {
   if (role === 'PENDING') {
-    return '승인 대기';
+    return t('admin.boardAdmin.members.statusPending');
   }
   if (role === 'BANNED') {
-    return '차단됨';
+    return t('admin.boardAdmin.members.statusBanned');
   }
-  return '활성';
+  return t('admin.common.active');
 };
 
 watch(statusFilter, async () => {
@@ -220,19 +225,21 @@ onMounted(async () => {
         <div v-if="board && hasPermission" class="space-y-6">
           <PageHeader
             eyebrow="Board Members"
-            :title="`${boardName} 멤버 관리`"
-            description="가입 승인, 역할 변경, 차단 상태를 같은 운영 패턴으로 관리합니다."
+            :title="t('admin.boardAdmin.members.title', { boardName })"
+            :description="t('admin.boardAdmin.members.description')"
           >
             <template #meta>
-              <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-              <span class="ui-badge ui-badge-accent">표시 {{ members.length }}건</span>
-              <span class="text-xs text-muted">{{ statusFilter === 'ALL' ? '전체 상태' : `${statusLabel(statusFilter)} 상태` }}</span>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.common.currentPage', { current: page + 1, total: Math.max(totalPages, 1) }) }}</span>
+              <span class="ui-badge ui-badge-accent">{{ t('admin.common.displayCount', { count: members.length }) }}</span>
+              <span class="text-xs text-muted">{{
+                statusFilter === 'ALL' ? t('admin.common.statusAll') : t('admin.common.statusFilter', { status: statusLabel(statusFilter) })
+              }}</span>
             </template>
             <template #actions>
-              <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">상태</label>
+              <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">{{ t('admin.common.statusLabel') }}</label>
               <select v-model="statusFilter" class="ui-select min-w-[9rem]">
                 <option v-for="option in statusOptions" :key="option" :value="option">
-                  {{ option === 'ALL' ? '전체' : statusLabel(option) }}
+                  {{ statusLabel(option) }}
                 </option>
               </select>
             </template>
@@ -240,17 +247,17 @@ onMounted(async () => {
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Board</p>
                 <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-muted">이 게시판 멤버만 조회합니다.</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.members.queueHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Queue</p>
-                <p class="bbs-row-title mt-2 text-sm">{{ members.length }}건</p>
-                <p class="mt-1 text-xs text-muted">필터 조건에 맞는 멤버/신청 목록입니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.common.displayCount', { count: members.length }) }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.members.filterCountHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Action</p>
-                <p class="bbs-row-title mt-2 text-sm">승인, 역할 변경, 차단</p>
-                <p class="mt-1 text-xs text-muted">소유자 변경은 시스템 관리자만 수행할 수 있습니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.boardAdmin.members.actionsHint') }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.members.ownerChangeHint') }}</p>
               </div>
             </div>
           </PageHeader>
@@ -262,15 +269,15 @@ onMounted(async () => {
           <section class="ui-panel p-5">
             <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
               <div>
-                <h2 class="bbs-row-title text-lg">멤버 목록</h2>
-                <p class="mt-1 text-sm text-muted">사용자별 상태와 최근 변경 시점을 한 줄에서 확인합니다.</p>
+                <h2 class="bbs-row-title text-lg">{{ t('admin.boardAdmin.members.listTitle') }}</h2>
+                <p class="mt-1 text-sm text-muted">{{ t('admin.boardAdmin.members.listDescription') }}</p>
               </div>
-              <span class="ui-badge ui-badge-muted">총 {{ members.length }}건</span>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.common.totalCount', { count: members.length }) }}</span>
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
               <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-              불러오는 중...
+              {{ t('common.loading') }}
             </div>
 
             <div v-else class="mt-4 flex flex-col gap-3">
@@ -280,7 +287,7 @@ onMounted(async () => {
                     <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span :class="statusBadgeClass(member.boardRole)">{{ statusLabel(member.boardRole) }}</span>
                       <span class="ui-badge ui-badge-muted">{{ actionLabel(member.boardRole) }}</span>
-                      <span>승인자 {{ member.grantedByName ?? '-' }}</span>
+                      <span>{{ t('admin.boardAdmin.members.approver', { name: member.grantedByName ?? '-' }) }}</span>
                     </div>
                     <div class="mt-2 flex flex-wrap items-center gap-2">
                       <span class="bbs-row-title text-sm">#{{ member.userId }}</span>
@@ -289,7 +296,8 @@ onMounted(async () => {
                       <span class="text-xs text-subtle">{{ member.loginId }}</span>
                     </div>
                     <p class="mt-2 text-xs text-muted">
-                      신청 {{ formatDate(member.createdAt) }}<span v-if="member.updatedAt"> · 변경 {{ formatDate(member.updatedAt) }}</span>
+                      {{ t('admin.boardAdmin.members.appliedAt', { date: formatDate(member.createdAt) })
+                      }}<span v-if="member.updatedAt">{{ t('admin.boardAdmin.members.changedAt', { date: formatDate(member.updatedAt) }) }}</span>
                     </p>
                   </div>
 
@@ -301,7 +309,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="handleApprove(member)"
                     >
-                      승인
+                      {{ t('admin.boardAdmin.members.approve') }}
                     </button>
                     <button
                       v-if="member.boardRole === 'PENDING'"
@@ -310,7 +318,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="handleReject(member)"
                     >
-                      거절
+                      {{ t('admin.boardAdmin.members.reject') }}
                     </button>
                     <button
                       v-if="member.boardRole === 'MEMBER'"
@@ -319,7 +327,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="handleRoleChange(member, 'MODERATOR')"
                     >
-                      관리자 승격
+                      {{ t('admin.boardAdmin.members.promoteModerator') }}
                     </button>
                     <button
                       v-if="member.boardRole === 'MODERATOR'"
@@ -328,7 +336,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="handleRoleChange(member, 'MEMBER')"
                     >
-                      멤버로 변경
+                      {{ t('admin.boardAdmin.members.demoteMember') }}
                     </button>
                     <button
                       v-if="member.boardRole === 'MEMBER' || member.boardRole === 'MODERATOR'"
@@ -337,7 +345,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="handleStatusChange(member, 'BANNED')"
                     >
-                      차단
+                      {{ t('admin.boardAdmin.members.ban') }}
                     </button>
                     <button
                       v-if="member.boardRole === 'BANNED'"
@@ -346,19 +354,21 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="handleStatusChange(member, 'MEMBER')"
                     >
-                      차단 해제
+                      {{ t('admin.boardAdmin.members.unban') }}
                     </button>
-                    <span v-if="member.boardRole === 'OWNER'" class="text-xs font-semibold text-subtle">소유자 변경은 ADMIN만 가능합니다.</span>
+                    <span v-if="member.boardRole === 'OWNER'" class="text-xs font-semibold text-subtle">{{
+                      t('admin.boardAdmin.members.ownerChangeAdminOnly')
+                    }}</span>
                   </div>
                 </div>
               </div>
 
-              <div v-if="members.length === 0" class="ui-state ui-state-empty px-4 py-10">조건에 해당하는 멤버가 없습니다.</div>
+              <div v-if="members.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ t('admin.boardAdmin.members.empty') }}</div>
             </div>
 
             <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
               <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
-                이전
+                {{ t('common.previous') }}
               </button>
               <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <button
@@ -367,7 +377,7 @@ onMounted(async () => {
                 :disabled="page + 1 >= totalPages"
                 @click="movePage(1)"
               >
-                다음
+                {{ t('common.next') }}
               </button>
             </div>
           </section>
