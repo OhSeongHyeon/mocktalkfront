@@ -1,0 +1,95 @@
+@layer components {
+  .editor-shell {
+    border: 1px solid var(--line-subtle);
+    background: var(--surface-0);
+    border-radius: var(--radius-md);
+  }
+
+  .editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--line-subtle);
+    background: var(--surface-1);
+    padding: 0.35rem 0.5rem;
+  }
+
+  .admin-stat {
+    border: 1px solid var(--line-subtle);
+    background: var(--surface-0);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+  }
+
+  .admin-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink-1);
+  }
+
+  .app-shell {
+    background: var(--surface-body);
+    color: var(--ink-1);
+  }
+
+  .app-header {
+    border-bottom: 1px solid var(--line-strong);
+    background: var(--surface-0);
+  }
+
+  .app-brand-title {
+    font-size: 0.9375rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+
+  .app-sidebar {
+    border-right: 1px solid var(--line-subtle);
+    background: var(--surface-sidebar);
+  }
+
+  .app-sidebar-backdrop {
+    background: var(--surface-overlay);
+  }
+
+  .app-sidebar-section-label {
+    padding: 0.65rem 0.75rem 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--ink-3);
+  }
+
+  .app-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .app-nav-link:hover {
+    background: var(--surface-1);
+    color: var(--ink-1);
+  }
+
+  .app-nav-link-active {
+    background: var(--surface-1);
+    font-weight: 700;
+    color: var(--link);
+    box-shadow: inset 3px 0 0 var(--accent-strong);
+  }
+
+  .auth-shell {
+    min-height: 100vh;
+    background: var(--surface-body);
+  }
+
+  .auth-header {
+    border-bottom: 1px solid var(--line-subtle);
+    background: var(--surface-0);
+  }
+}

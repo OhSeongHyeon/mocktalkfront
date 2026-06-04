@@ -1,6 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { START_LOCATION, createRouter, createWebHistory } from 'vue-router';
 
 import { useAuthStore } from '../../stores/auth';
+import { useAuthPromptStore } from '../../stores/authPrompt';
 
 const LoginPage = () => import('../../pages/LoginPage.vue');
 const MainPage = () => import('../../pages/MainPage.vue');
@@ -94,10 +95,15 @@ const router = createRouter({
   },
 });
 
-router.beforeEach((to) => {
+router.beforeEach((to, from) => {
   const authStore = useAuthStore();
+  const authPromptStore = useAuthPromptStore();
   if (to.meta.requiresAuth && !authStore.getAccessToken()) {
-    return { path: '/login' };
+    authPromptStore.requestLogin(to.fullPath);
+    if (from === START_LOCATION || from.matched.length === 0) {
+      return { path: '/', replace: true };
+    }
+    return false;
   }
   if (to.meta.requiresManagerOrAdmin && !authStore.isManagerOrAdmin) {
     return { path: '/' };

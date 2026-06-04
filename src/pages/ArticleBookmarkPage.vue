@@ -132,12 +132,12 @@ onMounted(() => {
       <div class="space-y-6">
         <PageHeader title="보관함" description="북마크한 게시글을 모아볼 수 있습니다." />
 
-        <div class="ui-sub-panel flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <span>선택 {{ selectedIds.length }}개</span>
+        <div class="ui-toolbar justify-between gap-3 px-4 py-3">
+          <div class="flex items-center gap-2 text-xs text-muted">
+            <span class="ui-badge ui-badge-muted">선택 {{ selectedIds.length }}개</span>
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+              class="ui-button-ghost h-8 px-3 text-xs"
               :disabled="!hasSelection || isLoading"
               @click="openDeleteModal('selected')"
             >
@@ -146,7 +146,7 @@ onMounted(() => {
           </div>
           <button
             type="button"
-            class="rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200 dark:hover:bg-rose-950/70"
+            class="ui-button-danger h-8 px-3 text-xs"
             :disabled="bookmarks.length === 0 || isLoading"
             @click="openDeleteModal('all')"
           >
@@ -158,8 +158,8 @@ onMounted(() => {
           {{ listError }}
         </div>
 
-        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
           북마크 목록을 불러오는 중입니다.
         </div>
 
@@ -193,7 +193,7 @@ onMounted(() => {
     >
       <p
         v-if="deleteError"
-        class="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
+        class="mt-4 rounded-ui border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-200"
         role="alert"
       >
         {{ deleteError }}

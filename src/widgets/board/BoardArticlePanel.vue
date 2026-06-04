@@ -54,6 +54,16 @@ const isCategoryLoading = ref(false);
 const categoryErrorMessage = ref('');
 const selectedCategoryId = ref<number | null>(null);
 const selectedUncategorized = ref(false);
+const hasCategoryFilter = computed(() => selectedCategoryId.value !== null || selectedUncategorized.value);
+const selectedCategoryLabel = computed(() => {
+  if (selectedUncategorized.value) {
+    return '미분류';
+  }
+  if (selectedCategoryId.value === null) {
+    return '전체';
+  }
+  return categories.value.find((category) => category.id === selectedCategoryId.value)?.categoryName ?? '카테고리';
+});
 
 const resolveCategoryFromRoute = () => {
   const raw = route.query.categoryId;
@@ -366,72 +376,63 @@ watch(
 </script>
 
 <template>
-  <section class="ui-panel mt-6 px-4 py-3 sm:px-5">
-    <div class="flex items-center justify-between gap-2">
-      <label class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">카테고리</label>
-      <span v-if="selectedCategoryId !== null || selectedUncategorized" class="text-xs text-slate-500 dark:text-slate-400"
-        >카테고리 필터 적용 중</span
-      >
-    </div>
+  <section class="ui-panel mt-6 overflow-hidden">
+    <div class="px-4 py-4 sm:px-5">
+      <div class="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-3">
+        <div class="min-w-0">
+          <p class="ui-eyebrow">Board Feed</p>
+          <h2 class="ui-heading-section mt-1">게시글 탐색</h2>
+          <p class="ui-lead mt-1">카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 좁혀볼 수 있습니다.</p>
+        </div>
 
-    <div v-if="isCategoryLoading" class="mt-3 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
-    <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-3">
-      {{ categoryErrorMessage }}
-    </div>
-    <div v-else class="mt-3 flex gap-2 overflow-x-auto pb-1">
-      <button
-        type="button"
-        class="ui-chip-button shrink-0 px-4 py-2"
-        :class="
-          selectedCategoryId === null && !selectedUncategorized
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
-            : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-        "
-        @click="applyAllFilter"
-      >
-        전체
-      </button>
-      <button
-        type="button"
-        class="ui-chip-button shrink-0 px-4 py-2"
-        :class="
-          selectedUncategorized
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
-            : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-        "
-        @click="applyUncategorizedFilter"
-      >
-        미분류
-      </button>
-      <button
-        v-for="category in categories"
-        :key="category.id"
-        type="button"
-        class="ui-chip-button shrink-0 px-4 py-2"
-        :class="
-          selectedCategoryId === category.id
-            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
-            : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-        "
-        @click="applyCategoryFilter(category.id)"
-      >
-        {{ category.categoryName }}
-      </button>
+        <div class="flex flex-wrap gap-2">
+          <span class="ui-badge ui-badge-muted">카테고리 {{ categories.length }}개</span>
+          <span class="ui-badge" :class="hasCategoryFilter ? 'ui-badge-accent' : 'ui-badge-muted'">{{ selectedCategoryLabel }}</span>
+          <span v-if="isSearching" class="ui-badge ui-badge-success">검색 결과</span>
+        </div>
+      </div>
+
+      <div v-if="isCategoryLoading" class="mt-3 text-sm text-muted">카테고리 목록을 불러오는 중입니다...</div>
+      <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-4">
+        {{ categoryErrorMessage }}
+      </div>
+      <div v-else class="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <button
+          type="button"
+          class="shrink-0"
+          :class="selectedCategoryId === null && !selectedUncategorized ? 'ui-button-primary h-9 px-4 text-xs' : 'ui-button-ghost h-9 px-4 text-xs'"
+          @click="applyAllFilter"
+        >
+          전체
+        </button>
+        <button
+          type="button"
+          class="shrink-0"
+          :class="selectedUncategorized ? 'ui-button-primary h-9 px-4 text-xs' : 'ui-button-ghost h-9 px-4 text-xs'"
+          @click="applyUncategorizedFilter"
+        >
+          미분류
+        </button>
+        <button
+          v-for="category in categories"
+          :key="category.id"
+          type="button"
+          class="shrink-0"
+          :class="selectedCategoryId === category.id ? 'ui-button-primary h-9 px-4 text-xs' : 'ui-button-ghost h-9 px-4 text-xs'"
+          @click="applyCategoryFilter(category.id)"
+        >
+          {{ category.categoryName }}
+        </button>
+      </div>
     </div>
   </section>
 
-  <form class="ui-panel mt-4 flex flex-wrap items-center gap-2 px-4 py-3 text-sm sm:px-5" @submit.prevent="handleSearch">
-    <label for="board-search" class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">게시글 검색</label>
-    <input
-      id="board-search"
-      v-model="searchKeyword"
-      type="search"
-      placeholder="게시글 제목/본문/작성자 검색"
-      class="ui-input h-10 min-w-[220px] flex-1 rounded-full"
-    />
+  <form class="ui-toolbar mt-4 text-sm" @submit.prevent="handleSearch">
+    <label for="board-search" class="ui-field-label">게시글 검색</label>
+    <input id="board-search" v-model="searchKeyword" type="search" placeholder="게시글 제목/본문/작성자 검색" class="ui-input min-w-[220px] flex-1" />
     <button
       type="submit"
-      class="ui-chip-button h-10 border-emerald-200 bg-emerald-50 px-4 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+      class="ui-button-primary h-9 px-3.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
       :disabled="!searchKeyword.trim() || isLoading"
     >
       검색
@@ -439,12 +440,13 @@ watch(
     <button
       v-if="isSearching"
       type="button"
-      class="ui-chip-button ui-chip-button-muted h-10 px-4 disabled:cursor-not-allowed disabled:opacity-60"
+      class="ui-button-ghost h-9 px-3.5 text-xs disabled:cursor-not-allowed disabled:opacity-60"
       :disabled="isLoading"
       @click="clearSearch"
     >
       초기화
     </button>
+    <span v-if="hasCategoryFilter" class="ui-badge ui-badge-accent">{{ selectedCategoryLabel }} 필터</span>
   </form>
 
   <div v-if="listError" class="ui-state ui-state-danger mt-4">
@@ -470,5 +472,5 @@ watch(
     @update:page="handlePageChange"
   />
 
-  <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중...</div>
+  <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-muted">게시글을 불러오는 중...</div>
 </template>

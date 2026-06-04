@@ -2,12 +2,15 @@
 import { computed, onMounted, ref } from 'vue';
 
 import { ApiError } from '../shared/lib/http/api';
-import { getBoardSubscribes } from '../entities/board';
+import { getBoardSubscribes, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
 import type { BoardSubscribeItemResponse } from '../entities/board';
 import FileImage from '../entities/file/ui/FileImage.vue';
-import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
+import { LayoutGrid } from '@lucide/vue';
+
+import AppIcon from '../shared/ui/AppIcon.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
+import { formatKoreanDate } from '../shared/lib/date';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const isLoading = ref(false);
@@ -18,23 +21,6 @@ const totalPages = ref(0);
 const hasNext = ref(false);
 const hasPrevious = ref(false);
 const pageSize = 10;
-
-const resolveDescription = (description: string | null) => {
-  const trimmed = description?.trim();
-  return trimmed ? trimmed : '설명이 없습니다.';
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 
 const isInitialLoading = computed(() => isLoading.value && subscribes.value.length === 0);
 const showPagination = computed(() => totalPages.value > 1);
@@ -76,56 +62,78 @@ onMounted(() => {
   <AppShell>
     <PageContainer width="auto">
       <div class="space-y-6">
-        <PageHeader title="구독 목록" description="구독 중인 커뮤니티를 한눈에 확인할 수 있습니다." />
+        <PageHeader title="구독 목록" description="구독 중인 커뮤니티를 목록형 레이아웃으로 빠르게 확인할 수 있습니다.">
+          <template #meta>
+            <span class="ui-badge ui-badge-success">현재 페이지 {{ page + 1 }}</span>
+            <span v-if="totalPages > 0" class="ui-badge ui-badge-muted">총 {{ totalPages }}페이지</span>
+          </template>
+        </PageHeader>
 
         <div v-if="listError" class="ui-state ui-state-danger">
           {{ listError }}
         </div>
 
-        <div v-if="subscribes.length > 0" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <RouterLink
-            v-for="board in subscribes"
-            :key="board.id"
-            :to="`/b/${board.slug}`"
-            class="ui-sub-panel group block overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md"
+        <div v-if="subscribes.length > 0" class="bbs-box overflow-hidden">
+          <div
+            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 border-b border-line bg-surface-1 px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
-            <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-              <FileImage
-                v-if="board.boardImage"
-                :file="board.boardImage"
-                variant="thumb"
-                :alt="board.boardName"
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
-                <span class="text-xs">대표 이미지 없음</span>
+            <span>이미지</span>
+            <span>게시판</span>
+            <span class="text-center">공개 범위</span>
+            <span class="text-center">구독일</span>
+          </div>
+          <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
+            <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] md:items-center">
+              <div class="h-14 overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface-soft">
+                <FileImage
+                  v-if="board.boardImage"
+                  :file="board.boardImage"
+                  variant="thumb"
+                  :alt="board.boardName"
+                  class="h-full w-full object-cover"
+                />
+                <div v-else class="flex h-full w-full items-center justify-center text-subtle">
+                  <AppIcon :icon="LayoutGrid" :size="20" icon-class="text-muted" />
+                </div>
               </div>
-            </div>
-            <div class="flex flex-col gap-2 px-4 py-4">
-              <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">
-                {{ board.boardName }}
-              </h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
-                {{ resolveDescription(board.description) }}
-              </p>
-              <span class="text-xs font-semibold text-slate-400 dark:text-slate-500">구독일 {{ formatDate(board.subscribedAt) }}</span>
+
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="ui-badge ui-badge-accent">구독중</span>
+                  <span class="bbs-meta">/{{ board.slug }}</span>
+                </div>
+                <h2 class="bbs-row-title mt-1 truncate transition group-hover:text-link">
+                  {{ board.boardName }}
+                </h2>
+                <p class="ui-caption mt-1 line-clamp-1 leading-5">
+                  {{ resolveBoardSummaryDescription(board.description) }}
+                </p>
+              </div>
+
+              <div class="hidden justify-center md:flex">
+                <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
+              </div>
+
+              <div class="bbs-meta flex flex-wrap items-center gap-2 md:block md:text-center">
+                <span class="ui-badge ui-badge-success md:hidden">구독일 {{ formatKoreanDate(board.subscribedAt) }}</span>
+                <span class="hidden md:inline">{{ formatKoreanDate(board.subscribedAt) }}</span>
+              </div>
             </div>
           </RouterLink>
         </div>
 
         <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 구독 중인 커뮤니티가 없습니다.</div>
 
-        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
           구독 목록을 불러오는 중입니다.
         </div>
 
-        <div v-if="showPagination" class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div v-if="showPagination" class="ui-toolbar justify-between text-xs text-muted">
           <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+              class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="!hasPrevious || isLoading"
               @click="handlePageChange(page - 1)"
             >
@@ -136,12 +144,8 @@ onMounted(() => {
                 v-for="pageIndex in pageNumbers"
                 :key="pageIndex"
                 type="button"
-                class="rounded-full border px-3 py-1 text-xs font-semibold transition"
-                :class="
-                  pageIndex === page
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
-                "
+                class="ui-button-ghost h-9 px-4 text-xs"
+                :class="pageIndex === page ? 'ui-button-primary' : ''"
                 :disabled="isLoading"
                 @click="handlePageChange(pageIndex)"
               >
@@ -150,7 +154,7 @@ onMounted(() => {
             </div>
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+              class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="!hasNext || isLoading"
               @click="handlePageChange(page + 1)"
             >

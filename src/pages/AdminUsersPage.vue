@@ -162,8 +162,8 @@ onMounted(async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">사용자 관리</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">회원 상태 및 권한을 관리합니다.</p>
+            <h1 class="ui-heading-page">사용자 관리</h1>
+            <p class="text-sm text-muted">회원 상태 및 권한을 관리합니다.</p>
           </div>
         </div>
 
@@ -171,7 +171,7 @@ onMounted(async () => {
           <div class="flex flex-wrap items-center gap-3">
             <select
               v-model="statusFilter"
-              class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
             >
               <option v-for="option in statusOptions" :key="option" :value="option">
                 {{ option === 'ALL' ? '전체' : option === 'ACTIVE' ? '활성' : option === 'LOCKED' ? '잠금' : '비활성' }}
@@ -180,18 +180,18 @@ onMounted(async () => {
             <input
               v-model="keyword"
               type="search"
-              class="h-10 min-w-[200px] flex-1 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+              class="h-10 min-w-[200px] flex-1 rounded-full border border-line bg-surface px-4 text-sm text-ink shadow-sm focus:border-[color:var(--accent-strong)] focus:outline-none"
               placeholder="로그인 ID, 닉네임, 핸들, 이메일 검색"
             />
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+              class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
               @click="applyFilters"
             >
               적용
             </button>
           </div>
-          <p class="mt-3 text-xs text-slate-400">{{ filterSummary }}</p>
+          <p class="mt-3 text-xs text-subtle">{{ filterSummary }}</p>
         </div>
 
         <div v-if="listError" class="ui-state ui-state-danger mt-6">
@@ -200,36 +200,32 @@ onMounted(async () => {
 
         <section class="ui-panel mt-6 p-4">
           <div class="flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">사용자 목록</h2>
-            <span class="text-xs text-slate-400">총 {{ users.length }}건</span>
+            <h2 class="text-sm font-semibold text-ink">사용자 목록</h2>
+            <span class="text-xs text-subtle">총 {{ users.length }}건</span>
           </div>
 
-          <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-            <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+          <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
             불러오는 중...
           </div>
 
           <div v-else class="mt-4 flex flex-col gap-3">
-            <div
-              v-for="user in users"
-              :key="user.id"
-              class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
-            >
+            <div v-for="user in users" :key="user.id" class="rounded-ui border border-line px-4 py-3 text-left transition dark:border-line">
               <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  <div class="flex items-center gap-2 text-sm font-semibold text-ink">
                     <span>#{{ user.id }}</span>
-                    <span class="text-xs text-slate-400">{{ user.loginId }}</span>
+                    <span class="text-xs text-subtle">{{ user.loginId }}</span>
                   </div>
-                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }} · {{ user.handle }} · {{ user.email }}</p>
-                  <p class="mt-1 text-xs text-slate-400">권한 {{ user.roleName }} · 생성 {{ formatDate(user.createdAt) }}</p>
+                  <p class="mt-1 text-xs text-muted">{{ user.displayName }} · {{ user.handle }} · {{ user.email }}</p>
+                  <p class="mt-1 text-xs text-subtle">권한 {{ user.roleName }} · 생성 {{ formatDate(user.createdAt) }}</p>
                 </div>
                 <span :class="statusBadgeClass(user)">{{ statusLabel(user) }}</span>
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                  class="rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted transition hover:border-line hover:text-ink disabled:opacity-40 dark:text-subtle"
                   :disabled="isSubmitting"
                   @click="toggleLock(user)"
                 >
@@ -237,7 +233,7 @@ onMounted(async () => {
                 </button>
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                  class="rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted transition hover:border-line hover:text-ink disabled:opacity-40 dark:text-subtle"
                   :disabled="isSubmitting"
                   @click="openRoleModal(user)"
                 >
@@ -249,7 +245,7 @@ onMounted(async () => {
             <div v-if="users.length === 0" class="ui-state ui-state-empty px-4 py-10">조건에 해당하는 사용자가 없습니다.</div>
           </div>
 
-          <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+          <div class="mt-4 flex items-center justify-between text-sm text-muted">
             <button
               type="button"
               class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
@@ -272,14 +268,12 @@ onMounted(async () => {
       </div>
     </PageContainer>
 
-    <BaseModal :open="Boolean(roleTarget)" overlay-class="bg-slate-900/50" aria-label="권한 변경" @close="closeRoleModal">
-      <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">권한 변경</h3>
-      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-        {{ roleTarget?.displayName ?? '' }}(#{{ roleTarget?.id ?? '' }})의 권한을 변경합니다.
-      </p>
+    <BaseModal :open="Boolean(roleTarget)" overlay-class="bg-[var(--surface-overlay)]" aria-label="권한 변경" @close="closeRoleModal">
+      <h3 class="text-lg font-semibold text-ink">권한 변경</h3>
+      <p class="mt-2 text-sm text-muted">{{ roleTarget?.displayName ?? '' }}(#{{ roleTarget?.id ?? '' }})의 권한을 변경합니다.</p>
       <select
         v-model="nextRole"
-        class="mt-4 h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+        class="ui-panel mt-4 h-11 w-full px-3 text-sm font-semibold text-ink focus:border-[color:var(--accent-strong)] focus:outline-none"
       >
         <option v-for="role in roleOptions" :key="role" :value="role">
           {{ role }}
@@ -288,14 +282,14 @@ onMounted(async () => {
       <div class="mt-4 flex justify-end gap-2">
         <button
           type="button"
-          class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+          class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
           @click="closeRoleModal"
         >
           취소
         </button>
         <button
           type="button"
-          class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+          class="rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-soft dark:text-ink"
           :disabled="isSubmitting"
           @click="submitRoleChange"
         >

@@ -7,19 +7,26 @@ import { logout } from '../../features/auth';
 import { useNotificationPresence } from '../../features/notification';
 import type { NotificationResponse } from '../../features/notification';
 import { formatNotificationMessage } from '../../shared/lib/notifications';
-import { applyTheme } from '../../shared/lib/theme';
+import { applyTheme, getThemeState, subscribeThemeChange } from '../../shared/lib/theme';
+import type { ResolvedTheme } from '../../shared/lib/theme';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
+import { Bell, Menu, Moon, Search, Sun } from '@lucide/vue';
+
 import defaultAvatar from '../../assets/default-avatar.svg';
-import iconBell from '../../assets/icons/icon-bell.svg';
-import iconMoon from '../../assets/icons/icon-moon.svg';
-import iconSearch from '../../assets/icons/icon-search.svg';
-import iconStack from '../../assets/icons/icon-stack.svg';
-import iconSun from '../../assets/icons/icon-sun.svg';
+import AppIcon from '../../shared/ui/AppIcon.vue';
 
 const emit = defineEmits<{
   (event: 'toggle-menu'): void;
 }>();
+const props = withDefaults(
+  defineProps<{
+    hiddenByScroll?: boolean;
+  }>(),
+  {
+    hiddenByScroll: false,
+  },
+);
 
 const route = useRoute();
 const router = useRouter();
@@ -27,7 +34,7 @@ const authStore = useAuthStore();
 const notificationStore = useNotificationStore();
 const { displayName, isAuthenticated, profileImageUrl, userPoint } = storeToRefs(authStore);
 const { notificationError, notificationListDirty, notificationLoading, notificationUnreadCount, notifications } = storeToRefs(notificationStore);
-const isDark = ref(false);
+const resolvedTheme = ref<ResolvedTheme>('light');
 const isProfileMenuOpen = ref(false);
 const isNotificationMenuOpen = ref(false);
 const profileMenuRef = ref<HTMLDivElement | null>(null);
@@ -45,14 +52,24 @@ const notificationButtonLabel = computed(() => {
   }
   return `알림 ${notificationUnreadCount.value}개`;
 });
+const currentThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '다크' : '화이트'));
+const nextThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '화이트' : '다크'));
+const themeToggleLabel = computed(() => `테마 전환, 현재 ${currentThemeLabel.value}, 클릭 시 ${nextThemeLabel.value}`);
 const searchKeyword = ref('');
+const brandMarkSrc = '/mocktalk_favicon_color.svg';
+const menuPanelClass = 'ui-menu-dropdown absolute right-0 top-full mt-2';
 const { stopNotificationPresence } = useNotificationPresence({
   isAuthenticated,
   isNotificationMenuOpen,
 });
+let stopThemeChangeSubscription: (() => void) | null = null;
 
 onMounted(() => {
-  isDark.value = globalThis.document?.documentElement.classList.contains('dark') ?? false;
+  const themeState = getThemeState();
+  resolvedTheme.value = themeState.resolvedTheme;
+  stopThemeChangeSubscription = subscribeThemeChange((nextThemeState) => {
+    resolvedTheme.value = nextThemeState.resolvedTheme;
+  });
   if (!globalThis.document) {
     return;
   }
@@ -72,6 +89,8 @@ watch(
 onBeforeUnmount(() => {
   notificationStore.stopNotificationRealtime();
   stopNotificationPresence(true);
+  stopThemeChangeSubscription?.();
+  stopThemeChangeSubscription = null;
   if (!globalThis.document) {
     return;
   }
@@ -114,8 +133,7 @@ const openBoardCreate = async () => {
 };
 
 const toggleTheme = () => {
-  isDark.value = !isDark.value;
-  applyTheme(isDark.value ? 'dark' : 'light');
+  applyTheme(resolvedTheme.value === 'dark' ? 'light' : 'dark');
 };
 
 const toggleProfileMenu = () => {
@@ -193,10 +211,11 @@ const formatNotificationDate = (value: string) => {
 
 const handleSearch = async () => {
   const trimmed = searchKeyword.value.trim();
-  if (!trimmed) {
+  if (trimmed) {
+    await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
     return;
   }
-  await router.push({ path: '/search', query: { q: trimmed, type: 'ALL', order: 'LATEST', page: '0' } });
+  await router.push('/search');
 };
 
 watch(
@@ -254,84 +273,91 @@ const handleDeleteAllNotifications = async () => {
 
 <template>
   <header
-    class="sticky top-0 z-40 h-16 border-b border-slate-200/80 bg-[color:var(--surface-glass)] text-slate-900 shadow-sm backdrop-blur dark:border-slate-800/80 dark:text-slate-100"
+    data-testid="top-menu-bar"
+    class="app-header relative z-50 h-[3.75rem] transition-transform duration-200"
+    :class="props.hiddenByScroll ? '-translate-y-full' : 'translate-y-0'"
   >
-    <div class="mx-auto flex h-full w-full items-center gap-3 px-4 sm:gap-4 sm:px-6 lg:px-8">
-      <div class="flex shrink-0 items-center gap-3">
-        <button
-          type="button"
-          class="ui-icon-button inline-flex items-center justify-center"
-          aria-label="사이드 메뉴 열기"
-          @click="emit('toggle-menu')"
-        >
-          <img :src="iconStack" alt="" aria-hidden="true" class="h-5 w-5" />
+    <div class="flex h-full w-full items-center justify-between gap-3 px-3 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
+      <div class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
+        <button type="button" class="ui-icon-button h-10 w-10 shrink-0" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
+          <AppIcon :icon="Menu" :size="18" />
         </button>
 
-        <RouterLink to="/" class="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-lg">
-          <span>MockTalk</span>
+        <RouterLink to="/" class="min-w-0 shrink">
+          <div class="flex items-center gap-2">
+            <img :src="brandMarkSrc" alt="" aria-hidden="true" class="app-brand-mark h-8 w-8 shrink-0" />
+            <p class="app-brand-title truncate">MockTalk</p>
+          </div>
         </RouterLink>
       </div>
 
-      <div class="flex min-w-0 flex-1 items-center justify-center">
-        <div class="hidden w-full max-w-2xl items-center sm:flex">
-          <label class="sr-only" for="global-search">검색</label>
-          <input
-            id="global-search"
-            v-model="searchKeyword"
-            type="search"
-            placeholder="통합검색"
-            class="ui-input w-full rounded-l-full rounded-r-none border-r-0 pl-5 pr-4 text-sm"
-            @keydown.enter.prevent="handleSearch"
-          />
-          <button
-            type="button"
-            class="ui-icon-button flex h-11 w-14 items-center justify-center rounded-l-none rounded-r-full border-l-0"
-            aria-label="검색"
-            @click="handleSearch"
-          >
-            <img :src="iconSearch" alt="" aria-hidden="true" class="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      <form class="ui-search-field hidden w-full max-w-[720px] justify-self-center md:flex" @submit.prevent="handleSearch">
+        <label class="sr-only" for="global-search">검색</label>
+        <input id="global-search" v-model="searchKeyword" type="search" placeholder="검색" class="ui-search-input" />
+        <button
+          type="submit"
+          data-testid="desktop-search-button"
+          class="ui-icon-button h-8 w-8 shrink-0 border-0 bg-surface-soft p-0"
+          aria-label="검색 실행"
+        >
+          <AppIcon :icon="Search" :size="16" />
+        </button>
+      </form>
 
-      <div class="flex shrink-0 items-center gap-2 sm:gap-3">
-        <button type="button" class="ui-icon-button inline-flex items-center justify-center sm:hidden" aria-label="검색" @click="openSearch">
-          <img :src="iconSearch" alt="" aria-hidden="true" class="h-5 w-5" />
+      <div class="flex shrink-0 items-center gap-2 justify-self-end">
+        <button
+          type="button"
+          class="ui-icon-button h-10 w-10 shrink-0 md:hidden"
+          data-testid="mobile-search-button"
+          aria-label="검색 페이지 열기"
+          @click="openSearch"
+        >
+          <AppIcon :icon="Search" :size="18" />
         </button>
 
-        <button type="button" class="ui-icon-button inline-flex items-center justify-center" aria-label="다크/화이트 모드 전환" @click="toggleTheme">
-          <img v-if="isDark" :src="iconSun" alt="" aria-hidden="true" class="h-5 w-5" />
-          <img v-else :src="iconMoon" alt="" aria-hidden="true" class="h-5 w-5" />
+        <button
+          type="button"
+          class="ui-icon-button h-10 w-10 shrink-0"
+          data-testid="theme-toggle-button"
+          :aria-label="themeToggleLabel"
+          :title="themeToggleLabel"
+          @click="toggleTheme"
+        >
+          <AppIcon v-if="resolvedTheme === 'dark'" :icon="Sun" :size="18" />
+          <AppIcon v-else :icon="Moon" :size="18" />
         </button>
 
         <div v-if="isAuthenticated" class="relative">
           <button
             ref="notificationButtonRef"
             type="button"
-            class="ui-icon-button relative inline-flex items-center justify-center"
+            class="ui-icon-button relative h-10 w-10 shrink-0"
             :aria-label="notificationButtonLabel"
             aria-haspopup="menu"
             :aria-expanded="isNotificationMenuOpen"
             @click="toggleNotificationMenu"
           >
-            <img :src="iconBell" alt="" aria-hidden="true" class="h-5 w-5" />
+            <AppIcon :icon="Bell" :size="18" />
             <span
               v-if="notificationUnreadCount > 0"
-              class="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white"
+              class="absolute -top-1 -right-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white"
               aria-hidden="true"
             >
               {{ notificationUnreadLabel }}
             </span>
           </button>
 
-          <div v-if="isNotificationMenuOpen" ref="notificationMenuRef" class="ui-panel absolute right-0 mt-2 w-[21rem] overflow-hidden" role="menu">
-            <div class="flex items-center justify-between px-4 py-3.5">
-              <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">알림</p>
+          <div v-if="isNotificationMenuOpen" ref="notificationMenuRef" :class="[menuPanelClass, 'w-[23rem]']" role="menu">
+            <div class="flex items-center justify-between border-b border-line px-4 py-3">
+              <div>
+                <p class="text-sm font-bold text-ink">알림</p>
+                <p class="ui-caption">최근 상호작용을 빠르게 확인합니다.</p>
+              </div>
               <div class="flex items-center gap-2">
                 <button
                   v-if="notifications.length"
                   type="button"
-                  class="text-xs font-semibold text-red-500 transition hover:text-red-600 dark:text-red-300 dark:hover:text-red-200"
+                  class="text-xs font-semibold text-danger transition hover:opacity-80"
                   @click="handleDeleteAllNotifications"
                 >
                   전체 삭제
@@ -339,42 +365,41 @@ const handleDeleteAllNotifications = async () => {
                 <button
                   v-if="hasUnreadNotifications"
                   type="button"
-                  class="text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                  class="text-xs font-semibold text-muted transition hover:text-ink"
                   @click="handleMarkAllRead"
                 >
                   모두 읽음
                 </button>
               </div>
             </div>
-            <div class="h-px bg-slate-200/80 dark:bg-slate-800" role="presentation"></div>
 
-            <div class="max-h-80 overflow-y-auto">
-              <div v-if="notificationLoading" class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">불러오는 중...</div>
-              <div v-else-if="notificationError" class="px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-300">
+            <div class="ui-scrollbar max-h-88 overflow-y-auto p-3">
+              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-muted">불러오는 중...</div>
+              <div v-else-if="notificationError" class="ui-state ui-state-danger text-sm font-semibold">
                 {{ notificationError }}
               </div>
-              <div v-else-if="notifications.length === 0" class="px-4 py-7 text-center text-sm text-slate-400">새 알림이 없습니다.</div>
-              <div v-else>
+              <div v-else-if="notifications.length === 0" class="ui-state ui-state-empty px-4 py-7">새 알림이 없습니다.</div>
+              <div v-else class="space-y-2">
                 <button
                   v-for="notification in notifications"
                   :key="notification.id"
                   type="button"
-                  class="flex w-full cursor-pointer flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-900"
+                  class="ui-list-row w-full cursor-pointer text-left"
                   @click="handleNotificationClick(notification)"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                       <span v-if="!notification.read" class="inline-flex h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span>
                       <span
-                        class="text-xs font-semibold"
-                        :class="notification.read ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'"
+                        class="text-[11px] font-bold tracking-[0.14em] uppercase"
+                        :class="notification.read ? 'text-subtle' : 'text-brand-700 dark:text-brand-300'"
                       >
                         {{ notification.read ? '읽음' : '새 알림' }}
                       </span>
                     </div>
-                    <span class="text-xs text-slate-400">{{ formatNotificationDate(notification.createdAt) }}</span>
+                    <span class="ui-caption">{{ formatNotificationDate(notification.createdAt) }}</span>
                   </div>
-                  <p class="text-sm" :class="notification.read ? 'text-slate-500 dark:text-slate-400' : 'text-slate-700 dark:text-slate-200'">
+                  <p class="text-sm leading-6" :class="notification.read ? 'text-muted' : 'text-ink'">
                     {{ formatNotificationMessage(notification) }}
                   </p>
                 </button>
@@ -383,20 +408,15 @@ const handleDeleteAllNotifications = async () => {
           </div>
         </div>
 
-        <button
-          v-if="!isAuthenticated"
-          type="button"
-          class="ui-chip-button ui-chip-button-muted inline-flex h-11 items-center justify-center px-4 text-sm text-slate-700 dark:text-white"
-          aria-label="로그인"
-          @click="openLogin"
-        >
+        <button v-if="!isAuthenticated" type="button" class="ui-button-ghost h-10 px-3.5 text-xs" aria-label="로그인" @click="openLogin">
           로그인
         </button>
+
         <div v-else class="relative">
           <button
             ref="profileButtonRef"
             type="button"
-            class="ui-icon-button grid place-items-center overflow-hidden p-0"
+            class="ui-icon-button grid h-10 w-10 shrink-0 place-items-center overflow-hidden p-0"
             aria-label="프로필"
             aria-haspopup="menu"
             :aria-expanded="isProfileMenuOpen"
@@ -404,38 +424,23 @@ const handleDeleteAllNotifications = async () => {
           >
             <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
           </button>
-          <div v-if="isProfileMenuOpen" ref="profileMenuRef" class="ui-panel absolute right-0 mt-2 w-56 overflow-hidden" role="menu">
-            <div class="px-4 py-3">
-              <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                {{ resolvedDisplayName }}
-              </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">포인트 {{ resolvedPoint }}P</p>
+          <div v-if="isProfileMenuOpen" ref="profileMenuRef" :class="[menuPanelClass, 'w-52']" role="menu">
+            <div class="border-b border-line px-3 py-2.5">
+              <div class="flex items-center gap-2.5">
+                <div class="h-8 w-8 shrink-0 overflow-hidden rounded-[var(--radius-md)] border border-line">
+                  <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-xs font-bold text-ink">{{ resolvedDisplayName }}</p>
+                  <p class="ui-caption">포인트 {{ resolvedPoint }}P</p>
+                </div>
+              </div>
             </div>
-            <div class="h-px bg-slate-200/80 dark:bg-slate-800" role="presentation"></div>
-            <button
-              type="button"
-              class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-              role="menuitem"
-              @click="openMyPage"
-            >
-              마이페이지
-            </button>
-            <button
-              type="button"
-              class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-              role="menuitem"
-              @click="openBoardCreate"
-            >
-              커뮤니티 개설
-            </button>
-            <button
-              type="button"
-              class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/40"
-              role="menuitem"
-              @click="handleLogout"
-            >
-              로그아웃
-            </button>
+            <div class="flex flex-col py-1">
+              <button type="button" class="ui-menu-item" role="menuitem" @click="openMyPage">마이페이지</button>
+              <button type="button" class="ui-menu-item" role="menuitem" @click="openBoardCreate">커뮤니티 개설</button>
+              <button type="button" class="ui-menu-item ui-menu-item-danger" role="menuitem" @click="handleLogout">로그아웃</button>
+            </div>
           </div>
         </div>
       </div>

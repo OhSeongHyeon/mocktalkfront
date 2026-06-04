@@ -61,21 +61,22 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
-    <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-        <span class="inline">MockTalk</span>
-      </RouterLink>
-      <RouterLink to="/" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-        홈으로
-      </RouterLink>
+  <div class="auth-shell">
+    <header class="auth-header">
+      <div class="mx-auto flex h-[3.75rem] max-w-md items-center justify-between px-4">
+        <RouterLink to="/" class="app-brand-title">MockTalk</RouterLink>
+        <RouterLink to="/" class="ui-button-ghost h-8 px-2.5 text-xs">홈</RouterLink>
+      </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-6xl flex-1 items-start justify-center px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-      <section class="w-full max-w-md">
-        <form class="ui-panel flex flex-col gap-5 p-6 sm:p-7" @submit.prevent="handleSubmit">
-          <div class="flex flex-col gap-2">
-            <label for="register-login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
+    <main class="mx-auto w-full max-w-md px-4 py-8">
+      <form class="bbs-box p-4" @submit.prevent="handleSubmit">
+        <h1 class="ui-heading-page">회원가입</h1>
+        <p class="ui-caption mt-1">필수 항목만 입력하면 가입을 완료할 수 있습니다. 프로필은 나중에 마이페이지에서 수정할 수 있습니다.</p>
+
+        <div class="mt-4 space-y-3">
+          <div>
+            <label for="register-login-id" class="ui-field-label">로그인 아이디</label>
             <input
               id="register-login-id"
               v-model="loginId"
@@ -83,13 +84,13 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="username"
               placeholder="아이디를 입력하세요"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="register-email" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이메일 </label>
+          <div>
+            <label for="register-email" class="ui-field-label">이메일</label>
             <input
               id="register-email"
               v-model="email"
@@ -97,13 +98,13 @@ const handleSubmit = async () => {
               type="email"
               autocomplete="email"
               placeholder="example@mocktalk.local"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="register-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
+          <div>
+            <label for="register-password" class="ui-field-label">비밀번호</label>
             <input
               id="register-password"
               v-model="password"
@@ -111,14 +112,14 @@ const handleSubmit = async () => {
               type="password"
               autocomplete="new-password"
               placeholder="비밀번호를 입력하세요"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
-            <span class="text-xs font-semibold text-slate-400 dark:text-slate-500"> 비밀번호는 8자 이상 입력하세요. </span>
+            <p class="ui-caption mt-1">8자 이상 입력하세요.</p>
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="register-confirm-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 확인 </label>
+          <div>
+            <label for="register-confirm-password" class="ui-field-label">비밀번호 확인</label>
             <input
               id="register-confirm-password"
               v-model="confirmPassword"
@@ -126,13 +127,13 @@ const handleSubmit = async () => {
               type="password"
               autocomplete="new-password"
               placeholder="비밀번호를 다시 입력하세요"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="register-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 사용자명 </label>
+          <div>
+            <label for="register-user-name" class="ui-field-label">사용자명</label>
             <input
               id="register-user-name"
               v-model="userName"
@@ -140,13 +141,13 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="name"
               placeholder="이름을 입력하세요"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="register-display-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 표시명(선택) </label>
+          <div>
+            <label for="register-display-name" class="ui-field-label">표시명 (선택)</label>
             <input
               id="register-display-name"
               v-model="displayName"
@@ -154,13 +155,13 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="nickname"
               placeholder="입력하지 않으면 사용자명으로 대체됩니다"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
-            <label for="register-handle" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 핸들(선택) </label>
+          <div>
+            <label for="register-handle" class="ui-field-label">핸들 (선택)</label>
             <input
               id="register-handle"
               v-model="handle"
@@ -168,31 +169,23 @@ const handleSubmit = async () => {
               type="text"
               autocomplete="off"
               placeholder="입력하지 않으면 자동 생성됩니다"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
+        </div>
 
-          <button
-            type="submit"
-            class="h-11 rounded-2xl bg-[color:var(--accent-strong)] text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-            :disabled="isSubmitting"
-          >
-            회원가입
-          </button>
+        <button type="submit" class="ui-button-accent mt-4 h-9 w-full text-sm" :disabled="isSubmitting">
+          {{ isSubmitting ? '가입 처리 중...' : '회원가입' }}
+        </button>
 
-          <p v-if="errorMessage" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
-            {{ errorMessage }}
-          </p>
+        <p v-if="errorMessage" class="ui-state ui-state-danger mt-3 text-sm" role="alert">{{ errorMessage }}</p>
 
-          <div class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            이미 계정이 있나요?
-            <RouterLink to="/login" class="font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white">
-              로그인
-            </RouterLink>
-          </div>
-        </form>
-      </section>
+        <p class="mt-4 text-center text-xs text-muted">
+          이미 계정이 있나요?
+          <RouterLink to="/login" class="font-semibold text-link hover:underline">로그인</RouterLink>
+        </p>
+      </form>
     </main>
   </div>
 </template>

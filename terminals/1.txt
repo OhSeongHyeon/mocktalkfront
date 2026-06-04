@@ -1,0 +1,17 @@
+---
+pid: 4508
+cwd: "F:\zzzz_agents-workspace\mocktalk-workspace\mocktalkfront"
+command: "cd \"F:\\zzzz_agents-workspace\\mocktalk-workspace\\mocktalkfront\" && npm run dev 2>&1"
+started_at: 2026-06-04T14:13:13.767Z
+running_for_ms: 4650008  
+---
+
+> mocktalkfront@0.0.0 dev
+> vite
+
+Port 5173 is in use, trying another one...
+
+  VITE v7.3.5  ready in 272 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose

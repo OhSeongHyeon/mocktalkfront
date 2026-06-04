@@ -55,6 +55,12 @@ coverage/
 ############################################
 *.tsbuildinfo
 
+# Accidental emit under src (sources are .ts / .vue only)
+src/**/*.js
+
+
+# Agent / local terminals
+terminals/
 
 # Custom
 .env

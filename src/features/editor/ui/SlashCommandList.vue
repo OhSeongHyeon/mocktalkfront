@@ -51,9 +51,9 @@ defineExpose({ onKeyDown });
 </script>
 
 <template>
-  <div class="w-72 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
-    <div class="border-b border-slate-100 px-3 py-2 text-xs text-slate-500 dark:border-slate-800">슬래시 명령어</div>
-    <div v-if="items.length === 0" class="px-3 py-2 text-xs text-slate-400">검색 결과가 없습니다.</div>
+  <div class="w-72 overflow-hidden rounded-xl border border-line bg-surface shadow-lg dark:border-line">
+    <div class="border-b border-line px-3 py-2 text-xs text-muted dark:border-line">슬래시 명령어</div>
+    <div v-if="items.length === 0" class="px-3 py-2 text-xs text-subtle">검색 결과가 없습니다.</div>
     <button
       v-for="(item, index) in items"
       :key="item.id"
@@ -62,12 +62,12 @@ defineExpose({ onKeyDown });
       :class="
         index === selectedIndex
           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
-          : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900/60'
+          : 'text-muted hover:bg-surface-soft/60 dark:text-subtle'
       "
       @click="selectItem(index)"
     >
       <span class="text-xs font-semibold">{{ item.title }}</span>
-      <span class="text-[11px] text-slate-500 dark:text-slate-400">{{ item.description }}</span>
+      <span class="text-[11px] text-muted">{{ item.description }}</span>
     </button>
   </div>
 </template>

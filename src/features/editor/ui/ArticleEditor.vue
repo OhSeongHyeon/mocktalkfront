@@ -1141,30 +1141,28 @@ const buttonClass = (active = false, emphasis = false) =>
   [
     'inline-flex h-7 items-center rounded-lg border px-2.5 text-xs font-semibold leading-none transition-all duration-150',
     emphasis
-      ? 'border-slate-300 bg-slate-100 text-slate-800 hover:border-slate-400 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600'
+      ? 'border-line bg-surface-soft text-ink hover:bg-surface-1 border-[color:var(--line-strong)] hover:bg-surface-1 bg-surface-2 dark:hover:border-line'
       : '',
     active
       ? 'border-emerald-400 bg-emerald-500/15 text-emerald-700 shadow-sm ring-1 ring-emerald-200/80 dark:border-emerald-500/70 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-700/40'
-      : 'border-slate-200 bg-white text-slate-600 hover:-translate-y-px hover:border-slate-300 hover:text-slate-900 hover:shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-500 dark:hover:text-white',
+      : 'border-line bg-surface text-muted hover:-translate-y-px hover:border-line hover:text-ink hover:shadow-sm dark:text-subtle dark:hover:border-line dark:hover:text-ink',
   ].join(' ');
 
 const selectClass =
-  'h-7 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 shadow-sm transition focus:border-emerald-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200';
+  'h-7 rounded-lg border border-line bg-surface px-2 text-xs font-semibold text-ink shadow-sm transition focus:border-emerald-400 focus:outline-none ';
 
 const sectionClass =
-  'flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 px-2.5 py-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)] dark:border-slate-800/80 dark:bg-slate-900/60 dark:shadow-none';
+  'flex flex-wrap items-center gap-2 rounded-ui border border-line bg-surface-soft px-2.5 py-1.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.45)] dark:border-line dark:shadow-none';
 
-const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] text-slate-500 dark:text-slate-300';
+const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] text-muted';
 </script>
 
 <template>
-  <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+  <div class="ui-panel shadow-sm dark:border-line">
     <div
-      class="space-y-1 border-b border-slate-200 bg-gradient-to-b from-slate-50/80 to-white/80 px-4 py-1.5 dark:border-slate-800 dark:from-slate-950 dark:to-slate-950"
+      class="dark:to-surface-0 space-y-1 border-b border-line bg-gradient-to-b from-surface-soft/80 to-surface/80 px-4 py-1.5 dark:border-line dark:from-surface-1"
     >
-      <div
-        class="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/80 bg-white/80 px-2.5 py-1.5 dark:border-slate-800/80 dark:bg-slate-900/60"
-      >
+      <div class="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface px-2.5 py-1.5 dark:border-line">
         <button type="button" :class="buttonClass(!isHtmlMode, true)" @click="setEditorMode('wysiwyg')">에디터</button>
         <button type="button" :class="buttonClass(isHtmlMode, true)" @click="setEditorMode('html')">HTML</button>
         <span
@@ -1229,21 +1227,21 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       </template>
       <template v-else>
         <div :class="sectionClass">
-          <span class="text-xs font-semibold text-slate-500 dark:text-slate-300">HTML 소스를 직접 수정하고 적용할 수 있습니다.</span>
+          <span class="text-xs font-semibold text-muted">HTML 소스를 직접 수정하고 적용할 수 있습니다.</span>
           <button type="button" :class="buttonClass()" @click="applyHtmlSource">HTML 적용</button>
         </div>
       </template>
     </div>
     <div
       v-if="!isHtmlMode && isImageSelected"
-      class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50/70 px-4 py-2 dark:border-slate-800 dark:bg-slate-900/40"
+      class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-soft/70 px-4 py-2 dark:border-line"
     >
       <span :class="sectionLabelClass">이미지 편집</span>
       <button type="button" :class="buttonClass(activeImageAlign === 'left')" @click="setImageAlign('left')">좌측</button>
       <button type="button" :class="buttonClass(activeImageAlign === 'center')" @click="setImageAlign('center')">중앙</button>
       <button type="button" :class="buttonClass(activeImageAlign === 'right')" @click="setImageAlign('right')">우측</button>
       <label
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+        class="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-2 py-1 text-xs font-semibold text-muted dark:text-subtle"
       >
         배율
         <input
@@ -1259,20 +1257,18 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
         <span class="w-11 text-right">{{ imageScalePercent }}%</span>
       </label>
       <button type="button" :class="buttonClass()" @click="resetImageScale">100%</button>
-      <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-        원본 {{ imageOriginalWidth ?? '-' }} x {{ imageOriginalHeight ?? '-' }}
-      </span>
+      <span class="text-[11px] font-semibold text-muted"> 원본 {{ imageOriginalWidth ?? '-' }} x {{ imageOriginalHeight ?? '-' }} </span>
       <input
         v-model="imageCaption"
         type="text"
-        class="h-7 min-w-[180px] rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-700 shadow-sm transition focus:border-emerald-400 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        class="h-7 min-w-[180px] rounded-lg border border-line bg-surface px-2 text-xs text-ink shadow-sm transition focus:border-emerald-400 focus:outline-none"
         placeholder="이미지 캡션"
       />
       <button type="button" :class="buttonClass()" @click="applyImageCaption">캡션 적용</button>
     </div>
     <div
       v-if="!isHtmlMode && isTableSelected"
-      class="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50/70 px-4 py-2 dark:border-slate-800 dark:bg-slate-900/40"
+      class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-soft/70 px-4 py-2 dark:border-line"
     >
       <span :class="sectionLabelClass">테이블 편집</span>
       <button type="button" :class="buttonClass()" @click="addRowBefore">행+앞</button>
@@ -1290,11 +1286,11 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
     </div>
     <div
       v-if="!isHtmlMode"
-      class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-dashed px-4 py-2.5 text-xs font-semibold transition"
+      class="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-ui border border-dashed px-4 py-2.5 text-xs font-semibold transition"
       :class="
         isDropActive
           ? 'border-emerald-400 bg-emerald-50 text-emerald-700 shadow-sm dark:border-emerald-500/70 dark:bg-emerald-500/10 dark:text-emerald-200'
-          : 'border-slate-300/80 bg-slate-50/60 text-slate-500 dark:border-slate-700/80 dark:bg-slate-900/40 dark:text-slate-400'
+          : 'border-line/80 bg-surface-soft/60 text-muted dark:text-subtle'
       "
       @dragenter.prevent="handleDropZoneDragOver"
       @dragover.prevent="handleDropZoneDragOver"
@@ -1302,19 +1298,16 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       @drop.prevent="handleDropZoneDrop"
     >
       <span>이미지/영상 파일을 여기에 드래그하세요.</span>
-      <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500">최대 50MB</span>
+      <span class="text-[10px] font-semibold text-subtle">최대 50MB</span>
     </div>
-    <div
-      v-if="uploads.length > 0"
-      class="mx-4 mt-3 rounded-2xl border border-slate-200/80 bg-white/85 p-3 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/60"
-    >
-      <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">업로드 큐</p>
+    <div v-if="uploads.length > 0" class="mx-4 mt-3 rounded-ui border border-line bg-surface p-3 shadow-sm dark:border-line">
+      <p class="text-xs font-semibold text-muted">업로드 큐</p>
       <div class="mt-2 space-y-2">
-        <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-slate-200 px-3 py-2 text-xs dark:border-slate-800">
+        <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-line px-3 py-2 text-xs dark:border-line">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <p class="truncate font-semibold text-slate-700 dark:text-slate-200">{{ item.file.name }}</p>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ item.kind === 'image' ? '이미지' : '영상' }} · {{ item.message }}</p>
+              <p class="truncate font-semibold text-ink">{{ item.file.name }}</p>
+              <p class="text-[11px] text-muted">{{ item.kind === 'image' ? '이미지' : '영상' }} · {{ item.message }}</p>
             </div>
             <div class="flex items-center gap-2">
               <button
@@ -1336,14 +1329,14 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
               <button
                 v-if="item.status !== 'uploading'"
                 type="button"
-                class="rounded border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-500 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="rounded border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:border-line hover:bg-surface-soft dark:text-subtle"
                 @click="removeUpload(item.id)"
               >
                 지우기
               </button>
             </div>
           </div>
-          <div class="mt-2 h-1.5 overflow-hidden rounded bg-slate-100 dark:bg-slate-800">
+          <div class="mt-2 h-1.5 overflow-hidden rounded bg-surface-2 bg-surface-soft">
             <div
               class="h-full rounded transition-all"
               :class="
@@ -1361,23 +1354,21 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
         </div>
       </div>
     </div>
-    <EditorContent v-if="!isHtmlMode" :editor="editor" class="bg-white/80 dark:bg-slate-950/70" />
-    <div v-else class="space-y-2 bg-white/80 px-4 py-4 dark:bg-slate-950/70">
-      <p class="text-xs font-semibold text-slate-500 dark:text-slate-300">저장 시 sanitize 정책에 따라 위험 태그/속성은 제거됩니다.</p>
+    <EditorContent v-if="!isHtmlMode" :editor="editor" class="bg-surface/80" />
+    <div v-else class="space-y-2 bg-surface/80 px-4 py-4">
+      <p class="text-xs font-semibold text-muted">저장 시 sanitize 정책에 따라 위험 태그/속성은 제거됩니다.</p>
       <textarea
         v-model="htmlSource"
-        class="min-h-[360px] w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-800 focus:border-emerald-400 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+        class="min-h-[360px] w-full rounded-xl border border-line bg-surface-soft px-3 py-2 font-mono text-xs text-ink focus:border-emerald-400 focus:bg-surface focus:outline-none dark:border-line"
         spellcheck="false"
         @input="onHtmlSourceInput"
       ></textarea>
     </div>
-    <div
-      class="border-t border-slate-200 bg-slate-50/60 px-4 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400"
-    >
+    <div class="border-t border-line bg-surface-soft/60 px-4 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
       단축키: Ctrl/Cmd+B 굵게, Ctrl/Cmd+I 기울임, Ctrl/Cmd+K 링크, Ctrl/Cmd+Z 되돌리기, Ctrl/Cmd+Y 다시, / 슬래시 명령어, Enter 문단/다음 항목,
       Shift+Enter 줄바꿈.
     </div>
-    <div v-if="errorMessage" class="border-t border-slate-200 px-4 py-2 text-xs text-rose-600 dark:border-slate-800">
+    <div v-if="errorMessage" class="border-t border-line px-4 py-2 text-xs text-danger dark:border-line">
       {{ errorMessage }}
     </div>
     <input ref="imageInputRef" type="file" accept="image/*" class="hidden" multiple @change="onImagePicked" />
@@ -1387,11 +1378,11 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-slate-900 dark:text-slate-100">링크 추가</h2>
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">URL을 입력하면 선택한 텍스트에 링크가 적용됩니다.</p>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">링크 추가</h2>
+            <p class="mt-1 text-xs text-muted">URL을 입력하면 선택한 텍스트에 링크가 적용됩니다.</p>
           </div>
           <form class="space-y-3" @submit.prevent="confirmLink">
-            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label class="block text-sm font-semibold text-ink">
               URL
               <input
                 ref="linkInputRef"
@@ -1399,10 +1390,10 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 type="url"
                 inputmode="url"
                 placeholder="https://example.com"
-                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                class="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-emerald-400 focus:outline-none dark:border-line"
               />
             </label>
-            <p v-if="linkErrorMessage" class="text-xs font-semibold text-rose-500">{{ linkErrorMessage }}</p>
+            <p v-if="linkErrorMessage" class="text-xs font-semibold text-danger">{{ linkErrorMessage }}</p>
             <div class="flex items-center justify-between gap-2">
               <button
                 type="button"
@@ -1414,7 +1405,7 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
               <div class="flex items-center gap-2">
                 <button
                   type="button"
-                  class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+                  class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
                   @click="closeLinkModal"
                 >
                   취소
@@ -1433,11 +1424,11 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-slate-900 dark:text-slate-100">유튜브 링크 추가</h2>
-            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">유튜브 URL을 입력하면 자동으로 임베드됩니다.</p>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">유튜브 링크 추가</h2>
+            <p class="mt-1 text-xs text-muted">유튜브 URL을 입력하면 자동으로 임베드됩니다.</p>
           </div>
           <form class="space-y-3" @submit.prevent="confirmYoutube">
-            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <label class="block text-sm font-semibold text-ink">
               URL
               <input
                 ref="youtubeInputRef"
@@ -1445,14 +1436,14 @@ const sectionLabelClass = 'mr-1 text-[10px] font-extrabold tracking-[0.08em] tex
                 type="url"
                 inputmode="url"
                 placeholder="https://www.youtube.com/watch?v=..."
-                class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-emerald-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                class="mt-2 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink focus:border-emerald-400 focus:outline-none dark:border-line"
               />
             </label>
-            <p v-if="youtubeErrorMessage" class="text-xs font-semibold text-rose-500">{{ youtubeErrorMessage }}</p>
+            <p v-if="youtubeErrorMessage" class="text-xs font-semibold text-danger">{{ youtubeErrorMessage }}</p>
             <div class="flex items-center justify-end gap-2">
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+                class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
                 @click="closeYoutubeModal"
               >
                 취소

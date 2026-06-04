@@ -60,6 +60,18 @@ export interface ArticleResponse {
   deletedAt: string | null;
 }
 
+export interface MyBoardResponse {
+  id: number;
+  boardId: number;
+  boardName: string;
+  slug: string;
+  description: string | null;
+  visibility: string;
+  boardRole: 'OWNER' | 'MODERATOR' | 'MEMBER' | 'PENDING' | 'BANNED';
+  boardImage: FileResponse | null;
+  joinedAt: string;
+}
+
 export interface CommentResponse {
   id: number;
   userId: number;
@@ -140,6 +152,11 @@ const updateMyProfile = async (payload: {
   }
 };
 
+const getMyBoards = async (page: number, size: number) => {
+  const response = await request<ApiEnvelope<PageResponse<MyBoardResponse>>>(`/users/me/boards?page=${page}&size=${size}`);
+  return unwrap(response);
+};
+
 const getMyArticles = async (page: number, size: number) => {
   const response = await request<ApiEnvelope<PageResponse<ArticleResponse>>>(`/users/me/articles?page=${page}&size=${size}`);
   return unwrap(response);
@@ -161,4 +178,4 @@ const deleteMyAccount = async (confirmText: string) => {
   return unwrap(response);
 };
 
-export { deleteMyAccount, getMyArticles, getMyComments, getMyProfile, updateMyProfile };
+export { deleteMyAccount, getMyArticles, getMyBoards, getMyComments, getMyProfile, updateMyProfile };
