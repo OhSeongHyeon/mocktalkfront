@@ -1,7 +1,7 @@
 services:
   # OCI 서버는 GHCR 이미지를 pull 해서 프론트만 배포한다.
   frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/ohseonghyeon/mocktalkfront:prod-latest}
+    image: ${FRONTEND_IMAGE:-ghcr.io/postosh/mocktalkfront:prod-latest}
     pull_policy: always
     container_name: mocktalk-front
     env_file:
