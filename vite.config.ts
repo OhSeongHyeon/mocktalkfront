@@ -52,24 +52,6 @@ const getPackageName = (id: string) => {
   return segments[0] ?? null;
 };
 
-const resolveEChartsChunk = (id: string) => {
-  const normalized = normalizePath(id);
-
-  if (normalized.includes('/node_modules/echarts/charts.js') || normalized.includes('/node_modules/echarts/lib/chart/')) {
-    return 'chart-series';
-  }
-
-  if (normalized.includes('/node_modules/echarts/components.js') || normalized.includes('/node_modules/echarts/lib/component/')) {
-    return 'chart-components';
-  }
-
-  if (normalized.includes('/node_modules/echarts/renderers.js')) {
-    return 'chart-renderers';
-  }
-
-  return 'chart-core';
-};
-
 const resolveManualChunk = (id: string) => {
   if (!id.includes('node_modules')) {
     return undefined;
@@ -84,12 +66,8 @@ const resolveManualChunk = (id: string) => {
     return 'vendor-vue';
   }
 
-  if (packageName === 'echarts') {
-    return resolveEChartsChunk(id);
-  }
-
-  if (packageName === 'zrender') {
-    return 'chart-renderer';
+  if (packageName === 'echarts' || packageName === 'zrender') {
+    return 'charts';
   }
 
   if (packageName.startsWith('@tiptap/') || packageName.startsWith('prosemirror-') || packageName === 'orderedmap') {
