@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<ConfirmModalProps>(), {
   closeOnBackdrop: true,
   closeOnEsc: true,
   size: 'md',
-  overlayClass: 'bg-slate-900/40',
+  overlayClass: 'bg-[var(--surface-overlay)]',
   panelClass: '',
   ariaLabel: '',
 });
@@ -64,8 +64,8 @@ const ariaLabel = computed(() => props.ariaLabel || props.title || '확인 모�
     :aria-label="ariaLabel"
     @close="emit('close')"
   >
-    <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">{{ title }}</h3>
-    <p v-if="description" class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+    <h3 class="bbs-row-title text-lg">{{ title }}</h3>
+    <p v-if="description" class="mt-2 text-sm leading-6 text-muted">
       {{ description }}
     </p>
     <slot />

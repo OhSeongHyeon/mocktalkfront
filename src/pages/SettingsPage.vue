@@ -182,15 +182,15 @@ onBeforeUnmount(() => {
                   :class="
                     selectedThemeMode === option.value
                       ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
                   "
                   :aria-pressed="selectedThemeMode === option.value"
                   @click="handleSelectThemeMode(option.value)"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="space-y-1">
-                      <div class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ option.label }}</div>
-                      <p class="text-sm text-slate-500 dark:text-slate-400">
+                      <div class="text-base font-semibold text-ink">{{ option.label }}</div>
+                      <p class="text-sm text-muted">
                         {{ option.description }}
                       </p>
                     </div>
@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
                       :class="
                         selectedThemeMode === option.value
                           ? 'bg-emerald-600 text-white dark:bg-emerald-500'
-                          : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                          : 'bg-surface-soft text-muted dark:text-subtle'
                       "
                     >
                       {{ selectedThemeMode === option.value ? '선택됨' : '선택 가능' }}
@@ -221,15 +221,15 @@ onBeforeUnmount(() => {
                   :class="
                     contentWidthPreset === option.value
                       ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
                   "
                   :aria-pressed="contentWidthPreset === option.value"
                   @click="handleSelectPreset(option.value)"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="space-y-1">
-                      <div class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ option.label }}</div>
-                      <p class="text-sm text-slate-500 dark:text-slate-400">
+                      <div class="text-base font-semibold text-ink">{{ option.label }}</div>
+                      <p class="text-sm text-muted">
                         {{ option.description }}
                       </p>
                     </div>
@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
                       :class="
                         contentWidthPreset === option.value
                           ? 'bg-emerald-600 text-white dark:bg-emerald-500'
-                          : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                          : 'bg-surface-soft text-muted dark:text-subtle'
                       "
                     >
                       {{ contentWidthPreset === option.value ? '선택됨' : '선택 가능' }}
@@ -263,15 +263,15 @@ onBeforeUnmount(() => {
                   :class="
                     topMenuPositionMode === option.value
                       ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
                   "
                   :aria-pressed="topMenuPositionMode === option.value"
                   @click="handleSelectTopMenuPositionMode(option.value)"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="space-y-1">
-                      <div class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ option.label }}</div>
-                      <p class="text-sm text-slate-500 dark:text-slate-400">
+                      <div class="text-base font-semibold text-ink">{{ option.label }}</div>
+                      <p class="text-sm text-muted">
                         {{ option.description }}
                       </p>
                     </div>
@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
                       :class="
                         topMenuPositionMode === option.value
                           ? 'bg-emerald-600 text-white dark:bg-emerald-500'
-                          : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                          : 'bg-surface-soft text-muted dark:text-subtle'
                       "
                     >
                       {{ topMenuPositionMode === option.value ? '선택됨' : '선택 가능' }}
@@ -302,15 +302,15 @@ onBeforeUnmount(() => {
                   :class="
                     sideMenuDisplayMode === option.value
                       ? 'border-emerald-200 bg-emerald-50 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30'
-                      : 'border-slate-200/80 bg-white/70 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40 dark:hover:border-slate-700 dark:hover:bg-slate-900'
+                      : 'bg-surface-soft hover:bg-surface-soft border border-line bg-white/70 hover:border-line dark:border-line'
                   "
                   :aria-pressed="sideMenuDisplayMode === option.value"
                   @click="handleSelectSideMenuMode(option.value)"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div class="space-y-1">
-                      <div class="text-base font-semibold text-slate-900 dark:text-slate-100">{{ option.label }}</div>
-                      <p class="text-sm text-slate-500 dark:text-slate-400">
+                      <div class="text-base font-semibold text-ink">{{ option.label }}</div>
+                      <p class="text-sm text-muted">
                         {{ option.description }}
                       </p>
                     </div>
@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
                       :class="
                         sideMenuDisplayMode === option.value
                           ? 'bg-emerald-600 text-white dark:bg-emerald-500'
-                          : 'bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400'
+                          : 'bg-surface-soft text-muted dark:text-subtle'
                       "
                     >
                       {{ sideMenuDisplayMode === option.value ? '선택됨' : '선택 가능' }}
@@ -334,34 +334,34 @@ onBeforeUnmount(() => {
             <div class="space-y-4">
               <SectionHeader eyebrow="현재 설정" :title="selectedLayoutOption.label" :description="selectedLayoutOption.description" />
 
-              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">테마 모드</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ selectedThemeOption.label }}</p>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ selectedThemeOption.description }}</p>
-                <p class="mt-2 text-xs font-semibold text-slate-400 dark:text-slate-500">현재 적용 테마: {{ resolvedThemeLabel }}</p>
+              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">테마 모드</p>
+                <p class="mt-2 text-sm text-muted">{{ selectedThemeOption.label }}</p>
+                <p class="mt-1 text-sm text-muted">{{ selectedThemeOption.description }}</p>
+                <p class="mt-2 text-xs font-semibold text-subtle">현재 적용 테마: {{ resolvedThemeLabel }}</p>
               </div>
 
-              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">사이드메뉴 동작</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ selectedSideMenuOption.label }}</p>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ selectedSideMenuOption.description }}</p>
+              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">사이드메뉴 동작</p>
+                <p class="mt-2 text-sm text-muted">{{ selectedSideMenuOption.label }}</p>
+                <p class="mt-1 text-sm text-muted">{{ selectedSideMenuOption.description }}</p>
               </div>
 
-              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">상단메뉴바 위치</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ selectedTopMenuPositionOption.label }}</p>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ selectedTopMenuPositionOption.description }}</p>
+              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">상단메뉴바 위치</p>
+                <p class="mt-2 text-sm text-muted">{{ selectedTopMenuPositionOption.label }}</p>
+                <p class="mt-1 text-sm text-muted">{{ selectedTopMenuPositionOption.description }}</p>
               </div>
 
-              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">상단메뉴바 노출</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">항상 표시</p>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">상단메뉴바는 자동 숨김 없이 계속 표시합니다.</p>
+              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">상단메뉴바 노출</p>
+                <p class="mt-2 text-sm text-muted">항상 표시</p>
+                <p class="mt-1 text-sm text-muted">상단메뉴바는 자동 숨김 없이 계속 표시합니다.</p>
               </div>
 
-              <div class="rounded-3xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/50">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">적용 범위</p>
-                <ul class="mt-3 space-y-2 text-sm text-slate-500 dark:text-slate-400">
+              <div class="bg-surface-soft rounded-3xl border border-line p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">적용 범위</p>
+                <ul class="mt-3 space-y-2 text-sm text-muted">
                   <li>시스템, 화이트, 다크 테마 모드</li>
                   <li>홈, 커뮤니티, 게시글 상세와 작성 화면 같은 공통 레이아웃 페이지</li>
                   <li>상단메뉴바 위치 방식과 항상 표시 동작</li>
@@ -371,9 +371,9 @@ onBeforeUnmount(() => {
                 </ul>
               </div>
 
-              <div class="rounded-3xl border border-dashed border-slate-200 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">예정 항목</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <div class="rounded-3xl border border-dashed border-line bg-white/70 p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">예정 항목</p>
+                <p class="mt-2 text-sm text-muted">
                   이후에는 카드 밀도, 목록 표시 방식 같은 화면 관련 설정도 이 화면에 순차적으로 추가할 수 있습니다.
                 </p>
               </div>

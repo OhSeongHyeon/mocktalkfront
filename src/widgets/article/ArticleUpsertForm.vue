@@ -125,24 +125,24 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
 
 <template>
   <div class="mt-6 space-y-6">
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <section class="ui-panel p-5">
       <div class="flex flex-col gap-4">
-        <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+        <label class="text-sm font-semibold text-ink">
           제목
           <input
             v-model="titleModel"
             type="text"
-            class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+            class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-sm text-ink focus:border-[color:var(--accent-strong)] focus:outline-none dark:border-line"
             placeholder="제목을 입력하세요"
           />
         </label>
 
         <div class="flex flex-col gap-4">
-          <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          <label class="text-sm font-semibold text-ink">
             카테고리
             <select
               v-model="categoryIdModel"
-              class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+              class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-sm text-ink focus:border-[color:var(--accent-strong)] focus:outline-none dark:border-line"
               :disabled="isCategoryLoading || isCategoryAccessDenied || categories.length === 0"
             >
               <option :value="null">선택 안 함</option>
@@ -150,20 +150,20 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
                 {{ category.categoryName }}
               </option>
             </select>
-            <p v-if="isCategoryLoading" class="mt-1 text-xs text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</p>
-            <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-slate-500 dark:text-slate-400">카테고리 목록을 조회할 수 없습니다.</p>
+            <p v-if="isCategoryLoading" class="mt-1 text-xs text-muted">카테고리 목록을 불러오는 중입니다...</p>
+            <p v-else-if="isCategoryAccessDenied" class="mt-1 text-xs text-muted">카테고리 목록을 조회할 수 없습니다.</p>
             <p v-else-if="categoryErrorMessage" class="mt-1 text-xs text-rose-500">{{ categoryErrorMessage }}</p>
-            <p v-else-if="categories.length === 0" class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p v-else-if="categories.length === 0" class="mt-1 text-xs text-muted">
               등록된 카테고리가 없습니다.
               <span v-if="canManageCategories">커뮤니티 관리에서 카테고리를 등록해 주세요.</span>
             </p>
           </label>
 
-          <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          <label class="text-sm font-semibold text-ink">
             공개 범위
             <select
               v-model="visibilityModel"
-              class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+              class="mt-2 w-full rounded-xl border border-line bg-surface px-4 py-2 text-sm text-ink focus:border-[color:var(--accent-strong)] focus:outline-none dark:border-line"
             >
               <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -186,11 +186,11 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
       />
     </section>
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <section class="ui-panel p-5">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
-          class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-900"
+          class="hover:bg-surface-soft inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink transition hover:border-line dark:border-line"
           :aria-expanded="isAttachmentExpanded ? 'true' : 'false'"
           aria-controls="article-upsert-attachment-panel"
           @click="isAttachmentExpanded = !isAttachmentExpanded"
@@ -201,7 +201,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-900"
+            class="hover:bg-surface-soft rounded-full border border-line px-4 py-1.5 text-xs font-semibold text-ink transition hover:border-line dark:border-line"
             :disabled="isSubmitting || isAttachmentUploading"
             @click="openAttachmentPicker"
           >
@@ -210,8 +210,8 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         </div>
       </div>
       <div v-show="isAttachmentExpanded" id="article-upsert-attachment-panel" class="mt-2">
-        <p class="text-xs text-slate-500 dark:text-slate-400">최대 50MB</p>
-        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">허용 확장자: {{ ATTACHMENT_ALLOWED_EXTENSION_LABEL }}</p>
+        <p class="text-xs text-muted">최대 50MB</p>
+        <p class="mt-1 text-xs text-muted">허용 확장자: {{ ATTACHMENT_ALLOWED_EXTENSION_LABEL }}</p>
         <p class="mt-1 text-xs font-medium text-amber-600 dark:text-amber-300">
           첨부파일 업로드 시 원본 파일을 저장하기 때문에 메타데이터가 보존됩니다. 민감정보에 유의하세요.
         </p>
@@ -219,7 +219,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
         <p v-if="attachmentErrorMessage" class="mt-2 text-xs font-semibold text-rose-500">{{ attachmentErrorMessage }}</p>
         <div
           v-if="attachments.length === 0"
-          class="mt-3 rounded-xl border border-dashed border-slate-200 px-4 py-4 text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400"
+          class="mt-3 rounded-xl border border-dashed border-line px-4 py-4 text-sm text-muted dark:border-line dark:text-subtle"
         >
           첨부파일이 없습니다.
         </div>
@@ -227,11 +227,11 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
           <div
             v-for="file in attachments"
             :key="file.id"
-            class="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm dark:border-slate-800"
+            class="flex items-center justify-between rounded-xl border border-line px-4 py-3 text-sm dark:border-line"
           >
             <div class="min-w-0">
-              <p class="truncate font-medium text-slate-800 dark:text-slate-100">{{ file.fileName }}</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }} · {{ formatFileSize(file.fileSize) }}</p>
+              <p class="truncate font-medium text-ink">{{ file.fileName }}</p>
+              <p class="text-xs text-muted">{{ file.mimeType }} · {{ formatFileSize(file.fileSize) }}</p>
             </div>
             <button
               type="button"
@@ -258,7 +258,7 @@ const applyImportedMetadata = (metadata: MarkdownImportMetadata) => {
       </button>
       <button
         type="button"
-        class="rounded-full border border-slate-200 px-5 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+        class="rounded-full border border-line px-5 py-2 text-sm font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-white"
         @click="$emit('cancel')"
       >
         취소

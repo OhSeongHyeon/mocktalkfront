@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
 
+import { ThumbsDown, ThumbsUp } from '@lucide/vue';
+
 import type { CommentTreeResponse } from '../../features/comment';
-import thumbDownIcon from '../../assets/icons/icon-thumb-down.svg';
-import thumbUpIcon from '../../assets/icons/icon-thumb-up.svg';
+import AppIcon from '../../shared/ui/AppIcon.vue';
 
 interface CommentItemProps {
   comment: CommentTreeResponse;
@@ -32,19 +33,8 @@ const COMMENT_TEXTAREA_MAX_HEIGHT = 240;
 const isDeleted = computed(() => props.comment.deletedAt !== null || props.comment.content === '삭제된 댓글입니다.');
 const isOwner = computed(() => props.currentUserId !== null && props.comment.userId === props.currentUserId);
 const isArticleAuthor = computed(() => props.articleAuthorId !== null && props.comment.userId === props.articleAuthorId);
-const cardClass = computed(() =>
-  [
-    'rounded-2xl border px-4 py-3 shadow-sm',
-    isDeleted.value
-      ? 'border-slate-200/70 bg-slate-50 text-slate-400 dark:border-slate-800/70 dark:bg-slate-900/40 dark:text-slate-500'
-      : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200',
-  ].join(' '),
-);
-const focusClass = computed(() =>
-  props.focusCommentId === props.comment.id
-    ? 'ring-2 ring-emerald-300/70 ring-offset-2 ring-offset-white dark:ring-emerald-500/40 dark:ring-offset-slate-950'
-    : '',
-);
+const cardClass = computed(() => ['bbs-comment', isDeleted.value ? 'bbs-comment-deleted' : ''].filter(Boolean).join(' '));
+const focusClass = computed(() => (props.focusCommentId === props.comment.id ? 'bbs-comment-focus' : ''));
 
 const toggleReply = () => {
   isReplying.value = !isReplying.value;
@@ -136,7 +126,7 @@ const likeButtonClass = computed(() =>
     'flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-60',
     props.comment.myReaction === 1
       ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200'
-      : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900',
+      : 'border-line text-muted hover:bg-surface-1',
   ].join(' '),
 );
 
@@ -145,7 +135,7 @@ const dislikeButtonClass = computed(() =>
     'flex items-center gap-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-60',
     props.comment.myReaction === -1
       ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-200'
-      : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900',
+      : 'border-line text-muted hover:bg-surface-1',
   ].join(' '),
 );
 
@@ -217,9 +207,9 @@ watch(
 
 <template>
   <div :id="`comment-${comment.id}`" :class="[cardClass, focusClass]">
-    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+    <div class="bbs-meta flex flex-wrap items-center justify-between gap-2">
       <div class="flex flex-wrap items-center gap-2">
-        <span class="font-semibold" :class="isOwner ? 'text-blue-600 dark:text-blue-300' : 'text-slate-700 dark:text-slate-200'">
+        <span class="font-semibold" :class="isOwner ? 'text-link' : 'text-ink'">
           {{ comment.authorName }}
         </span>
         <span
@@ -235,22 +225,22 @@ watch(
           게시글 작성자
         </span>
         <span>{{ formattedCreatedAt }}</span>
-        <span v-if="isEdited" class="text-[11px] font-semibold text-slate-500 dark:text-slate-300">수정 {{ formattedUpdatedAt }}</span>
+        <span v-if="isEdited" class="text-[11px] font-semibold">수정 {{ formattedUpdatedAt }}</span>
       </div>
       <div v-if="!isDeleted" class="flex flex-wrap items-center gap-3 text-[11px]">
         <div class="flex items-center gap-2">
           <button type="button" :class="likeButtonClass" :disabled="!isAuthenticated" aria-label="댓글 좋아요" @click="toggleReaction(1)">
-            <img :src="thumbUpIcon" alt="" aria-hidden="true" class="h-3.5 w-3.5" />
+            <AppIcon :icon="ThumbsUp" :size="14" />
             <span>{{ comment.likeCount }}</span>
           </button>
           <button type="button" :class="dislikeButtonClass" :disabled="!isAuthenticated" aria-label="댓글 싫어요" @click="toggleReaction(-1)">
-            <img :src="thumbDownIcon" alt="" aria-hidden="true" class="h-3.5 w-3.5" />
+            <AppIcon :icon="ThumbsDown" :size="14" />
             <span>{{ comment.dislikeCount }}</span>
           </button>
         </div>
         <div v-if="isAuthenticated" class="flex items-center gap-2 text-[11px]">
-          <button type="button" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700" @click="toggleReply">답글</button>
-          <button v-if="isOwner" type="button" class="text-xs font-semibold text-slate-500 hover:text-slate-700" @click="toggleEdit">수정</button>
+          <button type="button" class="text-xs font-semibold text-link hover:underline" @click="toggleReply">답글</button>
+          <button v-if="isOwner" type="button" class="text-xs font-semibold text-muted hover:text-ink" @click="toggleEdit">수정</button>
           <button v-if="isOwner" type="button" class="text-xs font-semibold text-rose-500 hover:text-rose-600" @click="remove">삭제</button>
         </div>
       </div>
@@ -267,14 +257,8 @@ watch(
           @input="handleEditInput"
         ></textarea>
         <div class="mt-2 flex items-center gap-2">
-          <button
-            type="button"
-            class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
-            @click="submitEdit"
-          >
-            저장
-          </button>
-          <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs" @click="toggleEdit">취소</button>
+          <button type="button" class="ui-button-accent h-8 px-3 text-xs" @click="submitEdit">저장</button>
+          <button type="button" class="ui-button-ghost h-8 px-3 text-xs" @click="toggleEdit">취소</button>
         </div>
       </template>
       <template v-else>
@@ -282,7 +266,7 @@ watch(
       </template>
     </div>
 
-    <div v-if="isReplying" class="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+    <div v-if="isReplying" class="bbs-comment-reply-box">
       <textarea
         ref="replyTextareaRef"
         v-model="replyContent"
@@ -294,14 +278,8 @@ watch(
         @keydown="handleReplyInputKeydown"
       ></textarea>
       <div class="mt-2 flex items-center gap-2">
-        <button
-          type="button"
-          class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700"
-          @click="submitReply"
-        >
-          등록
-        </button>
-        <button type="button" class="rounded-full border border-slate-200 px-3 py-1 text-xs" @click="toggleReply">취소</button>
+        <button type="button" class="ui-button-accent h-8 px-3 text-xs" @click="submitReply">등록</button>
+        <button type="button" class="ui-button-ghost h-8 px-3 text-xs" @click="toggleReply">취소</button>
       </div>
     </div>
   </div>

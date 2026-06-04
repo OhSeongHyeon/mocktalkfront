@@ -20,6 +20,8 @@
     "format:check": "prettier src --check"
   },
   "dependencies": {
+    "@fontsource/pretendard": "^5.2.5",
+    "@lucide/vue": "^1.17.0",
     "@tiptap/extension-code-block-lowlight": "^2.27.2",
     "@tiptap/extension-color": "^2.27.2",
     "@tiptap/extension-font-family": "^2.27.2",

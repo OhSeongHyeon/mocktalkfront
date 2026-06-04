@@ -161,7 +161,7 @@ const onYoutubeSizeChange = (event: Event) => {
     <div
       v-if="isMobileMoreOpen"
       id="mobile-editor-more"
-      class="space-y-1 rounded-2xl border border-slate-200/80 bg-white/75 p-2 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/60"
+      class="bg-surface-soft dark:border-line/80 /60 space-y-1 rounded-2xl border border-line bg-white/75 p-2 shadow-sm"
     >
       <div class="grid grid-cols-3 gap-2">
         <button
@@ -222,7 +222,7 @@ const onYoutubeSizeChange = (event: Event) => {
       <div
         v-if="mobileAccordionKey === 'font'"
         id="mobile-accordion-font"
-        class="space-y-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2 dark:border-slate-800/80 dark:bg-slate-900/60"
+        class="bg-surface-soft bg-surface-soft/80 dark:border-line/80 /60 space-y-2 rounded-2xl border border-line p-2"
       >
         <div class="flex flex-wrap items-center gap-2">
           <select :value="fontFamily" :class="selectClass" aria-label="폰트 패밀리" @change="onFontFamilyChange">
@@ -237,23 +237,18 @@ const onYoutubeSizeChange = (event: Event) => {
           </select>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">
+          <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
             글자색
-            <input
-              :value="textColor"
-              type="color"
-              class="h-7 w-7 rounded border border-slate-200 p-0.5 dark:border-slate-800"
-              @input="onTextColorChange"
-            />
+            <input :value="textColor" type="color" class="h-7 w-7 rounded border border-line p-0.5 dark:border-line" @input="onTextColorChange" />
           </label>
           <button type="button" :class="buttonClass()" @click="actions.applyTextColor">적용</button>
           <button type="button" :class="buttonClass()" @click="actions.clearTextColor">해제</button>
-          <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">
+          <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
             형광
             <input
               :value="highlightColor"
               type="color"
-              class="h-7 w-7 rounded border border-slate-200 p-0.5 dark:border-slate-800"
+              class="h-7 w-7 rounded border border-line p-0.5 dark:border-line"
               @input="onHighlightColorChange"
             />
           </label>
@@ -281,7 +276,7 @@ const onYoutubeSizeChange = (event: Event) => {
       <div
         v-if="mobileAccordionKey === 'insert'"
         id="mobile-accordion-insert"
-        class="space-y-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2 dark:border-slate-800/80 dark:bg-slate-900/60"
+        class="bg-surface-soft bg-surface-soft/80 dark:border-line/80 /60 space-y-2 rounded-2xl border border-line p-2"
       >
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" :class="buttonClass(editor?.isActive('codeBlock'))" @click="actions.toggleCodeBlock">코드블록</button>
@@ -308,7 +303,7 @@ const onYoutubeSizeChange = (event: Event) => {
       <div
         v-if="mobileAccordionKey === 'table'"
         id="mobile-accordion-table"
-        class="space-y-2 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2 dark:border-slate-800/80 dark:bg-slate-900/60"
+        class="bg-surface-soft bg-surface-soft/80 dark:border-line/80 /60 space-y-2 rounded-2xl border border-line p-2"
       >
         <div class="flex flex-wrap items-center gap-2">
           <button type="button" :class="buttonClass(editor?.isActive('table'))" @click="actions.insertTable">테이블 삽입</button>
@@ -327,7 +322,7 @@ const onYoutubeSizeChange = (event: Event) => {
           <button type="button" :class="buttonClass()" @click="actions.toggleHeaderCell">헤더셀</button>
           <button type="button" :class="buttonClass()" @click="actions.deleteTable">표삭제</button>
         </div>
-        <p v-else class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">테이블 안에 커서를 두면 편집 버튼이 활성화됩니다.</p>
+        <p v-else class="text-[11px] font-semibold text-muted">테이블 안에 커서를 두면 편집 버튼이 활성화됩니다.</p>
       </div>
     </div>
   </div>

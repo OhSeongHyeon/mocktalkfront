@@ -1,0 +1,81 @@
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --color-brand-50: #f4f7fd;
+  --color-brand-100: #e8effb;
+  --color-brand-200: #d2dff6;
+  --color-brand-300: #a8c0ec;
+  --color-brand-400: #7a9de0;
+  --color-brand-500: #4f79d4;
+  --color-brand-600: #3b6edc;
+  --color-brand-700: #3159b8;
+  --color-brand-800: #2a4a96;
+  --color-brand-900: #243d78;
+}
+
+:root {
+  --surface-body: #eceef1;
+  --surface-0: #ffffff;
+  --surface-1: #f7f8fa;
+  --surface-2: #eef0f3;
+  --surface-3: #e2e5ea;
+  --surface-elevated: #ffffff;
+  --surface-soft: #f7f8fa;
+  --surface-strong: #1a1d21;
+  --surface-sidebar: #fbfbfc;
+  --surface-overlay: rgba(0, 0, 0, 0.45);
+  --ink-1: #1f2328;
+  --ink-2: #5b616a;
+  --ink-3: #8b919a;
+  --line-subtle: #e2e5ea;
+  --line-strong: #c8cdd6;
+  --link: #3b6edc;
+  --accent-strong: #3b6edc;
+  --accent-soft: #eef3fc;
+  --accent-ring: rgba(59, 110, 220, 0.28);
+  --notice: #d9480f;
+  --success-ink: #1f7a4d;
+  --danger-ink: #c92a2a;
+  --danger-soft: #fff5f5;
+  --warning-ink: #9c6b00;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --shadow-focus: 0 0 0 2px var(--accent-ring);
+  color-scheme: light;
+  font-family: var(--font-sans);
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--ink-1);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.dark {
+  --surface-body: #141618;
+  --surface-0: #1c1f23;
+  --surface-1: #23272d;
+  --surface-2: #2b3037;
+  --surface-3: #353b44;
+  --surface-elevated: #1c1f23;
+  --surface-soft: #23272d;
+  --surface-strong: #f3f4f6;
+  --surface-sidebar: #181a1d;
+  --surface-overlay: rgba(0, 0, 0, 0.62);
+  --ink-1: #eceef1;
+  --ink-2: #b4bac3;
+  --ink-3: #8b919a;
+  --line-subtle: #353b44;
+  --line-strong: #4a515c;
+  --link: #6d9cf0;
+  --accent-strong: #6d9cf0;
+  --accent-soft: #243044;
+  --accent-ring: rgba(109, 156, 240, 0.35);
+  --notice: #ff8f66;
+  --success-ink: #7ddeb0;
+  --danger-ink: #ff8f8f;
+  --danger-soft: #3a2222;
+  color-scheme: dark;
+}

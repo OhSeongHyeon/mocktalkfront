@@ -121,7 +121,7 @@ describe('widgets/layout/TopMenuBar', () => {
     expect(wrapper.find('button[aria-label="프로필"]').exists()).toBe(false);
     expect(wrapper.text()).toContain('MockTalk');
     expect(wrapper.text()).not.toContain('Community');
-    expect(wrapper.get('#global-search').attributes('placeholder')).toBe('통합검색');
+    expect(wrapper.get('#global-search').attributes('placeholder')).toBe('검색');
   });
 
   it('상단 메뉴 핵심 액션은 같은 높이 기준으로 정렬한다', async () => {
@@ -133,7 +133,7 @@ describe('widgets/layout/TopMenuBar', () => {
     expect(wrapper.get('[data-testid="mobile-search-button"]').classes()).toContain('h-10');
     expect(wrapper.get('[data-testid="theme-toggle-button"]').classes()).toContain('h-10');
     expect(wrapper.get('button[aria-label="로그인"]').classes()).toContain('h-10');
-    expect(wrapper.get('form').classes()).toContain('h-10');
+    expect(wrapper.get('form').classes()).toContain('ui-search-field');
   });
 
   it('상단 메뉴는 다른 오버레이보다 우선되는 z-index를 유지한다', async () => {

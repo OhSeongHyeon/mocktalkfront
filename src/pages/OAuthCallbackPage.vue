@@ -77,14 +77,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen text-slate-900 dark:text-slate-100">
+  <div class="min-h-screen text-ink">
     <main class="mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-6 px-4 text-center sm:px-6">
       <div class="ui-panel w-full max-w-md p-8">
-        <p class="text-sm font-semibold tracking-[0.3em] text-slate-400 uppercase">OAuth Callback</p>
-        <h1 class="mt-4 text-2xl font-semibold text-slate-900">
+        <p class="text-sm font-semibold tracking-[0.3em] text-subtle uppercase">OAuth Callback</p>
+        <h1 class="mt-4 text-2xl font-semibold text-ink">
           {{ isLoading ? '로그인 확인 중' : '로그인 결과' }}
         </h1>
-        <p class="mt-3 text-sm text-slate-600">
+        <p class="mt-3 text-sm text-muted">
           {{ isLoading ? '잠시만 기다려주세요. 인증 상태를 확인하고 있습니다.' : '로그인 상태를 확인했습니다.' }}
         </p>
 
@@ -102,7 +102,7 @@ onMounted(() => {
           </button>
           <button
             type="button"
-            class="h-11 w-full rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            class="ui-panel hover:bg-surface-soft h-11 w-full text-sm font-semibold text-ink shadow-sm transition"
             @click="redirectToLogin"
           >
             로그인 페이지로 이동

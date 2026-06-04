@@ -1,0 +1,27 @@
+@utility text-ink {
+  color: var(--ink-1);
+}
+
+@utility text-muted {
+  color: var(--ink-2);
+}
+
+@utility text-subtle {
+  color: var(--ink-3);
+}
+
+@utility bg-app {
+  background-color: var(--surface-body);
+}
+
+@utility bg-surface {
+  background-color: var(--surface-0);
+}
+
+@utility border-line {
+  border-color: var(--line-subtle);
+}
+
+@utility text-link {
+  color: var(--link);
+}

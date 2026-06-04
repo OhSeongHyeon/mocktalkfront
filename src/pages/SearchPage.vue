@@ -244,7 +244,7 @@ watch(
 
           <form class="space-y-3" @submit.prevent="handleSubmit">
             <div class="ui-toolbar">
-              <label for="global-search-page" class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색어</label>
+              <label for="global-search-page" class="text-xs font-semibold text-muted">검색어</label>
               <input id="global-search-page" v-model="keyword" type="search" placeholder="게시판, 게시글, 댓글, 사용자" class="ui-input flex-1" />
               <button
                 type="submit"
@@ -257,7 +257,7 @@ watch(
 
             <div class="ui-toolbar">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">검색 범위</span>
+                <span class="text-xs font-semibold text-muted">검색 범위</span>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="type in types"
@@ -273,7 +273,7 @@ watch(
               </div>
 
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">정렬</span>
+                <span class="text-xs font-semibold text-muted">정렬</span>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="order in orders"
@@ -289,7 +289,7 @@ watch(
               </div>
 
               <div class="flex flex-wrap items-center gap-2">
-                <label for="search-size" class="text-xs font-semibold text-slate-500 dark:text-slate-400">표시 개수</label>
+                <label for="search-size" class="text-xs font-semibold text-muted">표시 개수</label>
                 <select
                   id="search-size"
                   v-model.number="size"
@@ -308,7 +308,7 @@ watch(
           {{ errorMessage }}
         </div>
 
-        <div v-if="isLoading" class="text-sm text-slate-500">검색 결과를 불러오는 중입니다...</div>
+        <div v-if="isLoading" class="text-sm text-muted">검색 결과를 불러오는 중입니다...</div>
 
         <div v-if="selectedType === 'ALL'" class="space-y-8">
           <section>
@@ -319,13 +319,11 @@ watch(
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="boardResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="boardResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
                 <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
-                  <div
-                    class="h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950"
-                  >
+                  <div class="bg-surface-soft h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-line">
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -333,16 +331,16 @@ watch(
                       :alt="board.boardName"
                       class="h-full w-full object-cover"
                     />
-                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-slate-400">없음</div>
+                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-subtle">없음</div>
                   </div>
 
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
                       <span class="ui-badge ui-badge-success">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
-                      <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
+                      <span class="text-xs text-subtle">/{{ board.slug }}</span>
                     </div>
-                    <div class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
-                    <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    <div class="bbs-row-title mt-1 text-sm">{{ board.boardName }}</div>
+                    <p class="mt-1 line-clamp-1 text-xs leading-5 text-muted">
                       {{ board.description ?? '설명이 없습니다.' }}
                     </p>
                   </div>
@@ -361,7 +359,7 @@ watch(
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="articleResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="articleResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 space-y-2">
               <RouterLink
                 v-for="article in articleResults"
@@ -371,12 +369,12 @@ watch(
               >
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                   <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
                       <span>{{ article.authorName }}</span>
                       <span>{{ formatKoreanDate(article.createdAt) }}</span>
                     </div>
-                    <div class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
+                    <div class="bbs-row-title mt-1 truncate text-sm">{{ article.title }}</div>
                   </div>
                   <span class="ui-badge ui-badge-muted">게시글</span>
                 </div>
@@ -392,7 +390,7 @@ watch(
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="commentResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="commentResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 space-y-2">
               <RouterLink
                 v-for="comment in commentResults"
@@ -400,12 +398,12 @@ watch(
                 :to="`/b/${comment.boardSlug}/articles/${comment.articleId}`"
                 class="ui-list-row"
               >
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span class="ui-badge ui-badge-muted">{{ comment.boardName }}</span>
                   <span>{{ comment.articleTitle }}</span>
                   <span>{{ comment.authorName }}</span>
                 </div>
-                <p class="line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{{ comment.content }}</p>
+                <p class="line-clamp-2 text-sm leading-6 text-muted">{{ comment.content }}</p>
               </RouterLink>
             </div>
           </section>
@@ -418,13 +416,13 @@ watch(
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="userResults.length === 0" class="mt-3 text-xs text-slate-400">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="userResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
             <div v-else class="mt-3 space-y-2">
-              <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
+              <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-ink">
                 <div class="flex items-center justify-between gap-3">
                   <div>
-                    <div class="font-black tracking-tight text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
+                    <div class="bbs-row-title">@{{ user.handle }}</div>
+                    <div class="text-xs text-muted">{{ user.displayName }}</div>
                   </div>
                   <span class="ui-badge ui-badge-muted">사용자</span>
                 </div>
@@ -438,16 +436,14 @@ watch(
 
           <div v-if="currentPageInfo.items.length === 0" class="ui-state ui-state-empty px-4 py-6">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
           <div v-else class="space-y-3">
-            <div class="ui-toolbar justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div class="ui-toolbar justify-between text-xs text-muted">
               <span>{{ selectedTypeLabel }} {{ currentPageInfo.items.length }}건</span>
               <span>페이지 {{ currentPageInfo.page + 1 }}</span>
             </div>
             <div v-if="selectedType === 'BOARD'" class="space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
                 <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
-                  <div
-                    class="h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950"
-                  >
+                  <div class="bg-surface-soft h-[3.25rem] overflow-hidden rounded-[0.55rem] border border-line">
                     <FileImage
                       v-if="board.boardImage"
                       :file="board.boardImage"
@@ -455,16 +451,16 @@ watch(
                       :alt="board.boardName"
                       class="h-full w-full object-cover"
                     />
-                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-slate-400">없음</div>
+                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-subtle">없음</div>
                   </div>
 
                   <div class="min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
                       <span class="ui-badge ui-badge-success">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
-                      <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
+                      <span class="text-xs text-subtle">/{{ board.slug }}</span>
                     </div>
-                    <div class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ board.boardName }}</div>
-                    <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                    <div class="bbs-row-title mt-1 text-sm">{{ board.boardName }}</div>
+                    <p class="mt-1 line-clamp-1 text-xs leading-5 text-muted">
                       {{ board.description ?? '설명이 없습니다.' }}
                     </p>
                   </div>
@@ -483,12 +479,12 @@ watch(
               >
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                   <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span class="ui-badge ui-badge-accent">{{ article.boardName }}</span>
                       <span>{{ article.authorName }}</span>
                       <span>{{ formatKoreanDate(article.createdAt) }}</span>
                     </div>
-                    <div class="mt-1 truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ article.title }}</div>
+                    <div class="bbs-row-title mt-1 truncate text-sm">{{ article.title }}</div>
                   </div>
                   <span class="ui-badge ui-badge-muted">게시글</span>
                 </div>
@@ -502,21 +498,21 @@ watch(
                 :to="`/b/${comment.boardSlug}/articles/${comment.articleId}`"
                 class="ui-list-row"
               >
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span class="ui-badge ui-badge-muted">{{ comment.boardName }}</span>
                   <span>{{ comment.articleTitle }}</span>
                   <span>{{ comment.authorName }}</span>
                 </div>
-                <p class="line-clamp-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{{ comment.content }}</p>
+                <p class="line-clamp-2 text-sm leading-6 text-muted">{{ comment.content }}</p>
               </RouterLink>
             </div>
 
             <div v-else-if="selectedType === 'USER'" class="space-y-2">
-              <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
+              <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-ink">
                 <div class="flex items-center justify-between gap-3">
                   <div>
-                    <div class="font-black tracking-tight text-slate-900 dark:text-slate-100">@{{ user.handle }}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400">{{ user.displayName }}</div>
+                    <div class="bbs-row-title">@{{ user.handle }}</div>
+                    <div class="text-xs text-muted">{{ user.displayName }}</div>
                   </div>
                   <span class="ui-badge ui-badge-muted">사용자</span>
                 </div>
@@ -524,10 +520,7 @@ watch(
             </div>
           </div>
 
-          <div
-            v-if="currentPageInfo.hasPrevious || currentPageInfo.hasNext"
-            class="ui-toolbar mt-6 justify-between text-xs text-slate-500 dark:text-slate-400"
-          >
+          <div v-if="currentPageInfo.hasPrevious || currentPageInfo.hasNext" class="ui-toolbar mt-6 justify-between text-xs text-muted">
             <div class="flex flex-wrap items-center gap-2">
               <button
                 type="button"
@@ -566,7 +559,7 @@ watch(
                 >
                   {{ pageNumber + 1 }}
                 </button>
-                <span v-if="showTrailingEllipsis" class="px-1 text-xs text-slate-400">…</span>
+                <span v-if="showTrailingEllipsis" class="px-1 text-xs text-subtle">…</span>
               </div>
               <button
                 type="button"

@@ -507,79 +507,79 @@ onBeforeUnmount(() => {
         <section v-if="mainTab === 'profile'" class="grid gap-4 lg:grid-cols-[1fr_1.35fr]">
           <div class="ui-panel flex h-full flex-col gap-4 p-5">
             <div class="flex items-center gap-4">
-              <div class="h-18 w-18 overflow-hidden rounded-[0.75rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+              <div class="bg-surface-soft h-18 w-18 overflow-hidden rounded-[0.75rem] border border-line">
                 <img v-if="resolvedProfileImage" :src="resolvedProfileImage" alt="프로필 이미지" class="h-full w-full object-cover" />
-                <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-400">없음</div>
+                <div v-else class="flex h-full w-full items-center justify-center text-sm font-semibold text-subtle">없음</div>
               </div>
               <div>
-                <p class="text-lg font-semibold text-slate-900 dark:text-white">
+                <p class="text-lg font-semibold text-ink">
                   {{ profile?.displayName || profile?.userName || '사용자' }}
                 </p>
-                <p class="text-sm text-slate-500 dark:text-slate-400">@{{ profile?.handle || '-' }}</p>
+                <p class="text-sm text-muted">@{{ profile?.handle || '-' }}</p>
               </div>
             </div>
 
-            <div class="grid gap-3 text-sm text-slate-600 dark:text-slate-300">
+            <div class="grid gap-3 text-sm text-muted">
               <div class="flex items-center justify-between">
                 <span>아이디</span>
-                <span class="font-semibold text-slate-900 dark:text-slate-100">
+                <span class="font-semibold text-ink">
                   {{ profile?.loginId || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
                 <span>이름</span>
-                <span class="font-semibold text-slate-900 dark:text-slate-100">
+                <span class="font-semibold text-ink">
                   {{ profile?.userName || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
                 <span>이메일</span>
-                <span class="font-semibold text-slate-900 dark:text-slate-100">
+                <span class="font-semibold text-ink">
                   {{ profile?.email || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
                 <span>닉네임</span>
-                <span class="font-semibold text-slate-900 dark:text-slate-100">
+                <span class="font-semibold text-ink">
                   {{ profile?.displayName || '-' }}
                 </span>
               </div>
               <div class="flex items-center justify-between">
                 <span>핸들</span>
-                <span class="font-semibold text-slate-900 dark:text-slate-100">
+                <span class="font-semibold text-ink">
                   {{ profile?.handle || '-' }}
                 </span>
               </div>
             </div>
 
-            <div class="ui-sub-panel px-4 py-3 text-xs text-slate-500 dark:text-slate-400">프로필 이미지는 이미지 파일만 업로드할 수 있습니다.</div>
+            <div class="ui-sub-panel px-4 py-3 text-xs text-muted">프로필 이미지는 이미지 파일만 업로드할 수 있습니다.</div>
           </div>
 
           <form class="ui-panel flex flex-col gap-4 p-5" @submit.prevent="handleSubmit">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">프로필 수정</h2>
-              <span v-if="isProfileLoading" class="text-xs text-slate-400">불러오는 중...</span>
+              <h2 class="text-lg font-black tracking-tight text-ink">프로필 수정</h2>
+              <span v-if="isProfileLoading" class="text-xs text-subtle">불러오는 중...</span>
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 아이디 </label>
+              <label for="mypage-login-id" class="text-sm font-semibold text-ink"> 아이디 </label>
               <input
                 id="mypage-login-id"
                 :value="profile?.loginId ?? ''"
                 type="text"
-                class="ui-input bg-slate-50 text-slate-500 dark:bg-slate-950 dark:text-slate-400"
+                class="ui-input bg-surface-soft text-muted dark:text-subtle"
                 readonly
                 disabled
               />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-name" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이름 </label>
+              <label for="mypage-name" class="text-sm font-semibold text-ink"> 이름 </label>
               <input id="mypage-name" v-model="form.userName" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-email" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 이메일 </label>
+              <label for="mypage-email" class="text-sm font-semibold text-ink"> 이메일 </label>
               <input
                 id="mypage-email"
                 v-model="form.email"
@@ -591,17 +591,17 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-nickname" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 닉네임 </label>
+              <label for="mypage-nickname" class="text-sm font-semibold text-ink"> 닉네임 </label>
               <input id="mypage-nickname" v-model="form.displayName" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-handle" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 핸들 </label>
+              <label for="mypage-handle" class="text-sm font-semibold text-ink"> 핸들 </label>
               <input id="mypage-handle" v-model="form.handle" type="text" class="ui-input" :disabled="isProfileLoading || isProfileSaving" />
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
+              <label for="mypage-password" class="text-sm font-semibold text-ink"> 비밀번호 </label>
               <input
                 id="mypage-password"
                 v-model="form.password"
@@ -614,7 +614,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid gap-2">
-              <label for="mypage-password-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 확인 </label>
+              <label for="mypage-password-confirm" class="text-sm font-semibold text-ink"> 비밀번호 확인 </label>
               <input
                 id="mypage-password-confirm"
                 v-model="form.passwordConfirm"
@@ -626,13 +626,13 @@ onBeforeUnmount(() => {
               />
             </div>
             <div class="grid gap-2">
-              <label for="mypage-image" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 프로필 이미지 </label>
+              <label for="mypage-image" class="text-sm font-semibold text-ink"> 프로필 이미지 </label>
               <div class="flex flex-wrap items-center gap-3">
                 <input
                   id="mypage-image"
                   type="file"
                   accept="image/*"
-                  class="text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:bg-slate-200 dark:text-slate-300 dark:file:bg-slate-800 dark:file:text-slate-100 dark:hover:file:bg-slate-700"
+                  class="file:bg-surface-soft hover:file:bg-surface-2 dark:file:bg-surface-2 dark:hover:file:bg-surface-3 text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink dark:text-subtle dark:file:text-ink"
                   :disabled="isProfileLoading || isProfileSaving"
                   @change="handleFileChange"
                 />
@@ -686,13 +686,13 @@ onBeforeUnmount(() => {
             <div class="ui-tab-list">
               <button type="button" class="ui-tab-button" :class="activeTab === 'articles' ? 'ui-tab-button-active' : ''" @click="setTab('articles')">
                 내 게시글
-                <span v-if="articleTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
+                <span v-if="articleTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ articleTotalCount }}
                 </span>
               </button>
               <button type="button" class="ui-tab-button" :class="activeTab === 'comments' ? 'ui-tab-button-active' : ''" @click="setTab('comments')">
                 내 댓글
-                <span v-if="commentTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
+                <span v-if="commentTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ commentTotalCount }}
                 </span>
               </button>
@@ -703,13 +703,13 @@ onBeforeUnmount(() => {
                 @click="setTab('notifications')"
               >
                 알림목록
-                <span v-if="notificationTotalCount !== null" class="ml-1 text-xs text-slate-500 dark:text-slate-400">
+                <span v-if="notificationTotalCount !== null" class="ml-1 text-xs text-muted">
                   {{ notificationTotalCount }}
                 </span>
               </button>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
               <button
                 v-if="activeTab === 'notifications' && currentList?.items.length"
                 type="button"
@@ -722,7 +722,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div v-if="showActivityPagination" class="ui-toolbar justify-between text-xs text-slate-500 dark:text-slate-400">
+          <div v-if="showActivityPagination" class="ui-toolbar justify-between text-xs text-muted">
             <div></div>
             <div class="flex flex-wrap items-center justify-center gap-2">
               <button
@@ -778,13 +778,13 @@ onBeforeUnmount(() => {
             </span>
           </div>
 
-          <div v-if="listLoading" class="text-sm text-slate-500">불러오는 중...</div>
+          <div v-if="listLoading" class="text-sm text-muted">불러오는 중...</div>
           <p v-else-if="listError" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
             {{ listError }}
           </p>
-          <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-slate-400">{{ activityEmptyMessage }}</div>
+          <div v-else-if="isListEmpty" class="py-6 text-center text-sm text-subtle">{{ activityEmptyMessage }}</div>
           <div v-else class="grid gap-2">
-            <div v-for="item in currentList?.items" :key="item.id" class="ui-list-row text-sm text-slate-700 dark:text-slate-200">
+            <div v-for="item in currentList?.items" :key="item.id" class="ui-list-row text-sm text-ink">
               <button
                 v-if="activeTab === 'notifications'"
                 type="button"
@@ -794,18 +794,15 @@ onBeforeUnmount(() => {
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
                     <span v-if="!(item as NotificationResponse).read" class="inline-flex h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span>
-                    <div
-                      class="font-semibold"
-                      :class="(item as NotificationResponse).read ? 'text-slate-500 dark:text-slate-400' : 'text-slate-900 dark:text-white'"
-                    >
+                    <div class="font-semibold" :class="(item as NotificationResponse).read ? 'text-muted' : 'text-ink'">
                       {{ formatNotificationMessage(item as NotificationResponse) }}
                     </div>
                   </div>
-                  <div class="text-xs text-slate-400">
+                  <div class="text-xs text-subtle">
                     {{ formatDate((item as NotificationResponse).createdAt) }}
                   </div>
                 </div>
-                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <p>알림을 눌러 상세 화면으로 이동하세요.</p>
                   <button
                     type="button"
@@ -822,7 +819,7 @@ onBeforeUnmount(() => {
                 class="flex w-full flex-col gap-2 text-left"
                 @click="handleActivityClick(item as ArticleResponse)"
               >
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span>{{ (item as ArticleResponse).boardName }}</span>
                   <span>{{ (item as ArticleResponse).authorName }}</span>
                   <span>{{ formatDate((item as ArticleResponse).createdAt) }}</span>
@@ -830,10 +827,10 @@ onBeforeUnmount(() => {
                     공지
                   </span>
                 </div>
-                <div class="font-semibold text-slate-900 dark:text-slate-100">
+                <div class="font-semibold text-ink">
                   {{ (item as ArticleResponse).title }}
                 </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
                   <span>조회 {{ (item as ArticleResponse).hit }}</span>
                   <span>댓글 {{ (item as ArticleResponse).commentCount }}</span>
                   <span>좋아요 {{ (item as ArticleResponse).likeCount }}</span>
@@ -841,13 +838,13 @@ onBeforeUnmount(() => {
                 </div>
               </button>
               <button v-else type="button" class="flex w-full flex-col gap-2 text-left" @click="handleActivityClick(item as CommentResponse)">
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span>{{ (item as CommentResponse).boardName }}</span>
                   <span>{{ (item as CommentResponse).articleTitle }}</span>
                   <span>{{ (item as CommentResponse).authorName }}</span>
                   <span>{{ formatDate((item as CommentResponse).createdAt) }}</span>
                 </div>
-                <p class="line-clamp-2 text-sm text-slate-700 dark:text-slate-200">
+                <p class="line-clamp-2 text-sm text-ink">
                   {{ (item as CommentResponse).content }}
                 </p>
               </button>
@@ -858,13 +855,13 @@ onBeforeUnmount(() => {
     </PageContainer>
 
     <BaseModal :open="isDeleteModalOpen" aria-label="계정 삭제" @close="closeDeleteModal">
-      <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">계정 삭제</h3>
-      <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+      <h3 class="bbs-row-title text-lg">계정 삭제</h3>
+      <p class="mt-2 text-sm text-muted">
         계정을 삭제하면 복구할 수 없습니다. 계속하려면 아래 입력창에
         <span class="font-semibold text-red-500">탈퇴</span>를 입력하세요.
       </p>
       <div class="mt-4 grid gap-2">
-        <label for="delete-confirm" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 재확인 문구 </label>
+        <label for="delete-confirm" class="text-sm font-semibold text-ink"> 재확인 문구 </label>
         <input id="delete-confirm" v-model="deleteConfirmText" type="text" placeholder="탈퇴" class="ui-input" :disabled="isDeleting" />
       </div>
       <p

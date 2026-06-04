@@ -222,16 +222,14 @@ onMounted(async () => {
         <div v-if="board && hasPermission" class="space-y-6">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">콘텐츠 관리</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">게시글과 댓글을 관리합니다.</p>
+              <h1 class="ui-heading-page text-2xl">콘텐츠 관리</h1>
+              <p class="text-sm text-muted">게시글과 댓글을 관리합니다.</p>
             </div>
-            <div
-              class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-            >
+            <div class="flex items-center gap-2 rounded-full border border-line bg-surface px-2 py-1 text-xs font-semibold text-muted">
               <button
                 type="button"
                 class="rounded-full px-4 py-2 transition"
-                :class="contentType === 'ARTICLE' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500'"
+                :class="contentType === 'ARTICLE' ? 'bg-[color:var(--accent-strong)] text-white' : 'text-muted'"
                 @click="switchContentType('ARTICLE')"
               >
                 게시글
@@ -239,7 +237,7 @@ onMounted(async () => {
               <button
                 type="button"
                 class="rounded-full px-4 py-2 transition"
-                :class="contentType === 'COMMENT' ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-500'"
+                :class="contentType === 'COMMENT' ? 'bg-[color:var(--accent-strong)] text-white' : 'text-muted'"
                 @click="switchContentType('COMMENT')"
               >
                 댓글
@@ -251,7 +249,7 @@ onMounted(async () => {
             <div class="flex flex-wrap items-center gap-3">
               <select
                 v-model="reportedFilter"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
               >
                 <option value="ALL">전체</option>
                 <option value="REPORTED">신고 있음</option>
@@ -260,7 +258,7 @@ onMounted(async () => {
               <select
                 v-if="contentType === 'ARTICLE'"
                 v-model="noticeFilter"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
               >
                 <option value="ALL">전체</option>
                 <option value="NOTICE">공지</option>
@@ -269,12 +267,12 @@ onMounted(async () => {
               <input
                 v-model="authorId"
                 type="number"
-                class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                class="h-10 rounded-full border border-line bg-surface px-4 text-sm text-ink shadow-sm focus:border-[color:var(--accent-strong)] focus:outline-none"
                 placeholder="작성자 ID"
               />
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
+                class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
                 @click="applyFilters"
               >
                 적용
@@ -288,12 +286,12 @@ onMounted(async () => {
 
           <section class="ui-panel p-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">목록</h2>
-              <span class="text-xs text-slate-400"> {{ contentType === 'ARTICLE' ? articles.length : comments.length }}건 </span>
+              <h2 class="text-sm font-semibold text-ink">목록</h2>
+              <span class="text-xs text-subtle"> {{ contentType === 'ARTICLE' ? articles.length : comments.length }}건 </span>
             </div>
 
-            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-              <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
               불러오는 중...
             </div>
 
@@ -302,16 +300,16 @@ onMounted(async () => {
                 <div
                   v-for="article in articles"
                   :key="article.id"
-                  class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
+                  class="rounded-2xl border border-line px-4 py-3 text-left transition dark:border-line"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      <div class="flex items-center gap-2 text-sm font-semibold text-ink">
                         <span>#{{ article.id }}</span>
-                        <span class="text-xs text-slate-400">{{ article.authorName }}</span>
+                        <span class="text-xs text-subtle">{{ article.authorName }}</span>
                       </div>
-                      <p class="mt-1 text-sm text-slate-700 dark:text-slate-200">{{ article.title }}</p>
-                      <p class="mt-1 text-xs text-slate-400">작성 {{ formatDate(article.createdAt) }} · 삭제 {{ formatDate(article.deletedAt) }}</p>
+                      <p class="mt-1 text-sm text-ink">{{ article.title }}</p>
+                      <p class="mt-1 text-xs text-subtle">작성 {{ formatDate(article.createdAt) }} · 삭제 {{ formatDate(article.deletedAt) }}</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                       <span
@@ -328,7 +326,7 @@ onMounted(async () => {
                       </span>
                       <span
                         v-if="article.deletedAt"
-                        class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        class="bg-surface-soft bg-surface-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
                       >
                         삭제됨
                       </span>
@@ -337,7 +335,7 @@ onMounted(async () => {
                   <div class="mt-3 flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                      class="rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted transition hover:border-line hover:text-ink disabled:opacity-40 dark:text-subtle"
                       :disabled="isSubmitting"
                       @click="toggleNotice(article)"
                     >
@@ -359,17 +357,17 @@ onMounted(async () => {
                 <div
                   v-for="comment in comments"
                   :key="comment.id"
-                  class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
+                  class="rounded-2xl border border-line px-4 py-3 text-left transition dark:border-line"
                 >
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                      <div class="flex items-center gap-2 text-sm font-semibold text-ink">
                         <span>#{{ comment.id }}</span>
-                        <span class="text-xs text-slate-400">{{ comment.authorName }}</span>
+                        <span class="text-xs text-subtle">{{ comment.authorName }}</span>
                       </div>
-                      <p class="mt-1 text-xs text-slate-400">게시글: {{ comment.articleTitle }} (#{{ comment.articleId }})</p>
-                      <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">{{ comment.content }}</p>
-                      <p class="mt-1 text-xs text-slate-400">작성 {{ formatDate(comment.createdAt) }} · 삭제 {{ formatDate(comment.deletedAt) }}</p>
+                      <p class="mt-1 text-xs text-subtle">게시글: {{ comment.articleTitle }} (#{{ comment.articleId }})</p>
+                      <p class="mt-2 text-sm text-ink">{{ comment.content }}</p>
+                      <p class="mt-1 text-xs text-subtle">작성 {{ formatDate(comment.createdAt) }} · 삭제 {{ formatDate(comment.deletedAt) }}</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                       <span
@@ -380,7 +378,7 @@ onMounted(async () => {
                       </span>
                       <span
                         v-if="comment.deletedAt"
-                        class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        class="bg-surface-soft bg-surface-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
                       >
                         삭제됨
                       </span>
@@ -407,7 +405,7 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
+            <div class="mt-4 flex items-center justify-between text-sm text-muted">
               <button
                 type="button"
                 class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"

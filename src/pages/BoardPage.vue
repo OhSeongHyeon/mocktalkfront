@@ -227,7 +227,7 @@ watch(
           :link-to="board ? `/b/${board.slug}` : undefined"
         >
           <template #meta>
-            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
               <span class="ui-badge ui-badge-accent">{{ visibilityLabel }} 커뮤니티</span>
               <span class="ui-badge ui-badge-muted">운영자 {{ ownerDisplayName }}</span>
               <span class="ui-badge" :class="board?.memberStatus === 'BANNED' ? 'ui-badge-danger' : 'ui-badge-warning'">{{ memberStatusLabel }}</span>
@@ -268,7 +268,7 @@ watch(
                 </button>
               </div>
 
-              <div v-else class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <div v-else class="flex flex-wrap items-center gap-2 text-xs text-muted">
                 <span class="ui-badge ui-badge-muted">로그인 후 구독과 글쓰기를 사용할 수 있습니다.</span>
               </div>
 
@@ -283,7 +283,7 @@ watch(
           {{ boardError }}
         </div>
 
-        <div v-if="isBoardLoading" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시판 정보를 불러오는 중입니다...</div>
+        <div v-if="isBoardLoading" class="mt-6 text-sm text-muted">게시판 정보를 불러오는 중입니다...</div>
 
         <BoardArticlePanel v-if="board" :board-id="board.id" :board-slug="board.slug" @select="goArticle" />
       </div>

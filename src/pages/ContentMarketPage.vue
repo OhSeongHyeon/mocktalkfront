@@ -428,7 +428,7 @@ onBeforeUnmount(() => {
   <AppShell>
     <PageContainer width="wide">
       <section class="space-y-6">
-        <div class="rounded-[32px] border border-slate-200/80 bg-white px-6 py-8 shadow-sm sm:px-8 dark:border-slate-800/80 dark:bg-slate-950">
+        <div class="bg-surface-soft rounded-[32px] border border-line bg-white px-6 py-8 shadow-sm sm:px-8 dark:border-line">
           <SectionHeader
             eyebrow="Market"
             title="환율 / 금 시세"
@@ -444,36 +444,32 @@ onBeforeUnmount(() => {
               </button>
             </template>
           </SectionHeader>
-          <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">마지막 갱신 {{ lastObservedAtLabel }}</p>
+          <p class="mt-4 text-sm text-muted">마지막 갱신 {{ lastObservedAtLabel }}</p>
         </div>
 
         <div v-if="overviewError" class="ui-state ui-state-danger">
           {{ overviewError }}
         </div>
 
-        <div v-else-if="isOverviewLoading" class="ui-panel px-6 py-8 text-sm text-slate-500 dark:text-slate-400">
-          시세 요약 정보를 불러오는 중입니다.
-        </div>
+        <div v-else-if="isOverviewLoading" class="ui-panel px-6 py-8 text-sm text-muted">시세 요약 정보를 불러오는 중입니다.</div>
 
         <template v-else-if="overview && overview.items.length > 0">
           <div class="ui-panel space-y-6 px-6 py-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Overview</p>
-                <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">통합 그래프</h2>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">Overview</p>
+                <h2 class="ui-heading-page mt-2 text-2xl">통합 그래프</h2>
+                <p class="mt-2 text-sm text-muted">
                   전체 종목 흐름을 한 번에 보고, 아래 탭에서 원하는 종목만 따로 자세히 확인할 수 있습니다. 통합 그래프는 기준일을 100으로 맞춘 상대
                   비교 그래프이고, 금 시세는 화면에서 1g 기준으로 보여줍니다.
                 </p>
               </div>
-              <div
-                class="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-              >
+              <div class="bg-surface-soft rounded-full border border-line px-4 py-2 text-sm font-medium text-muted dark:border-line dark:text-subtle">
                 선택 범위 {{ currentRangeLabel }}
               </div>
             </div>
 
-            <div class="space-y-4 rounded-[28px] border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/70">
+            <div class="bg-surface-soft/80 space-y-4 rounded-[28px] border border-line p-4 dark:border-line">
               <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="시세 기간 전환">
                 <button
                   v-for="option in periodOptions"
@@ -482,8 +478,8 @@ onBeforeUnmount(() => {
                   class="ui-chip-button px-4 py-2 text-sm"
                   :class="
                     selectedPeriod === option.value
-                      ? 'border-slate-900 bg-white text-slate-900 shadow-sm dark:border-slate-100 dark:bg-slate-950 dark:text-slate-100'
-                      : 'ui-chip-button-muted border-transparent text-slate-600 dark:text-slate-300'
+                      ? 'border-[color:var(--accent-strong)] bg-surface text-ink shadow-sm dark:border-line'
+                      : 'ui-chip-button-muted border-transparent text-muted'
                   "
                   :aria-selected="selectedPeriod === option.value"
                   @click="selectPeriod(option.value)"
@@ -493,21 +489,21 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-                <label class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">시작일</span>
+                <label class="space-y-2 text-sm text-muted">
+                  <span class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">시작일</span>
                   <input
                     v-model="customStartDate"
                     type="date"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    class="ui-panel w-full px-4 py-3 text-sm text-ink transition outline-none focus:border-cyan-400"
                     :max="customEndDate || undefined"
                   />
                 </label>
-                <label class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">종료일</span>
+                <label class="space-y-2 text-sm text-muted">
+                  <span class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">종료일</span>
                   <input
                     v-model="customEndDate"
                     type="date"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    class="ui-panel w-full px-4 py-3 text-sm text-ink transition outline-none focus:border-cyan-400"
                     :min="customStartDate || undefined"
                   />
                 </label>
@@ -531,14 +527,9 @@ onBeforeUnmount(() => {
               {{ seriesError }}
             </div>
 
-            <div v-if="isSeriesLoading" class="px-2 py-12 text-sm text-slate-500 dark:text-slate-400">
-              {{ currentRangeLabel }} 통합 그래프를 불러오는 중입니다.
-            </div>
+            <div v-if="isSeriesLoading" class="px-2 py-12 text-sm text-muted">{{ currentRangeLabel }} 통합 그래프를 불러오는 중입니다.</div>
 
-            <div
-              v-else-if="combinedChartSeries.length > 0"
-              class="rounded-[28px] border border-slate-200 bg-white/80 p-2 dark:border-slate-800 dark:bg-slate-950/60"
-            >
+            <div v-else-if="combinedChartSeries.length > 0" class="bg-surface/80 rounded-[28px] border border-line p-2 dark:border-line">
               <ContentMarketChart title="전체 시세 흐름 (기준일=100)" :series="combinedChartSeries" />
             </div>
 
@@ -558,8 +549,8 @@ onBeforeUnmount(() => {
 
           <div class="ui-panel space-y-4 px-6 py-6">
             <div>
-              <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Selector</p>
-              <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">종목 선택</h2>
+              <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">Selector</p>
+              <h2 class="ui-heading-page mt-2 text-2xl">종목 선택</h2>
             </div>
 
             <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-5" role="tablist" aria-label="시세 종목 선택">
@@ -570,8 +561,8 @@ onBeforeUnmount(() => {
                 class="rounded-2xl border px-4 py-3 text-left transition"
                 :class="
                   selectedInstrument === item.instrumentCode
-                    ? 'border-slate-900 bg-slate-900 text-white shadow-sm dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900'
-                    : 'border-slate-200 bg-white text-slate-900 hover:border-slate-300 hover:shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100'
+                    ? 'dark:bg-surface-soft border-[color:var(--accent-strong)] bg-[color:var(--accent-strong)] text-white shadow-sm dark:border-line dark:text-ink'
+                    : 'border-line bg-white text-ink hover:border-line hover:shadow-sm dark:border-line'
                 "
                 :aria-selected="selectedInstrument === item.instrumentCode"
                 @click="selectedInstrument = item.instrumentCode"
@@ -580,7 +571,7 @@ onBeforeUnmount(() => {
                   <div>
                     <p
                       class="text-[11px] font-semibold tracking-[0.16em] uppercase"
-                      :class="selectedInstrument === item.instrumentCode ? 'text-white/70 dark:text-slate-500' : 'text-slate-400 dark:text-slate-500'"
+                      :class="selectedInstrument === item.instrumentCode ? 'text-white/70 dark:text-muted' : 'text-subtle'"
                     >
                       {{ item.displayUnitLabel }}
                     </p>
@@ -590,8 +581,8 @@ onBeforeUnmount(() => {
                     class="rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.12em] uppercase"
                     :class="
                       selectedInstrument === item.instrumentCode
-                        ? 'bg-white/15 text-white dark:bg-slate-900 dark:text-slate-100'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                        ? 'bg-white/15 text-white'
+                        : 'bg-surface-soft bg-surface-2 text-muted dark:text-subtle'
                     "
                   >
                     {{ item.marketGroup === 'FX' ? '환율' : '금 시세' }}
@@ -607,29 +598,27 @@ onBeforeUnmount(() => {
           <div v-if="selectedOverviewItem" class="ui-panel space-y-6 px-6 py-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Detail</p>
-                <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">{{ selectedOverviewItem.displayNameLabel }}</h2>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                <p class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">Detail</p>
+                <h2 class="ui-heading-page mt-2 text-2xl">{{ selectedOverviewItem.displayNameLabel }}</h2>
+                <p class="mt-2 text-sm text-muted">
                   {{ selectedOverviewItem.marketGroup === 'FX' ? '선택한 환율 종목 상세' : '선택한 금 시세 종목 상세 (1g 기준)' }}
                 </p>
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
-                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">현재 값</p>
-                  <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    {{ selectedPriceLabel }} {{ selectedOverviewItem.displayUnitLabel }}
-                  </p>
+                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                  <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">현재 값</p>
+                  <p class="mt-2 text-lg font-semibold text-ink">{{ selectedPriceLabel }} {{ selectedOverviewItem.displayUnitLabel }}</p>
                 </div>
-                <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                  <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">변동</p>
-                  <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ selectedChangeLabel }}</p>
+                <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                  <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">변동</p>
+                  <p class="mt-2 text-lg font-semibold text-ink">{{ selectedChangeLabel }}</p>
                 </div>
               </div>
             </div>
 
             <div
               v-if="selectedSeries && selectedSeries.displayPoints.length > 0"
-              class="rounded-[28px] border border-slate-200 bg-white/80 p-2 dark:border-slate-800 dark:bg-slate-950/60"
+              class="bg-surface/80 rounded-[28px] border border-line p-2 dark:border-line"
             >
               <ContentMarketChart
                 :title="selectedSeries.displayNameLabel"
@@ -639,27 +628,27 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-if="selectedSeriesStats" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 평균값</p>
-                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 평균값</p>
+                <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.average, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
-              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 중위값</p>
-                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 중위값</p>
+                <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.median, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
-              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 최저값</p>
-                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 최저값</p>
+                <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.minimum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>
-              <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-                <p class="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">기간 최고값</p>
-                <p class="mt-2 text-base font-semibold text-slate-900 dark:text-slate-100">
+              <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+                <p class="text-xs font-semibold tracking-[0.16em] text-subtle uppercase dark:text-muted">기간 최고값</p>
+                <p class="mt-2 text-base font-semibold text-ink">
                   {{ formatStatValue(selectedSeriesStats.maximum, selectedOverviewItem) }} {{ selectedOverviewItem.displayUnitLabel }}
                 </p>
               </div>

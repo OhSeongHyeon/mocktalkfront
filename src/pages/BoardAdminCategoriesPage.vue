@@ -170,23 +170,23 @@ onMounted(async () => {
           >
             <template #meta>
               <span class="ui-badge ui-badge-muted">카테고리 {{ categories.length }}건</span>
-              <span class="text-xs text-slate-500 dark:text-slate-400">정렬 기준: 이름 오름차순</span>
+              <span class="text-xs text-muted">정렬 기준: 이름 오름차순</span>
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Board</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">현재 게시판 분류만 표시합니다.</p>
+                <p class="ui-eyebrow">Board</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-muted">현재 게시판 분류만 표시합니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">새 카테고리 등록</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">간단한 이름만 입력하면 바로 생성됩니다.</p>
+                <p class="ui-eyebrow">Create</p>
+                <p class="bbs-row-title mt-2 text-sm">새 카테고리 등록</p>
+                <p class="mt-1 text-xs text-muted">간단한 이름만 입력하면 바로 생성됩니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Edit</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">인라인 수정</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">목록에서 바로 이름을 바꾸고 저장할 수 있습니다.</p>
+                <p class="ui-eyebrow">Edit</p>
+                <p class="bbs-row-title mt-2 text-sm">인라인 수정</p>
+                <p class="mt-1 text-xs text-muted">목록에서 바로 이름을 바꾸고 저장할 수 있습니다.</p>
               </div>
             </div>
           </PageHeader>
@@ -197,16 +197,16 @@ onMounted(async () => {
 
           <div class="grid gap-6 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.94fr)]">
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+              <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
                 <div>
-                  <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">카테고리 목록</h2>
-                  <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">등록 시각과 수정 액션을 한 줄에서 확인합니다.</p>
+                  <h2 class="bbs-row-title text-lg">카테고리 목록</h2>
+                  <p class="mt-1 text-sm text-muted">등록 시각과 수정 액션을 한 줄에서 확인합니다.</p>
                 </div>
                 <span class="ui-badge ui-badge-muted">총 {{ categories.length }}건</span>
               </div>
 
-              <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+              <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+                <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
                 불러오는 중...
               </div>
 
@@ -215,10 +215,10 @@ onMounted(async () => {
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ category.categoryName }}</span>
+                        <span class="bbs-row-title text-sm">{{ category.categoryName }}</span>
                         <span class="ui-badge ui-badge-muted">#{{ category.id }}</span>
                       </div>
-                      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">등록 {{ formatDate(category.createdAt) }}</p>
+                      <p class="mt-2 text-xs text-muted">등록 {{ formatDate(category.createdAt) }}</p>
                     </div>
                     <div class="flex items-center gap-2">
                       <button
@@ -262,21 +262,21 @@ onMounted(async () => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+              <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
                 <div>
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
-                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">카테고리 추가</h2>
+                  <p class="ui-eyebrow">Create</p>
+                  <h2 class="bbs-row-title mt-1 text-lg">카테고리 추가</h2>
                 </div>
               </div>
 
               <div class="mt-6 grid gap-4">
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   카테고리명
                   <input v-model="createName" type="text" class="ui-input" placeholder="예: 자유" />
                 </label>
               </div>
 
-              <div class="ui-toolbar mt-5 justify-between text-xs text-slate-500 dark:text-slate-400">
+              <div class="ui-toolbar mt-5 justify-between text-xs text-muted">
                 <span>등록 후 목록에 즉시 반영됩니다.</span>
                 <button
                   type="button"

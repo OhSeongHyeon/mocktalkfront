@@ -51,9 +51,9 @@ defineExpose({ onKeyDown });
 </script>
 
 <template>
-  <div class="w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-950">
-    <div class="border-b border-slate-100 px-3 py-2 text-xs text-slate-500 dark:border-slate-800">멘션 검색 결과</div>
-    <div v-if="items.length === 0" class="px-3 py-2 text-xs text-slate-400">검색 결과가 없습니다.</div>
+  <div class="w-64 overflow-hidden rounded-xl border border-line bg-surface shadow-lg dark:border-line">
+    <div class="border-b border-line px-3 py-2 text-xs text-muted dark:border-line">멘션 검색 결과</div>
+    <div v-if="items.length === 0" class="px-3 py-2 text-xs text-subtle">검색 결과가 없습니다.</div>
     <button
       v-for="(item, index) in items"
       :key="item.id"
@@ -62,18 +62,18 @@ defineExpose({ onKeyDown });
       :class="
         index === selectedIndex
           ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
-          : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900/60'
+          : 'hover:bg-surface-soft /60 text-muted dark:text-subtle'
       "
       @click="selectItem(index)"
     >
-      <div class="h-7 w-7 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+      <div class="bg-surface-2 bg-surface-2 h-7 w-7 overflow-hidden rounded-full">
         <img v-if="item.profileImageUrl" :src="item.profileImageUrl" :alt="item.handle" class="h-full w-full object-cover" />
       </div>
       <div class="flex flex-col">
-        <span class="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
+        <span class="text-[11px] font-semibold text-ink">
           {{ item.displayName }}
         </span>
-        <span class="text-[11px] text-slate-500 dark:text-slate-400">@{{ item.handle }}</span>
+        <span class="text-[11px] text-muted">@{{ item.handle }}</span>
       </div>
     </button>
   </div>

@@ -22,8 +22,8 @@ const tabs = computed(() => [
   <div class="ui-panel p-5">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
-        <p class="text-[11px] font-bold tracking-[0.2em] text-slate-400 uppercase">Board Admin</p>
-        <h2 class="mt-1 text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</h2>
+        <p class="text-[11px] font-bold tracking-[0.2em] text-subtle uppercase">Board Admin</p>
+        <h2 class="bbs-row-title mt-1 text-xl">{{ boardName }}</h2>
       </div>
       <RouterLink :to="`/b/${slug}`" class="ui-button-ghost h-10 px-4 text-xs"> 게시판으로 이동 </RouterLink>
     </div>

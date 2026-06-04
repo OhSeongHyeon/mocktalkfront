@@ -87,11 +87,33 @@ describe('widgets/layout/SideMenuBar', () => {
     const activeLink = wrapper.find('[aria-current="page"]');
 
     // then
-    expect(wrapper.text()).toContain('메뉴');
+    expect(wrapper.text()).toContain('이동');
     expect(wrapper.text()).toContain('백오피스');
     expect(wrapper.text()).toContain('신고 관리');
     expect(activeLink.text()).toContain('신고 관리');
-    expect(activeLink.classes()).toContain('bg-slate-900');
-    expect(activeLink.text()).toContain('현재 화면');
+    expect(activeLink.classes()).toContain('app-nav-link-active');
+    expect(activeLink.find('svg').exists()).toBe(true);
+  });
+
+  it('compact 모드에서도 메뉴 아이콘을 렌더링한다', async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const router = await createRouterInstance('/');
+    const wrapper = mount(SideMenuBar, {
+      props: {
+        collapsed: true,
+        displayMode: 'collapse',
+        mobileOpen: false,
+        topMenuPositionMode: 'fixed',
+      },
+      global: {
+        plugins: [pinia, router],
+      },
+    });
+
+    const homeLink = wrapper.findAll('.app-nav-link').find((link) => link.attributes('title') === '홈');
+    expect(homeLink).toBeDefined();
+    expect(homeLink!.find('svg').exists()).toBe(true);
+    expect(homeLink!.text()).not.toContain('홈');
   });
 });

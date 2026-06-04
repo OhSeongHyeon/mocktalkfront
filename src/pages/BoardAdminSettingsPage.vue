@@ -226,42 +226,42 @@ onBeforeUnmount(() => {
             <template #meta>
               <span class="ui-badge ui-badge-muted">게시판 ID {{ board.id }}</span>
               <span class="ui-badge ui-badge-accent">{{ form.visibility }}</span>
-              <span class="text-xs text-slate-500 dark:text-slate-400">작성 권한 {{ form.articleWritePolicy }}</span>
+              <span class="text-xs text-muted">작성 권한 {{ form.articleWritePolicy }}</span>
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Profile</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ board.description || '설명이 없습니다.' }}</p>
+                <p class="ui-eyebrow">Profile</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-muted">{{ board.description || '설명이 없습니다.' }}</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Image</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                <p class="ui-eyebrow">Image</p>
+                <p class="bbs-row-title mt-2 text-sm">
                   {{ board.boardImage ? '대표 이미지 설정됨' : '대표 이미지 없음' }}
                 </p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">업로드와 삭제를 같은 패널에서 처리합니다.</p>
+                <p class="mt-1 text-xs text-muted">업로드와 삭제를 같은 패널에서 처리합니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Categories</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ categories.length }}개</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">카테고리 관리 화면으로 바로 이동할 수 있습니다.</p>
+                <p class="ui-eyebrow">Categories</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ categories.length }}개</p>
+                <p class="mt-1 text-xs text-muted">카테고리 관리 화면으로 바로 이동할 수 있습니다.</p>
               </div>
             </div>
           </PageHeader>
 
           <section class="ui-panel p-6">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
-              <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">기본 정보</h2>
+            <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+              <h2 class="bbs-row-title text-lg">기본 정보</h2>
               <span class="ui-badge ui-badge-muted">게시판 ID {{ board.id }}</span>
             </div>
 
             <form class="mt-6 grid gap-4 md:grid-cols-2" @submit.prevent="submitSettings">
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 게시판명
                 <input v-model="form.boardName" type="text" maxlength="255" class="ui-input" placeholder="게시판 이름을 입력하세요" />
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 공개 범위
                 <select v-model="form.visibility" class="ui-select">
                   <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
@@ -270,7 +270,7 @@ onBeforeUnmount(() => {
                 </select>
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 게시글 작성 권한
                 <select v-model="form.articleWritePolicy" class="ui-select">
                   <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
@@ -279,7 +279,7 @@ onBeforeUnmount(() => {
                 </select>
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink md:col-span-2">
                 게시판 설명
                 <textarea v-model="form.description" rows="4" class="ui-textarea" placeholder="게시판 소개를 입력하세요"></textarea>
               </label>
@@ -303,14 +303,14 @@ onBeforeUnmount(() => {
           </section>
 
           <section class="ui-panel p-6">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
-              <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">대표 이미지</h2>
+            <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
+              <h2 class="bbs-row-title text-lg">대표 이미지</h2>
               <span class="ui-badge ui-badge-muted">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
             </div>
 
             <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]">
-              <div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                <div class="relative overflow-hidden rounded-2xl bg-slate-100">
+              <div class="bg-surface-soft/60 rounded-3xl border border-dashed border-line p-4 dark:border-line">
+                <div class="bg-surface-soft relative overflow-hidden rounded-2xl">
                   <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
                   <FileImage
                     v-else-if="board?.boardImage"
@@ -319,14 +319,12 @@ onBeforeUnmount(() => {
                     alt="대표 이미지 미리보기"
                     class="h-48 w-full object-cover"
                   />
-                  <div v-else class="flex h-48 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
+                  <div v-else class="flex h-48 items-center justify-center text-sm text-subtle">대표 이미지가 없습니다.</div>
                 </div>
               </div>
 
               <div class="flex flex-col gap-4">
-                <p class="text-sm text-slate-600 dark:text-slate-300">
-                  대표 이미지는 게시판 카드와 상단 헤더에 노출됩니다. 이미지를 교체하면 이전 이미지는 삭제됩니다.
-                </p>
+                <p class="text-sm text-muted">대표 이미지는 게시판 카드와 상단 헤더에 노출됩니다. 이미지를 교체하면 이전 이미지는 삭제됩니다.</p>
 
                 <div class="flex flex-wrap gap-2">
                   <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`board-admin-image-${fileInputKey}`"> 이미지 선택 </label>
@@ -380,13 +378,13 @@ onBeforeUnmount(() => {
           <section class="ui-panel p-6">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">카테고리 관리</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
+                <h2 class="bbs-row-title text-lg">카테고리 관리</h2>
+                <p class="mt-1 text-sm text-muted">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
               </div>
               <RouterLink :to="`/b/${board.slug}/admin/categories`" class="ui-button-accent h-10 px-4 text-xs"> 카테고리 관리로 이동 </RouterLink>
             </div>
 
-            <div v-if="isCategoryLoading" class="mt-4 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+            <div v-if="isCategoryLoading" class="mt-4 text-sm text-muted">카테고리 목록을 불러오는 중입니다...</div>
             <div v-else-if="categoryError" class="ui-state ui-state-danger mt-4">
               {{ categoryError }}
             </div>
@@ -397,7 +395,7 @@ onBeforeUnmount(() => {
                   {{ category.categoryName }}
                 </span>
               </div>
-              <p v-if="categories.length > 10" class="mt-2 text-xs text-slate-500 dark:text-slate-400">외 {{ categories.length - 10 }}개 카테고리</p>
+              <p v-if="categories.length > 10" class="mt-2 text-xs text-muted">외 {{ categories.length - 10 }}개 카테고리</p>
             </div>
           </section>
         </div>

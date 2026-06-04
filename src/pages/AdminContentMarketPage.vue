@@ -105,14 +105,14 @@ const handleImport = async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">콘텐츠 시세 운영</h1>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <h1 class="ui-heading-page text-2xl">콘텐츠 시세 운영</h1>
+            <p class="mt-1 text-sm text-muted">
               공개 콘텐츠에서 사용하는 환율/금 시세를 수동으로 최신화하거나 CSV/XLSX 파일로 과거 데이터를 반영합니다.
             </p>
           </div>
           <RouterLink
             to="/admin"
-            class="inline-flex items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+            class="hover:bg-surface-soft inline-flex items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
           >
             백오피스 홈
           </RouterLink>
@@ -128,12 +128,12 @@ const handleImport = async () => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">지금 최신화</h2>
-              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">외부 시세 공급자에서 현재 값을 다시 읽어와 스냅샷을 즉시 갱신합니다.</p>
+              <h2 class="text-lg font-semibold text-ink">지금 최신화</h2>
+              <p class="mt-1 text-sm text-muted">외부 시세 공급자에서 현재 값을 다시 읽어와 스냅샷을 즉시 갱신합니다.</p>
             </div>
             <button
               type="button"
-              class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+              class="dark:bg-surface-soft rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:text-ink dark:hover:bg-white"
               :disabled="isRefreshLoading || isImportLoading"
               @click="handleRefresh"
             >
@@ -142,21 +142,21 @@ const handleImport = async () => {
           </div>
 
           <div v-if="refreshResult" class="mt-5 grid gap-3 md:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">실행 시각</p>
-              <p class="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">{{ formatDateTime(refreshResult.executedAt) }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실행 시각</p>
+              <p class="mt-2 text-sm font-semibold text-ink">{{ formatDateTime(refreshResult.executedAt) }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">생성</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ refreshResult.createdCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.createdCount }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">갱신</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ refreshResult.updatedCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">갱신</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.updatedCount }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">스킵</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ refreshResult.skippedCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">스킵</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ refreshResult.skippedCount }}</p>
             </div>
           </div>
         </section>
@@ -164,14 +164,12 @@ const handleImport = async () => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">시세 데이터 임포트</h2>
-              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                통합 파일 또는 종목별 파일을 업로드해 과거 시세 데이터를 보강합니다. 허용 형식은 CSV, XLSX입니다.
-              </p>
+              <h2 class="text-lg font-semibold text-ink">시세 데이터 임포트</h2>
+              <p class="mt-1 text-sm text-muted">통합 파일 또는 종목별 파일을 업로드해 과거 시세 데이터를 보강합니다. 허용 형식은 CSV, XLSX입니다.</p>
             </div>
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+              class="hover:bg-surface-soft rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="!selectedFile || isImportLoading"
               @click="resetFileSelection"
             >
@@ -180,14 +178,14 @@ const handleImport = async () => {
           </div>
 
           <div class="mt-5 space-y-5">
-            <div class="inline-flex rounded-full border border-slate-200 bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-900/80">
+            <div class="bg-surface-soft/80 inline-flex rounded-full border border-line p-1 dark:border-line">
               <button
                 type="button"
                 class="ui-chip-button px-4 py-2 text-sm"
                 :class="
                   importMode === 'UNIFIED'
-                    ? 'border-slate-900 bg-white text-slate-900 shadow-sm dark:border-slate-100 dark:bg-slate-950 dark:text-slate-100'
-                    : 'ui-chip-button-muted border-transparent text-slate-600 dark:text-slate-300'
+                    ? 'border-[color:var(--accent-strong)] bg-surface text-ink shadow-sm dark:border-line'
+                    : 'ui-chip-button-muted border-transparent text-muted'
                 "
                 @click="importMode = 'UNIFIED'"
               >
@@ -198,8 +196,8 @@ const handleImport = async () => {
                 class="ui-chip-button px-4 py-2 text-sm"
                 :class="
                   importMode === 'SINGLE'
-                    ? 'border-slate-900 bg-white text-slate-900 shadow-sm dark:border-slate-100 dark:bg-slate-950 dark:text-slate-100'
-                    : 'ui-chip-button-muted border-transparent text-slate-600 dark:text-slate-300'
+                    ? 'border-[color:var(--accent-strong)] bg-surface text-ink shadow-sm dark:border-line'
+                    : 'ui-chip-button-muted border-transparent text-muted'
                 "
                 @click="importMode = 'SINGLE'"
               >
@@ -208,9 +206,9 @@ const handleImport = async () => {
             </div>
 
             <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-                <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">업로드 가이드</h3>
-                <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+                <h3 class="text-sm font-semibold text-ink">업로드 가이드</h3>
+                <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                   <li>
                     필수 컬럼은 <code class="font-mono text-[0.95em]">instrument_code</code>,
                     <code class="font-mono text-[0.95em]">observed_at</code>, <code class="font-mono text-[0.95em]">price_value</code>입니다.
@@ -229,12 +227,12 @@ const handleImport = async () => {
                 </ul>
               </div>
 
-              <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-                <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">선택 파일</p>
-                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">{{ selectedFileName }}</p>
+              <div class="bg-surface-soft rounded-3xl border border-line bg-white/80 p-4 dark:border-line">
+                <p class="text-sm font-semibold text-ink">선택 파일</p>
+                <p class="mt-2 text-sm text-muted">{{ selectedFileName }}</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                   <label
-                    class="inline-flex cursor-pointer items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+                    class="hover:bg-surface-soft inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line"
                   >
                     CSV / XLSX 선택
                     <input :key="fileInputKey" type="file" class="hidden" accept=".csv,.xlsx" @change="onFileChange" />
@@ -249,11 +247,11 @@ const handleImport = async () => {
                   </button>
                 </div>
 
-                <label v-if="importMode === 'SINGLE'" class="mt-5 block space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  <span class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">종목 선택</span>
+                <label v-if="importMode === 'SINGLE'" class="mt-5 block space-y-2 text-sm text-muted">
+                  <span class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">종목 선택</span>
                   <select
                     v-model="selectedInstrument"
-                    class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-cyan-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    class="ui-panel w-full px-4 py-3 text-sm text-ink transition outline-none focus:border-cyan-400"
                   >
                     <option v-for="option in instrumentOptions" :key="option.value" :value="option.value">
                       {{ option.label }}
@@ -265,25 +263,25 @@ const handleImport = async () => {
           </div>
 
           <div v-if="importResult" class="mt-6 grid gap-3 md:grid-cols-5">
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">전체 row</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.totalCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">전체 row</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.totalCount }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">생성</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.createdCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">생성</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.createdCount }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">갱신</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.updatedCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">갱신</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.updatedCount }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">스킵</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.skippedCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">스킵</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.skippedCount }}</p>
             </div>
-            <div class="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/80">
-              <p class="text-xs font-semibold tracking-[0.12em] text-slate-400 uppercase dark:text-slate-500">실패</p>
-              <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">{{ importResult.failedCount }}</p>
+            <div class="bg-surface-soft/80 rounded-2xl border border-line px-4 py-3 dark:border-line">
+              <p class="text-xs font-semibold tracking-[0.12em] text-subtle uppercase dark:text-muted">실패</p>
+              <p class="mt-2 text-lg font-semibold text-ink">{{ importResult.failedCount }}</p>
             </div>
           </div>
 

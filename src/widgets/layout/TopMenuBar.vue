@@ -11,12 +11,10 @@ import { applyTheme, getThemeState, subscribeThemeChange } from '../../shared/li
 import type { ResolvedTheme } from '../../shared/lib/theme';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
+import { Bell, Menu, Moon, Search, Sun } from '@lucide/vue';
+
 import defaultAvatar from '../../assets/default-avatar.svg';
-import iconBell from '../../assets/icons/icon-bell.svg';
-import iconMoon from '../../assets/icons/icon-moon.svg';
-import iconSearch from '../../assets/icons/icon-search.svg';
-import iconStack from '../../assets/icons/icon-stack.svg';
-import iconSun from '../../assets/icons/icon-sun.svg';
+import AppIcon from '../../shared/ui/AppIcon.vue';
 
 const emit = defineEmits<{
   (event: 'toggle-menu'): void;
@@ -59,8 +57,7 @@ const nextThemeLabel = computed(() => (resolvedTheme.value === 'dark' ? '화이�
 const themeToggleLabel = computed(() => `테마 전환, 현재 ${currentThemeLabel.value}, 클릭 시 ${nextThemeLabel.value}`);
 const searchKeyword = ref('');
 const brandMarkSrc = '/mocktalk_favicon_color.svg';
-const menuPanelClass =
-  'absolute right-0 top-full mt-2 overflow-hidden rounded-[0.7rem] border border-slate-200 bg-white shadow-[0_16px_32px_-24px_rgba(15,23,42,0.28)] dark:border-slate-800 dark:bg-slate-900';
+const menuPanelClass = 'ui-menu-dropdown absolute right-0 top-full mt-2';
 const { stopNotificationPresence } = useNotificationPresence({
   isAuthenticated,
   isNotificationMenuOpen,
@@ -277,42 +274,33 @@ const handleDeleteAllNotifications = async () => {
 <template>
   <header
     data-testid="top-menu-bar"
-    class="relative z-50 h-[3.75rem] border-b border-slate-200 bg-slate-50/95 backdrop-blur transition-transform duration-200 dark:border-slate-700 dark:bg-slate-950/96"
+    class="app-header relative z-50 h-[3.75rem] transition-transform duration-200"
     :class="props.hiddenByScroll ? '-translate-y-full' : 'translate-y-0'"
   >
     <div class="flex h-full w-full items-center justify-between gap-3 px-3 sm:px-4 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-4">
       <div class="flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5">
         <button type="button" class="ui-icon-button h-10 w-10 shrink-0" aria-label="사이드 메뉴 열기" @click="emit('toggle-menu')">
-          <img :src="iconStack" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
+          <AppIcon :icon="Menu" :size="18" />
         </button>
 
         <RouterLink to="/" class="min-w-0 shrink">
           <div class="flex items-center gap-2">
-            <img :src="brandMarkSrc" alt="" aria-hidden="true" class="h-8 w-8 shrink-0 rounded-[0.55rem]" />
-            <p class="truncate text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">MockTalk</p>
+            <img :src="brandMarkSrc" alt="" aria-hidden="true" class="app-brand-mark h-8 w-8 shrink-0" />
+            <p class="app-brand-title truncate">MockTalk</p>
           </div>
         </RouterLink>
       </div>
 
-      <form
-        class="hidden h-10 w-full max-w-[720px] items-center gap-2 justify-self-center rounded-[0.6rem] border border-slate-200 bg-white px-2 py-0 md:flex dark:border-slate-700 dark:bg-slate-900"
-        @submit.prevent="handleSearch"
-      >
+      <form class="ui-search-field hidden w-full max-w-[720px] justify-self-center md:flex" @submit.prevent="handleSearch">
         <label class="sr-only" for="global-search">검색</label>
-        <input
-          id="global-search"
-          v-model="searchKeyword"
-          type="search"
-          placeholder="통합검색"
-          class="h-full min-w-0 flex-1 border-0 bg-transparent px-2 text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-50 dark:placeholder:text-slate-400"
-        />
+        <input id="global-search" v-model="searchKeyword" type="search" placeholder="검색" class="ui-search-input" />
         <button
           type="submit"
           data-testid="desktop-search-button"
-          class="ui-icon-button h-8 w-8 shrink-0 border-0 bg-slate-100 p-0 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-600"
+          class="ui-icon-button bg-surface-soft h-8 w-8 shrink-0 border-0 p-0"
           aria-label="검색 실행"
         >
-          <img :src="iconSearch" alt="" aria-hidden="true" class="h-4 w-4" />
+          <AppIcon :icon="Search" :size="16" />
         </button>
       </form>
 
@@ -324,7 +312,7 @@ const handleDeleteAllNotifications = async () => {
           aria-label="검색 페이지 열기"
           @click="openSearch"
         >
-          <img :src="iconSearch" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
+          <AppIcon :icon="Search" :size="18" />
         </button>
 
         <button
@@ -335,8 +323,8 @@ const handleDeleteAllNotifications = async () => {
           :title="themeToggleLabel"
           @click="toggleTheme"
         >
-          <img v-if="resolvedTheme === 'dark'" :src="iconSun" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
-          <img v-else :src="iconMoon" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
+          <AppIcon v-if="resolvedTheme === 'dark'" :icon="Sun" :size="18" />
+          <AppIcon v-else :icon="Moon" :size="18" />
         </button>
 
         <div v-if="isAuthenticated" class="relative">
@@ -349,7 +337,7 @@ const handleDeleteAllNotifications = async () => {
             :aria-expanded="isNotificationMenuOpen"
             @click="toggleNotificationMenu"
           >
-            <img :src="iconBell" alt="" aria-hidden="true" class="h-[1.125rem] w-[1.125rem]" />
+            <AppIcon :icon="Bell" :size="18" />
             <span
               v-if="notificationUnreadCount > 0"
               class="absolute -top-1 -right-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white"
@@ -360,10 +348,10 @@ const handleDeleteAllNotifications = async () => {
           </button>
 
           <div v-if="isNotificationMenuOpen" ref="notificationMenuRef" :class="[menuPanelClass, 'w-[23rem]']" role="menu">
-            <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+            <div class="flex items-center justify-between border-b border-line px-4 py-3">
               <div>
-                <p class="text-sm font-bold text-slate-900 dark:text-slate-100">알림</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-400">최근 상호작용을 빠르게 확인합니다.</p>
+                <p class="text-sm font-bold text-ink">알림</p>
+                <p class="ui-caption">최근 상호작용을 빠르게 확인합니다.</p>
               </div>
               <div class="flex items-center gap-2">
                 <button
@@ -377,7 +365,7 @@ const handleDeleteAllNotifications = async () => {
                 <button
                   v-if="hasUnreadNotifications"
                   type="button"
-                  class="text-xs font-semibold text-slate-500 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-50"
+                  class="text-xs font-semibold text-muted transition hover:text-ink"
                   @click="handleMarkAllRead"
                 >
                   모두 읽음
@@ -386,7 +374,7 @@ const handleDeleteAllNotifications = async () => {
             </div>
 
             <div class="ui-scrollbar max-h-88 overflow-y-auto p-3">
-              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-slate-500 dark:text-slate-300">불러오는 중...</div>
+              <div v-if="notificationLoading" class="px-3 py-4 text-sm text-muted">불러오는 중...</div>
               <div v-else-if="notificationError" class="ui-state ui-state-danger text-sm font-semibold">
                 {{ notificationError }}
               </div>
@@ -404,17 +392,14 @@ const handleDeleteAllNotifications = async () => {
                       <span v-if="!notification.read" class="inline-flex h-2 w-2 rounded-full bg-rose-400" aria-hidden="true"></span>
                       <span
                         class="text-[11px] font-bold tracking-[0.14em] uppercase"
-                        :class="notification.read ? 'text-slate-400 dark:text-slate-400' : 'text-brand-700 dark:text-brand-300'"
+                        :class="notification.read ? 'text-subtle' : 'text-brand-700 dark:text-brand-300'"
                       >
                         {{ notification.read ? '읽음' : '새 알림' }}
                       </span>
                     </div>
-                    <span class="text-xs text-slate-400 dark:text-slate-400">{{ formatNotificationDate(notification.createdAt) }}</span>
+                    <span class="ui-caption">{{ formatNotificationDate(notification.createdAt) }}</span>
                   </div>
-                  <p
-                    class="text-sm leading-6"
-                    :class="notification.read ? 'text-slate-500 dark:text-slate-300' : 'text-slate-700 dark:text-slate-100'"
-                  >
+                  <p class="text-sm leading-6" :class="notification.read ? 'text-muted' : 'text-ink'">
                     {{ formatNotificationMessage(notification) }}
                   </p>
                 </button>
@@ -440,25 +425,25 @@ const handleDeleteAllNotifications = async () => {
             <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
           </button>
           <div v-if="isProfileMenuOpen" ref="profileMenuRef" :class="[menuPanelClass, 'w-64']" role="menu">
-            <div class="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+            <div class="border-b border-line px-4 py-3">
               <div class="flex items-center gap-3">
-                <div class="h-10 w-10 overflow-hidden rounded-[0.6rem] border border-slate-200 dark:border-slate-800">
+                <div class="h-10 w-10 overflow-hidden rounded-[var(--radius-md)] border border-line">
                   <img :src="resolvedAvatar" alt="프로필 이미지" class="h-full w-full object-cover" />
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{{ resolvedDisplayName }}</p>
-                  <p class="text-xs text-slate-500 dark:text-slate-300">포인트 {{ resolvedPoint }}P</p>
+                  <p class="truncate text-sm font-bold text-ink">{{ resolvedDisplayName }}</p>
+                  <p class="ui-caption">포인트 {{ resolvedPoint }}P</p>
                 </div>
               </div>
             </div>
             <div class="space-y-2 p-3">
               <button type="button" class="ui-list-row w-full cursor-pointer text-left" role="menuitem" @click="openMyPage">
-                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">마이페이지</span>
-                <span class="text-xs text-slate-500 dark:text-slate-300">프로필과 활동 기록을 관리합니다.</span>
+                <span class="text-sm font-semibold text-ink">마이페이지</span>
+                <span class="ui-caption">프로필과 활동 기록을 관리합니다.</span>
               </button>
               <button type="button" class="ui-list-row w-full cursor-pointer text-left" role="menuitem" @click="openBoardCreate">
-                <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">커뮤니티 개설</span>
-                <span class="text-xs text-slate-500 dark:text-slate-300">새 게시판을 만들고 운영을 시작합니다.</span>
+                <span class="text-sm font-semibold text-ink">커뮤니티 개설</span>
+                <span class="ui-caption">새 게시판을 만들고 운영을 시작합니다.</span>
               </button>
               <button
                 type="button"

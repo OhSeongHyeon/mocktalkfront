@@ -191,12 +191,10 @@ onMounted(async () => {
             <template #meta>
               <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <span class="ui-badge ui-badge-accent">표시 {{ reports.length }}건</span>
-              <span class="text-xs text-slate-500 dark:text-slate-400">{{
-                statusFilter === 'ALL' ? '전체 상태' : `${formatModerationStatusLabel(statusFilter)} 상태`
-              }}</span>
+              <span class="text-xs text-muted">{{ statusFilter === 'ALL' ? '전체 상태' : `${formatModerationStatusLabel(statusFilter)} 상태` }}</span>
             </template>
             <template #actions>
-              <label class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">상태</label>
+              <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">상태</label>
               <select v-model="statusFilter" class="ui-select min-w-[9rem]">
                 <option v-for="option in MODERATION_STATUS_OPTIONS" :key="option" :value="option">
                   {{ option === 'ALL' ? '전체' : formatModerationStatusLabel(option) }}
@@ -205,21 +203,21 @@ onMounted(async () => {
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Board</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">게시판 전용 신고 큐입니다.</p>
+                <p class="ui-eyebrow">Board</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-muted">게시판 전용 신고 큐입니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Selected</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+                <p class="ui-eyebrow">Selected</p>
+                <p class="bbs-row-title mt-2 text-sm">
                   {{ selectedReport ? `#${selectedReport.id}` : '미선택' }}
                 </p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">좌측 목록에서 신고를 선택하면 상세가 갱신됩니다.</p>
+                <p class="mt-1 text-xs text-muted">좌측 목록에서 신고를 선택하면 상세가 갱신됩니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Action</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">상태 변경 + 메모 기록</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">처리 메모는 운영 판단 근거로 남깁니다.</p>
+                <p class="ui-eyebrow">Action</p>
+                <p class="bbs-row-title mt-2 text-sm">상태 변경 + 메모 기록</p>
+                <p class="mt-1 text-xs text-muted">처리 메모는 운영 판단 근거로 남깁니다.</p>
               </div>
             </div>
           </PageHeader>

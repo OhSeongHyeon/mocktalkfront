@@ -14,7 +14,7 @@ type BaseModalProps = {
 const props = withDefaults(defineProps<BaseModalProps>(), {
   closeOnBackdrop: true,
   closeOnEsc: true,
-  overlayClass: 'bg-slate-900/40',
+  overlayClass: 'bg-[var(--surface-overlay)]',
   panelClass: '',
   size: 'md',
   ariaLabel: '모달',
@@ -34,7 +34,7 @@ const panelClasses = computed(() => {
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
   };
-  const base = `relative w-full ${sizeMap[props.size] ?? sizeMap.md} rounded-[0.8rem] border border-slate-200 bg-white p-5 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.26)] dark:border-slate-800 dark:bg-slate-900`;
+  const base = `relative w-full ${sizeMap[props.size] ?? sizeMap.md} rounded-[0.8rem] border border-line bg-surface p-5 shadow-[0_18px_36px_-28px_rgba(15,23,42,0.26)] dark:border-line `;
   return [base, props.panelClass].filter(Boolean).join(' ');
 });
 

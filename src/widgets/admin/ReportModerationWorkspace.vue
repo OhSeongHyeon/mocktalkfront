@@ -106,10 +106,10 @@ const handleProcess = () => {
 <template>
   <div class="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
     <section class="ui-panel p-5">
-      <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+      <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
         <div>
-          <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 목록</h2>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ listDescription }}</p>
+          <h2 class="bbs-row-title text-lg">신고 목록</h2>
+          <p class="mt-1 text-sm text-muted">{{ listDescription }}</p>
         </div>
         <span class="ui-badge ui-badge-muted">총 {{ reports.length }}건</span>
       </div>
@@ -118,8 +118,8 @@ const handleProcess = () => {
         {{ listError }}
       </div>
 
-      <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-        <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+      <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-muted">
+        <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
         불러오는 중...
       </div>
 
@@ -130,26 +130,26 @@ const handleProcess = () => {
           :data-testid="`report-row-${item.id}`"
           type="button"
           class="ui-list-row text-left"
-          :class="[item.id === selectedId ? 'border-[color:var(--line-strong)] bg-white/95 shadow-sm dark:bg-slate-900/80' : '']"
+          :class="[item.id === selectedId ? '/80 border-[color:var(--line-strong)] bg-white/95 shadow-sm' : '']"
           @click="handleSelectReport(item.id)"
         >
           <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
             <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                 <span :class="resolveModerationStatusBadgeClass(item.status)">{{ formatModerationStatusLabel(item.status) }}</span>
                 <span class="ui-badge ui-badge-muted">{{ item.targetType }}</span>
                 <span>대상 {{ item.targetId }}</span>
               </div>
               <div class="mt-2 flex flex-wrap items-center gap-2">
-                <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">#{{ item.id }}</span>
-                <span class="truncate text-sm text-slate-600 dark:text-slate-300">사유 {{ item.reasonCode }}</span>
+                <span class="bbs-row-title text-sm">#{{ item.id }}</span>
+                <span class="truncate text-sm text-muted">사유 {{ item.reasonCode }}</span>
               </div>
-              <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              <p class="mt-2 text-xs text-muted">
                 신고자 {{ item.reporterUserId }} · 접수 {{ formatKoreanDateTime(item.createdAt, item.createdAt) }}
               </p>
             </div>
 
-            <div class="text-xs text-slate-400 md:text-right">
+            <div class="text-xs text-subtle md:text-right">
               <p>처리 {{ formatKoreanDateTime(item.processedAt) }}</p>
             </div>
           </div>
@@ -158,7 +158,7 @@ const handleProcess = () => {
         <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ listEmptyMessage }}</div>
       </div>
 
-      <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+      <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
         <button
           data-testid="report-previous"
           type="button"
@@ -182,10 +182,10 @@ const handleProcess = () => {
     </section>
 
     <section class="ui-panel p-5">
-      <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+      <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
         <div>
-          <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Detail</p>
-          <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h2>
+          <p class="ui-eyebrow">Detail</p>
+          <h2 class="bbs-row-title mt-1 text-lg">신고 상세</h2>
         </div>
         <div v-if="selectedReport" :class="resolveModerationStatusBadgeClass(selectedReport.status)">
           {{ formatModerationStatusLabel(selectedReport.status) }}
@@ -196,60 +196,60 @@ const handleProcess = () => {
         {{ detailError }}
       </div>
 
-      <div v-if="isLoadingDetail" class="mt-6 text-sm text-slate-500">상세 정보를 불러오는 중...</div>
+      <div v-if="isLoadingDetail" class="mt-6 text-sm text-muted">상세 정보를 불러오는 중...</div>
 
       <div v-else-if="selectedReport" class="mt-6 space-y-6">
         <div v-if="detailCards.length > 0" class="grid gap-3 md:grid-cols-2">
           <div v-for="card in detailCards" :key="card.eyebrow" class="ui-data-panel p-4">
-            <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">
+            <p class="ui-eyebrow">
               {{ card.eyebrow }}
             </p>
-            <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+            <p class="bbs-row-title mt-2 text-sm">
               {{ card.title }}
             </p>
-            <p v-if="card.description" class="mt-2 text-xs text-slate-500 dark:text-slate-400">{{ card.description }}</p>
+            <p v-if="card.description" class="mt-2 text-xs text-muted">{{ card.description }}</p>
           </div>
         </div>
 
         <div
           v-if="detailRows.length > 0"
-          class="grid gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
+          class="bg-surface-soft bg-surface-soft/80 grid gap-4 rounded-2xl border border-line p-4 text-sm text-muted dark:border-line dark:text-subtle"
         >
           <div v-for="row in detailRows" :key="row.label" class="flex flex-wrap justify-between gap-3">
             <span>{{ row.label }}</span>
-            <span class="font-semibold text-slate-900 dark:text-slate-100">{{ row.value ?? '-' }}</span>
+            <span class="font-semibold text-ink">{{ row.value ?? '-' }}</span>
           </div>
         </div>
 
         <div>
-          <h3 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">신고 상세</h3>
+          <h3 class="bbs-row-title text-sm">신고 상세</h3>
           <p
-            class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm leading-6 text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
+            class="bg-surface-soft mt-2 rounded-2xl border border-line bg-white/80 px-4 py-3 text-sm leading-6 text-muted dark:border-line dark:text-subtle"
           >
             {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
           </p>
         </div>
 
         <div v-if="selectedReportSnapshot">
-          <h3 class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">대상 스냅샷</h3>
+          <h3 class="bbs-row-title text-sm">대상 스냅샷</h3>
           <pre
-            class="ui-scrollbar mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
+            class="ui-scrollbar bg-surface-soft bg-surface-strong mt-2 max-h-64 overflow-auto rounded-2xl border border-line px-4 py-3 text-xs text-[color:var(--surface-0)] dark:border-line"
             >{{ selectedReportSnapshot }}</pre
           >
         </div>
 
-        <div class="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-          <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div class="bg-surface-soft grid gap-4 rounded-2xl border border-line bg-white/80 p-4 dark:border-line">
+          <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
             <span>접수 {{ formatKoreanDateTime(selectedReport.createdAt, selectedReport.createdAt) }}</span>
             <span>처리 {{ formatKoreanDateTime(selectedReport.processedAt) }}</span>
           </div>
-          <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 상태</label>
+          <label class="text-xs font-semibold tracking-[0.2em] text-subtle uppercase">처리 상태</label>
           <select v-model="processStatusModel" class="ui-select">
             <option v-for="option in MODERATION_STATUS_OPTIONS.filter((item) => item !== 'ALL')" :key="option" :value="option">
               {{ formatModerationStatusLabel(option) }}
             </option>
           </select>
-          <label class="text-xs font-semibold tracking-[0.2em] text-slate-400 uppercase">처리 메모</label>
+          <label class="text-xs font-semibold tracking-[0.2em] text-subtle uppercase">처리 메모</label>
           <textarea v-model="processNoteModel" rows="4" class="ui-textarea" placeholder="처리 결과와 사유를 간단히 기록하세요."></textarea>
           <button
             data-testid="report-process"

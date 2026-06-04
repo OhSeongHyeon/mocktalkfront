@@ -143,23 +143,18 @@ const onYoutubeSizeChange = (event: Event) => {
           {{ option.label }}
         </option>
       </select>
-      <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">
+      <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
         글자색
-        <input
-          :value="textColor"
-          type="color"
-          class="h-7 w-7 rounded border border-slate-200 p-0.5 dark:border-slate-800"
-          @input="onTextColorChange"
-        />
+        <input :value="textColor" type="color" class="h-7 w-7 rounded border border-line p-0.5 dark:border-line" @input="onTextColorChange" />
       </label>
       <button type="button" :class="buttonClass()" @click="actions.applyTextColor">적용</button>
       <button type="button" :class="buttonClass()" @click="actions.clearTextColor">해제</button>
-      <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-300">
+      <label class="inline-flex items-center gap-1 text-[11px] font-semibold text-muted">
         형광
         <input
           :value="highlightColor"
           type="color"
-          class="h-7 w-7 rounded border border-slate-200 p-0.5 dark:border-slate-800"
+          class="h-7 w-7 rounded border border-line p-0.5 dark:border-line"
           @input="onHighlightColorChange"
         />
       </label>

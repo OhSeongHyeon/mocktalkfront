@@ -1008,7 +1008,7 @@ onUnmounted(() => {
           :link-to="article?.board?.slug ? boardLinkWithFilter : undefined"
         >
           <template #actions>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
               <button type="button" class="ui-chip-button ui-chip-button-muted" @click="goBoard">게시판으로</button>
               <button
                 v-if="isAuthor"
@@ -1037,17 +1037,17 @@ onUnmounted(() => {
         <div v-else class="mt-6 space-y-6">
           <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
             <article class="ui-panel overflow-hidden">
-              <div class="border-b border-slate-200/80 px-5 py-5 sm:px-6 dark:border-slate-800/80">
+              <div class="border-b border-line px-5 py-5 sm:px-6">
                 <div class="flex flex-wrap items-center gap-2">
                   <span v-if="article?.notice" class="ui-badge ui-badge-warning">공지</span>
                   <span v-if="articleCategoryLabel" class="ui-badge ui-badge-success">{{ articleCategoryLabel }}</span>
                   <span class="ui-badge ui-badge-muted">{{ articleVisibilityLabel }}</span>
                   <span class="ui-badge ui-badge-muted">댓글 {{ article?.commentCount ?? 0 }}</span>
                 </div>
-                <h1 class="mt-3 text-2xl font-black tracking-tight text-slate-900 sm:text-[2rem] dark:text-slate-100">
+                <h1 class="ui-heading-page mt-3 text-2xl sm:text-[2rem]">
                   {{ article?.title ?? '' }}
                 </h1>
-                <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-slate-500 dark:text-slate-400">
+                <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted">
                   <span>{{ article?.authorName ?? '작성자' }}</span>
                   <span>조회 {{ article?.hit ?? 0 }}</span>
                   <span>{{ article?.createdAt ? formatDateTime(article.createdAt) : '' }}</span>
@@ -1057,13 +1057,13 @@ onUnmounted(() => {
 
               <div class="px-5 py-5 sm:px-6">
                 <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
-                <div v-else class="text-sm text-slate-500 dark:text-slate-400">본문이 없습니다.</div>
+                <div v-else class="text-sm text-muted">본문이 없습니다.</div>
               </div>
             </article>
 
             <aside class="space-y-4">
               <section class="ui-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Quick Actions</p>
+                <p class="ui-eyebrow">Quick Actions</p>
                 <div class="mt-3 flex flex-col gap-2">
                   <button type="button" class="ui-button-ghost h-10 px-4 text-sm" @click="goBoard">게시판으로</button>
                   <button v-if="isAuthor" type="button" class="ui-button-primary h-10 px-4 text-sm" @click="goEdit">수정</button>
@@ -1074,8 +1074,8 @@ onUnmounted(() => {
               <section class="ui-panel p-4">
                 <div class="flex items-center justify-between gap-2">
                   <div>
-                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Reaction</p>
-                    <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">반응과 보관</h2>
+                    <p class="ui-eyebrow">Reaction</p>
+                    <h2 class="ui-heading-section mt-1">반응과 보관</h2>
                   </div>
                   <span class="ui-badge" :class="isAuthenticated ? 'ui-badge-success' : 'ui-badge-muted'">
                     {{ isAuthenticated ? '사용 가능' : '로그인 필요' }}
@@ -1110,16 +1110,14 @@ onUnmounted(() => {
                     {{ article?.bookmarked ? '북마크됨' : '북마크' }}
                   </button>
                 </div>
-                <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  로그인 후 반응과 북마크를 사용할 수 있습니다.
-                </p>
+                <p v-if="!isAuthenticated" class="mt-3 text-xs leading-5 text-muted">로그인 후 반응과 북마크를 사용할 수 있습니다.</p>
               </section>
 
               <section class="ui-panel p-4">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Attachment</p>
-                    <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">첨부파일 {{ attachments.length }}개</h2>
+                    <p class="ui-eyebrow">Attachment</p>
+                    <h2 class="ui-heading-section mt-1">첨부파일 {{ attachments.length }}개</h2>
                   </div>
                   <button
                     type="button"
@@ -1147,8 +1145,8 @@ onUnmounted(() => {
                     <div v-for="file in attachments" :key="file.id" class="ui-list-row">
                       <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0 flex-1">
-                          <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{{ file.fileName }}</p>
-                          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ file.mimeType }}</p>
+                          <p class="truncate text-sm font-semibold text-ink">{{ file.fileName }}</p>
+                          <p class="mt-1 text-xs text-muted">{{ file.mimeType }}</p>
                         </div>
                         <span class="ui-badge ui-badge-muted">{{ formatFileSize(file.fileSize) }}</span>
                       </div>
@@ -1161,11 +1159,11 @@ onUnmounted(() => {
           </div>
 
           <section class="ui-panel overflow-hidden">
-            <div class="border-b border-slate-200/80 px-5 py-4 sm:px-6 dark:border-slate-800/80">
+            <div class="border-b border-line px-5 py-4 sm:px-6">
               <div class="flex items-center justify-between gap-3">
                 <div>
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Comment</p>
-                  <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">댓글</h2>
+                  <p class="ui-eyebrow">Comment</p>
+                  <h2 class="ui-heading-section mt-1">댓글</h2>
                 </div>
                 <span class="ui-badge ui-badge-muted">총 {{ article?.commentCount ?? 0 }}개</span>
               </div>
@@ -1217,7 +1215,7 @@ onUnmounted(() => {
                 />
               </div>
 
-              <div v-if="comments && comments.totalPages > 1" class="ui-toolbar mt-4 justify-between text-xs text-slate-500 dark:text-slate-400">
+              <div v-if="comments && comments.totalPages > 1" class="ui-toolbar mt-4 justify-between text-xs text-muted">
                 <button
                   type="button"
                   class="ui-button-ghost h-9 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
@@ -1237,15 +1235,15 @@ onUnmounted(() => {
                 </button>
               </div>
 
-              <div v-if="isCommentLoading" class="mt-3 text-xs text-slate-500">댓글을 불러오는 중입니다...</div>
+              <div v-if="isCommentLoading" class="mt-3 text-xs text-muted">댓글을 불러오는 중입니다...</div>
             </div>
           </section>
 
           <section class="space-y-3">
             <div class="flex items-center justify-between gap-3">
               <div>
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Related Feed</p>
-                <h2 class="mt-1 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">같은 게시판의 다른 글</h2>
+                <p class="ui-eyebrow">Related Feed</p>
+                <h2 class="ui-heading-section mt-1">같은 게시판의 다른 글</h2>
               </div>
               <span class="ui-badge ui-badge-muted">{{ article?.board?.boardName ?? '커뮤니티' }}</span>
             </div>
@@ -1253,7 +1251,7 @@ onUnmounted(() => {
           </section>
         </div>
 
-        <div v-if="isLoading" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중입니다...</div>
+        <div v-if="isLoading" class="mt-6 text-sm text-muted">게시글을 불러오는 중입니다...</div>
       </div>
     </PageContainer>
 

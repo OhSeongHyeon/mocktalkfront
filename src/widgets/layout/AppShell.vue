@@ -35,11 +35,7 @@ defineExpose({
 </script>
 
 <template>
-  <div
-    data-testid="app-shell"
-    class="flex flex-col bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100"
-    :class="isFixedTopMenu ? 'h-screen overflow-hidden' : 'min-h-screen'"
-  >
+  <div data-testid="app-shell" class="app-shell flex flex-col" :class="isFixedTopMenu ? 'h-screen overflow-hidden' : 'min-h-screen'">
     <template v-if="isFixedTopMenu">
       <div data-testid="top-menu-wrapper" class="h-[3.75rem] shrink-0">
         <TopMenuBar @toggle-menu="toggleMenu" />

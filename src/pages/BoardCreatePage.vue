@@ -9,8 +9,10 @@ import { resolveBoardVisibilityOptions, type BoardVisibility } from '../entities
 import { createBoard, uploadBoardImage } from '../entities/board';
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import { LayoutGrid } from '@lucide/vue';
+
+import AppIcon from '../shared/ui/AppIcon.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
-import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -124,8 +126,8 @@ onBeforeUnmount(() => {
         <section class="ui-panel p-6 sm:p-7">
           <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="space-y-2">
-              <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">커뮤니티 개설</h1>
-              <p class="text-sm text-slate-500 dark:text-slate-400">게시판명, 슬러그, 공개 범위를 설정하고 필요하면 대표 이미지를 등록하세요.</p>
+              <h1 class="ui-heading-page text-2xl">커뮤니티 개설</h1>
+              <p class="ui-lead">게시판명, 슬러그, 공개 범위를 설정하고 필요하면 대표 이미지를 등록하세요.</p>
             </div>
             <span
               class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200"
@@ -138,23 +140,23 @@ onBeforeUnmount(() => {
         <form class="space-y-6" @submit.prevent="handleSubmit">
           <section class="ui-panel p-6 sm:p-7">
             <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">기본 정보</h2>
-              <span class="text-xs text-slate-400">필수 항목</span>
+              <h2 class="ui-heading-section">기본 정보</h2>
+              <span class="ui-caption">필수 항목</span>
             </div>
 
             <div class="mt-5 grid gap-5 md:grid-cols-2">
-              <label for="board-name" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label for="board-name" class="ui-field-label flex flex-col gap-2">
                 게시판명
                 <input id="board-name" v-model="form.boardName" type="text" placeholder="예: 자유게시판" class="ui-input" />
               </label>
 
-              <label for="board-slug" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label for="board-slug" class="ui-field-label flex flex-col gap-2">
                 슬러그
                 <input id="board-slug" v-model="form.slug" type="text" placeholder="예: free-talk" class="ui-input" />
-                <span class="text-xs font-normal text-slate-500 dark:text-slate-400">영문 소문자, 숫자, 하이픈 사용을 권장합니다.</span>
+                <span class="ui-caption font-normal">영문 소문자, 숫자, 하이픈 사용을 권장합니다.</span>
               </label>
 
-              <label for="board-visibility" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label for="board-visibility" class="ui-field-label flex flex-col gap-2">
                 공개 범위
                 <select id="board-visibility" v-model="form.visibility" class="ui-input">
                   <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
@@ -163,7 +165,7 @@ onBeforeUnmount(() => {
                 </select>
               </label>
 
-              <label for="board-article-write-policy" class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label for="board-article-write-policy" class="ui-field-label flex flex-col gap-2">
                 게시글 작성 권한
                 <select id="board-article-write-policy" v-model="form.articleWritePolicy" class="ui-input">
                   <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
@@ -172,7 +174,7 @@ onBeforeUnmount(() => {
                 </select>
               </label>
 
-              <label for="board-description" class="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2 dark:text-slate-200">
+              <label for="board-description" class="ui-field-label flex flex-col gap-2 md:col-span-2">
                 설명
                 <textarea
                   id="board-description"
@@ -188,18 +190,18 @@ onBeforeUnmount(() => {
           <section class="ui-panel p-6 sm:p-7">
             <div class="flex items-center justify-between gap-2">
               <div>
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대표 이미지</h2>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">JPG/PNG 등 이미지 파일만 업로드 가능합니다.</p>
+                <h2 class="ui-heading-section">대표 이미지</h2>
+                <p class="ui-caption mt-1">JPG/PNG 등 이미지 파일만 업로드 가능합니다.</p>
               </div>
               <button v-if="form.boardImage" type="button" class="ui-chip-button ui-chip-button-muted" @click="clearImage">선택 해제</button>
             </div>
 
             <div class="mt-5 grid gap-5 md:grid-cols-[220px_minmax(0,1fr)]">
               <div class="ui-sub-panel aspect-[4/3] overflow-hidden p-2">
-                <div class="h-full w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
+                <div class="bg-surface-soft h-full w-full overflow-hidden rounded-[var(--radius-md)]">
                   <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-full w-full object-cover" />
-                  <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                    <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-6 w-6" />
+                  <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-subtle">
+                    <AppIcon :icon="LayoutGrid" :size="24" icon-class="text-muted" />
                     <span class="text-xs">이미지 미리보기</span>
                   </div>
                 </div>
@@ -210,11 +212,11 @@ onBeforeUnmount(() => {
                   id="board-image"
                   type="file"
                   accept="image/*"
-                  class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border file:border-slate-200 file:bg-slate-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-700 hover:file:border-slate-300 hover:file:bg-slate-100 dark:text-slate-300 dark:file:border-slate-700 dark:file:bg-slate-800 dark:file:text-slate-100 dark:hover:file:border-slate-600 dark:hover:file:bg-slate-700"
+                  class="file:bg-surface-1 hover:file:bg-surface-soft block w-full text-sm text-muted file:mr-3 file:rounded-[var(--radius-sm)] file:border file:border-line file:px-4 file:py-2 file:text-sm file:font-semibold file:text-ink"
                   aria-label="대표 이미지 업로드"
                   @change="handleImageChange"
                 />
-                <p class="text-xs text-slate-500 dark:text-slate-400">파일 크기는 50MB 이하여야 합니다.</p>
+                <p class="ui-caption">파일 크기는 50MB 이하여야 합니다.</p>
               </div>
             </div>
           </section>
@@ -230,11 +232,7 @@ onBeforeUnmount(() => {
           </p>
 
           <div class="flex items-center justify-end">
-            <button
-              type="submit"
-              class="ui-chip-button border-slate-900 bg-slate-900 px-6 py-3 text-sm text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-              :disabled="isSubmitting"
-            >
+            <button type="submit" class="ui-button-accent h-10 px-6 text-sm disabled:cursor-not-allowed disabled:opacity-60" :disabled="isSubmitting">
               {{ isSubmitting ? '개설 중...' : '커뮤니티 개설' }}
             </button>
           </div>

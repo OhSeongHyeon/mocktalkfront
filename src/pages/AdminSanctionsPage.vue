@@ -178,10 +178,10 @@ watch(scopeFilter, async () => {
           <template #meta>
             <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
             <span class="ui-badge ui-badge-accent">표시 {{ sanctions.length }}건</span>
-            <span class="text-xs text-slate-500 dark:text-slate-400">{{ scopeFilter === 'ALL' ? '전체 범위' : `${scopeFilter} 범위` }}</span>
+            <span class="text-xs text-muted">{{ scopeFilter === 'ALL' ? '전체 범위' : `${scopeFilter} 범위` }}</span>
           </template>
           <template #actions>
-            <label class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">범위</label>
+            <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">범위</label>
             <select v-model="scopeFilter" class="ui-select min-w-[9rem]">
               <option v-for="option in scopeOptions" :key="option" :value="option">
                 {{ option === 'ALL' ? '전체' : option }}
@@ -190,21 +190,21 @@ watch(scopeFilter, async () => {
           </template>
           <div class="grid gap-3 md:grid-cols-3">
             <div class="ui-data-panel p-4">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Scope</p>
-              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+              <p class="ui-eyebrow">Scope</p>
+              <p class="bbs-row-title mt-2 text-sm">
                 {{ scopeFilter === 'ALL' ? 'GLOBAL + BOARD' : scopeFilter }}
               </p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">필터된 범위에 맞는 제재만 목록에 표시합니다.</p>
+              <p class="mt-1 text-xs text-muted">필터된 범위에 맞는 제재만 목록에 표시합니다.</p>
             </div>
             <div class="ui-data-panel p-4">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Register</p>
-              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">회원번호 + 제재 사유</p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">BOARD 범위일 때만 게시판 번호를 함께 입력합니다.</p>
+              <p class="ui-eyebrow">Register</p>
+              <p class="bbs-row-title mt-2 text-sm">회원번호 + 제재 사유</p>
+              <p class="mt-1 text-xs text-muted">BOARD 범위일 때만 게시판 번호를 함께 입력합니다.</p>
             </div>
             <div class="ui-data-panel p-4">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Revoke</p>
-              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">해제 사유 필수</p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">활성 제재만 해제할 수 있으며, 이력은 유지됩니다.</p>
+              <p class="ui-eyebrow">Revoke</p>
+              <p class="bbs-row-title mt-2 text-sm">해제 사유 필수</p>
+              <p class="mt-1 text-xs text-muted">활성 제재만 해제할 수 있으며, 이력은 유지됩니다.</p>
             </div>
           </div>
         </PageHeader>
@@ -215,16 +215,16 @@ watch(scopeFilter, async () => {
 
         <div class="grid gap-6 xl:grid-cols-[minmax(0,0.98fr)_minmax(0,1.02fr)]">
           <section class="ui-panel p-5">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+            <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
               <div>
-                <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">제재 목록</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">활성, 종료, 해제 상태를 같은 규칙으로 확인합니다.</p>
+                <h2 class="bbs-row-title text-lg">제재 목록</h2>
+                <p class="mt-1 text-sm text-muted">활성, 종료, 해제 상태를 같은 규칙으로 확인합니다.</p>
               </div>
               <span class="ui-badge ui-badge-muted">총 {{ sanctions.length }}건</span>
             </div>
 
-            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-              <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
               불러오는 중...
             </div>
 
@@ -232,19 +232,17 @@ watch(scopeFilter, async () => {
               <div v-for="sanction in sanctions" :key="sanction.id" class="ui-list-row">
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
                   <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span :class="statusBadgeClass(sanction)">{{ resolveStatusLabel(sanction) }}</span>
                       <span class="ui-badge ui-badge-muted">{{ sanction.sanctionType }}</span>
                       <span>{{ sanction.scopeType }}</span>
                     </div>
                     <div class="mt-2 flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">#{{ sanction.id }}</span>
-                      <span class="text-sm text-slate-600 dark:text-slate-300">대상 {{ sanction.userId }}</span>
-                      <span class="text-xs text-slate-400">게시판 {{ sanction.boardId ?? '-' }}</span>
+                      <span class="bbs-row-title text-sm">#{{ sanction.id }}</span>
+                      <span class="text-sm text-muted">대상 {{ sanction.userId }}</span>
+                      <span class="text-xs text-subtle">게시판 {{ sanction.boardId ?? '-' }}</span>
                     </div>
-                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      시작 {{ formatDate(sanction.startsAt) }} · 종료 {{ formatDate(sanction.endsAt) }}
-                    </p>
+                    <p class="mt-2 text-xs text-muted">시작 {{ formatDate(sanction.startsAt) }} · 종료 {{ formatDate(sanction.endsAt) }}</p>
                   </div>
 
                   <div class="flex items-center justify-start md:justify-end">
@@ -258,13 +256,13 @@ watch(scopeFilter, async () => {
                     </button>
                   </div>
                 </div>
-                <div class="text-xs text-slate-400">해제 시각 {{ formatDate(sanction.revokedAt) }}</div>
+                <div class="text-xs text-subtle">해제 시각 {{ formatDate(sanction.revokedAt) }}</div>
               </div>
 
               <div v-if="sanctions.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 제재가 없습니다.</div>
             </div>
 
-            <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+            <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
               <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
                 이전
               </button>
@@ -281,20 +279,20 @@ watch(scopeFilter, async () => {
           </section>
 
           <section class="ui-panel p-5">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+            <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
               <div>
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
-                <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">제재 등록</h2>
+                <p class="ui-eyebrow">Create</p>
+                <h2 class="bbs-row-title mt-1 text-lg">제재 등록</h2>
               </div>
             </div>
 
             <div class="mt-6 grid gap-4 md:grid-cols-2">
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 대상 회원번호
                 <input v-model="form.userId" type="number" class="ui-input" placeholder="예: 7" />
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 제재 범위
                 <select v-model="form.scopeType" class="ui-select">
                   <option value="GLOBAL">GLOBAL</option>
@@ -302,18 +300,18 @@ watch(scopeFilter, async () => {
                 </select>
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 게시판 번호
                 <input
                   v-model="form.boardId"
                   type="number"
                   :disabled="formBoardDisabled"
-                  class="ui-input disabled:cursor-not-allowed disabled:bg-slate-100/80 dark:disabled:bg-slate-900/60"
+                  class="ui-input disabled:bg-surface-soft/80 disabled:cursor-not-allowed dark:disabled:opacity-60"
                   placeholder="BOARD 범위일 때"
                 />
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 제재 유형
                 <select v-model="form.sanctionType" class="ui-select">
                   <option value="MUTE">MUTE</option>
@@ -322,23 +320,23 @@ watch(scopeFilter, async () => {
                 </select>
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 md:col-span-2 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink md:col-span-2">
                 제재 사유
                 <textarea v-model="form.reason" rows="4" class="ui-textarea" placeholder="사유를 입력하세요."></textarea>
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 종료 일시
                 <input v-model="form.endsAt" type="datetime-local" class="ui-input" />
               </label>
 
-              <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+              <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                 연계 신고 번호
                 <input v-model="form.reportId" type="number" class="ui-input" placeholder="선택" />
               </label>
             </div>
 
-            <div class="ui-toolbar mt-5 justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div class="ui-toolbar mt-5 justify-between text-xs text-muted">
               <span>등록 즉시 목록을 다시 조회합니다.</span>
               <button
                 type="button"
@@ -354,9 +352,9 @@ watch(scopeFilter, async () => {
       </div>
     </PageContainer>
 
-    <BaseModal :open="Boolean(revokeTarget)" overlay-class="bg-slate-900/50" aria-label="제재 해제" @close="closeRevokeModal">
-      <h3 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">제재 해제</h3>
-      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">제재 #{{ revokeTarget?.id ?? '' }} 해제 사유를 입력하세요.</p>
+    <BaseModal :open="Boolean(revokeTarget)" overlay-class="bg-[var(--surface-overlay)]" aria-label="제재 해제" @close="closeRevokeModal">
+      <h3 class="bbs-row-title text-lg">제재 해제</h3>
+      <p class="mt-2 text-sm text-muted">제재 #{{ revokeTarget?.id ?? '' }} 해제 사유를 입력하세요.</p>
       <textarea v-model="revokeReason" rows="4" class="ui-textarea mt-4" placeholder="해제 사유"></textarea>
       <div class="mt-4 flex justify-end gap-2">
         <button type="button" class="ui-button-ghost h-10 px-4 text-xs" @click="closeRevokeModal">취소</button>

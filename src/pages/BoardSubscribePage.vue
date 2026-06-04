@@ -5,7 +5,9 @@ import { ApiError } from '../shared/lib/http/api';
 import { getBoardSubscribes, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
 import type { BoardSubscribeItemResponse } from '../entities/board';
 import FileImage from '../entities/file/ui/FileImage.vue';
-import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
+import { LayoutGrid } from '@lucide/vue';
+
+import AppIcon from '../shared/ui/AppIcon.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import { formatKoreanDate } from '../shared/lib/date';
@@ -71,18 +73,18 @@ onMounted(() => {
           {{ listError }}
         </div>
 
-        <div v-if="subscribes.length > 0" class="space-y-2">
+        <div v-if="subscribes.length > 0" class="bbs-box overflow-hidden">
           <div
-            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 rounded-[0.55rem] border border-slate-200 bg-slate-50 px-4 py-2 text-[11px] font-semibold text-slate-500 md:grid dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+            class="bg-surface-1 hidden grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] gap-3 border-b border-line px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
             <span>이미지</span>
             <span>게시판</span>
             <span class="text-center">공개 범위</span>
             <span class="text-center">구독일</span>
           </div>
-          <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
+          <RouterLink v-for="board in subscribes" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
             <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_7rem_7rem] md:items-center">
-              <div class="h-14 overflow-hidden rounded-[0.55rem] border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+              <div class="bg-surface-soft h-14 overflow-hidden rounded-[var(--radius-md)] border border-line">
                 <FileImage
                   v-if="board.boardImage"
                   :file="board.boardImage"
@@ -90,22 +92,20 @@ onMounted(() => {
                   :alt="board.boardName"
                   class="h-full w-full object-cover"
                 />
-                <div v-else class="flex h-full w-full items-center justify-center text-slate-400">
-                  <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-5 w-5" />
+                <div v-else class="flex h-full w-full items-center justify-center text-subtle">
+                  <AppIcon :icon="LayoutGrid" :size="20" icon-class="text-muted" />
                 </div>
               </div>
 
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="ui-badge ui-badge-accent">구독중</span>
-                  <span class="text-xs text-slate-400 dark:text-slate-500">/{{ board.slug }}</span>
+                  <span class="bbs-meta">/{{ board.slug }}</span>
                 </div>
-                <h2
-                  class="group-hover:text-brand-700 dark:group-hover:text-brand-300 mt-1 truncate text-sm font-black tracking-tight text-slate-900 transition dark:text-slate-100"
-                >
+                <h2 class="bbs-row-title mt-1 truncate transition group-hover:text-link">
                   {{ board.boardName }}
                 </h2>
-                <p class="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                <p class="ui-caption mt-1 line-clamp-1 leading-5">
                   {{ resolveBoardSummaryDescription(board.description) }}
                 </p>
               </div>
@@ -114,7 +114,7 @@ onMounted(() => {
                 <span class="ui-badge ui-badge-muted">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
               </div>
 
-              <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 md:block md:text-center dark:text-slate-400">
+              <div class="bbs-meta flex flex-wrap items-center gap-2 md:block md:text-center">
                 <span class="ui-badge ui-badge-success md:hidden">구독일 {{ formatKoreanDate(board.subscribedAt) }}</span>
                 <span class="hidden md:inline">{{ formatKoreanDate(board.subscribedAt) }}</span>
               </div>
@@ -124,12 +124,12 @@ onMounted(() => {
 
         <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 구독 중인 커뮤니티가 없습니다.</div>
 
-        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
+          <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
           구독 목록을 불러오는 중입니다.
         </div>
 
-        <div v-if="showPagination" class="ui-toolbar justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div v-if="showPagination" class="ui-toolbar justify-between text-xs text-muted">
           <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"

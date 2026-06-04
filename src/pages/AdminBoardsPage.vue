@@ -421,39 +421,39 @@ onBeforeUnmount(() => {
           <template #meta>
             <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
             <span class="ui-badge ui-badge-accent">표시 {{ boards.length }}건</span>
-            <span class="text-xs text-slate-500 dark:text-slate-400">{{ filterSummary }}</span>
+            <span class="text-xs text-muted">{{ filterSummary }}</span>
           </template>
           <div class="grid gap-3 md:grid-cols-3">
             <div class="ui-data-panel p-4">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Filter</p>
-              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+              <p class="ui-eyebrow">Filter</p>
+              <p class="bbs-row-title mt-2 text-sm">
                 {{ visibilityFilter === 'ALL' ? '전체 공개 범위' : visibilityLabel(visibilityFilter) }}
               </p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p class="mt-1 text-xs text-muted">
                 삭제 포함 {{ includeDeleted ? 'ON' : 'OFF' }} · 정렬 {{ sortBy === 'UPDATED_AT' ? '수정일' : '생성일' }}
               </p>
             </div>
             <div class="ui-data-panel p-4">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Selected</p>
-              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">
+              <p class="ui-eyebrow">Selected</p>
+              <p class="bbs-row-title mt-2 text-sm">
                 {{ selectedBoard ? selectedBoard.boardName : '게시판 미선택' }}
               </p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">우측 편집 패널은 선택한 게시판 기준으로 동작합니다.</p>
+              <p class="mt-1 text-xs text-muted">우측 편집 패널은 선택한 게시판 기준으로 동작합니다.</p>
             </div>
             <div class="ui-data-panel p-4">
-              <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
-              <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">새 게시판 생성</p>
-              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">슬러그와 공개 범위를 지정한 뒤 바로 생성할 수 있습니다.</p>
+              <p class="ui-eyebrow">Create</p>
+              <p class="bbs-row-title mt-2 text-sm">새 게시판 생성</p>
+              <p class="mt-1 text-xs text-muted">슬러그와 공개 범위를 지정한 뒤 바로 생성할 수 있습니다.</p>
             </div>
           </div>
         </PageHeader>
 
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
           <section class="ui-panel p-5">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+            <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
               <div>
-                <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">게시판 목록</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">필터와 검색을 적용한 결과만 좌측 큐에 표시합니다.</p>
+                <h2 class="bbs-row-title text-lg">게시판 목록</h2>
+                <p class="mt-1 text-sm text-muted">필터와 검색을 적용한 결과만 좌측 큐에 표시합니다.</p>
               </div>
               <span class="ui-badge ui-badge-muted">총 {{ boards.length }}건</span>
             </div>
@@ -474,25 +474,21 @@ onBeforeUnmount(() => {
                   {{ option.label }}
                 </option>
               </select>
-              <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                <input
-                  v-model="includeDeleted"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
+              <label class="flex items-center gap-2 text-xs font-semibold text-muted">
+                <input v-model="includeDeleted" type="checkbox" class="h-4 w-4 rounded border-line text-ink focus:ring-[color:var(--accent-ring)]" />
                 삭제 포함
               </label>
               <input v-model="keyword" type="search" class="ui-input min-w-[13rem] flex-1" placeholder="게시판명 또는 슬러그 검색" />
               <button type="button" class="ui-button-primary h-10 px-4 text-xs" @click="applyFilters">적용</button>
             </div>
-            <p class="mt-2 text-xs text-slate-400">{{ filterSummary }}</p>
+            <p class="mt-2 text-xs text-subtle">{{ filterSummary }}</p>
 
             <div v-if="listError" class="ui-state ui-state-danger mt-4">
               {{ listError }}
             </div>
 
-            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-              <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
               불러오는 중...
             </div>
 
@@ -502,11 +498,11 @@ onBeforeUnmount(() => {
                 :key="item.id"
                 type="button"
                 class="ui-list-row text-left"
-                :class="[item.id === selectedBoardId ? 'border-[color:var(--line-strong)] bg-white/95 shadow-sm dark:bg-slate-900/80' : '']"
+                :class="[item.id === selectedBoardId ? '/80 border-[color:var(--line-strong)] bg-white/95 shadow-sm' : '']"
                 @click="selectBoard(item.id)"
               >
                 <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_auto] md:items-start">
-                  <div class="h-14 overflow-hidden rounded-2xl bg-slate-100">
+                  <div class="bg-surface-soft h-14 overflow-hidden rounded-2xl">
                     <FileImage
                       v-if="item.boardImage"
                       :file="item.boardImage"
@@ -514,11 +510,11 @@ onBeforeUnmount(() => {
                       alt="게시판 대표 이미지"
                       class="h-full w-full object-cover"
                     />
-                    <div v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-slate-400">NO</div>
+                    <div v-else class="flex h-full w-full items-center justify-center text-xs font-semibold text-subtle">NO</div>
                   </div>
 
                   <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span :class="item.deletedAt ? 'ui-badge ui-badge-danger' : 'ui-badge ui-badge-success'">
                         {{ item.deletedAt ? '삭제됨' : '활성' }}
                       </span>
@@ -527,13 +523,13 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div class="mt-2 flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ item.boardName }}</span>
-                      <span class="text-xs text-slate-400">/b/{{ item.slug }}</span>
+                      <span class="bbs-row-title text-sm">{{ item.boardName }}</span>
+                      <span class="text-xs text-subtle">/b/{{ item.slug }}</span>
                     </div>
-                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{{ item.description || '설명이 없습니다.' }}</p>
+                    <p class="mt-2 line-clamp-2 text-xs leading-5 text-muted">{{ item.description || '설명이 없습니다.' }}</p>
                   </div>
 
-                  <div class="text-xs text-slate-400 md:text-right">
+                  <div class="text-xs text-subtle md:text-right">
                     <p>생성 {{ formatDate(item.createdAt) }}</p>
                     <p class="mt-1">수정 {{ formatDate(item.updatedAt) }}</p>
                   </div>
@@ -543,7 +539,7 @@ onBeforeUnmount(() => {
               <div v-if="boards.length === 0" class="ui-state ui-state-empty px-4 py-10">등록된 게시판이 없습니다.</div>
             </div>
 
-            <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+            <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
               <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
                 이전
               </button>
@@ -561,25 +557,25 @@ onBeforeUnmount(() => {
 
           <div class="flex flex-col gap-6">
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+              <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
                 <div>
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Create</p>
-                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">새 게시판 생성</h2>
+                  <p class="ui-eyebrow">Create</p>
+                  <h2 class="bbs-row-title mt-1 text-lg">새 게시판 생성</h2>
                 </div>
               </div>
 
               <form class="mt-6 space-y-4" @submit.prevent="submitCreate">
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   게시판명
                   <input v-model="createForm.boardName" type="text" maxlength="255" class="ui-input" placeholder="게시판 이름을 입력하세요" />
                 </label>
 
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   슬러그
                   <input v-model="createForm.slug" type="text" maxlength="80" class="ui-input" placeholder="예: notice" />
                 </label>
 
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   공개 범위
                   <select v-model="createForm.visibility" class="ui-select">
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
@@ -588,20 +584,20 @@ onBeforeUnmount(() => {
                   </select>
                 </label>
 
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   게시판 설명
                   <textarea v-model="createForm.description" rows="3" class="ui-textarea" placeholder="게시판 소개를 입력하세요"></textarea>
                 </label>
 
-                <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                  <div class="flex items-center justify-between text-sm font-semibold text-slate-600 dark:text-slate-200">
+                <div class="bg-surface-soft/70 rounded-2xl border border-dashed border-line p-4 dark:border-line">
+                  <div class="flex items-center justify-between text-sm font-semibold text-muted">
                     대표 이미지(선택)
-                    <span class="text-xs text-slate-400">생성 후 업로드</span>
+                    <span class="text-xs text-subtle">생성 후 업로드</span>
                   </div>
                   <div class="mt-3 flex flex-col gap-3">
-                    <div class="overflow-hidden rounded-2xl bg-slate-100">
+                    <div class="bg-surface-soft overflow-hidden rounded-2xl">
                       <img v-if="createPreviewUrl" :src="createPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
-                      <div v-else class="flex h-40 items-center justify-center text-sm text-slate-400">선택된 이미지가 없습니다.</div>
+                      <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">선택된 이미지가 없습니다.</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
                       <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`admin-create-image-${createFileInputKey}`">
@@ -646,10 +642,10 @@ onBeforeUnmount(() => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+              <div class="bg-surface-soft flex items-center justify-between gap-3 border border-b border-line pb-3 dark:border-line">
                 <div>
-                  <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Edit</p>
-                  <h2 class="mt-1 text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">선택 게시판 수정</h2>
+                  <p class="ui-eyebrow">Edit</p>
+                  <h2 class="bbs-row-title mt-1 text-lg">선택 게시판 수정</h2>
                 </div>
                 <span v-if="selectedBoard" class="ui-badge ui-badge-muted">ID {{ selectedBoard.id }}</span>
               </div>
@@ -657,17 +653,17 @@ onBeforeUnmount(() => {
               <div v-if="!selectedBoard" class="ui-state ui-state-empty mt-6 px-4 py-10">목록에서 게시판을 선택해주세요.</div>
 
               <form v-else class="mt-6 space-y-4" @submit.prevent="submitUpdate">
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   게시판명
                   <input v-model="editForm.boardName" type="text" maxlength="255" class="ui-input" />
                 </label>
 
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   슬러그
                   <input v-model="editForm.slug" type="text" maxlength="80" class="ui-input" />
                 </label>
 
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   공개 범위
                   <select v-model="editForm.visibility" class="ui-select">
                     <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
@@ -676,18 +672,18 @@ onBeforeUnmount(() => {
                   </select>
                 </label>
 
-                <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
                   게시판 설명
                   <textarea v-model="editForm.description" rows="3" class="ui-textarea"></textarea>
                 </label>
 
-                <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                  <div class="flex items-center justify-between text-sm font-semibold text-slate-600 dark:text-slate-200">
+                <div class="bg-surface-soft/70 rounded-2xl border border-dashed border-line p-4 dark:border-line">
+                  <div class="flex items-center justify-between text-sm font-semibold text-muted">
                     대표 이미지
-                    <span class="text-xs text-slate-400">{{ selectedBoard.boardImage ? '설정됨' : '없음' }}</span>
+                    <span class="text-xs text-subtle">{{ selectedBoard.boardImage ? '설정됨' : '없음' }}</span>
                   </div>
                   <div class="mt-3 grid gap-3">
-                    <div class="overflow-hidden rounded-2xl bg-slate-100">
+                    <div class="bg-surface-soft overflow-hidden rounded-2xl">
                       <img v-if="editPreviewUrl" :src="editPreviewUrl" alt="대표 이미지 미리보기" class="h-40 w-full object-cover" />
                       <FileImage
                         v-else-if="selectedBoard?.boardImage"
@@ -696,7 +692,7 @@ onBeforeUnmount(() => {
                         alt="대표 이미지 미리보기"
                         class="h-40 w-full object-cover"
                       />
-                      <div v-else class="flex h-40 items-center justify-center text-sm text-slate-400">대표 이미지가 없습니다.</div>
+                      <div v-else class="flex h-40 items-center justify-center text-sm text-subtle">대표 이미지가 없습니다.</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
                       <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`admin-edit-image-${editFileInputKey}`">

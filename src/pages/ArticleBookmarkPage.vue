@@ -133,7 +133,7 @@ onMounted(() => {
         <PageHeader title="보관함" description="북마크한 게시글을 모아볼 수 있습니다." />
 
         <div class="ui-toolbar justify-between gap-3 px-4 py-3">
-          <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div class="flex items-center gap-2 text-xs text-muted">
             <span class="ui-badge ui-badge-muted">선택 {{ selectedIds.length }}개</span>
             <button
               type="button"
@@ -158,8 +158,8 @@ onMounted(() => {
           {{ listError }}
         </div>
 
-        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-muted">
+          <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
           북마크 목록을 불러오는 중입니다.
         </div>
 

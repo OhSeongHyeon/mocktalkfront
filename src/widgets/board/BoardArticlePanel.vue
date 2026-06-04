@@ -378,13 +378,11 @@ watch(
 <template>
   <section class="ui-panel mt-6 overflow-hidden">
     <div class="px-4 py-4 sm:px-5">
-      <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-800">
+      <div class="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-3">
         <div class="min-w-0">
-          <p class="text-[11px] font-bold tracking-[0.16em] text-slate-400 uppercase dark:text-slate-500">Board Feed</p>
-          <h2 class="mt-1 text-base font-black tracking-tight text-slate-900 dark:text-slate-100">게시글 탐색</h2>
-          <p class="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
-            카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 좁혀볼 수 있습니다.
-          </p>
+          <p class="ui-eyebrow">Board Feed</p>
+          <h2 class="ui-heading-section mt-1">게시글 탐색</h2>
+          <p class="ui-lead mt-1">카테고리와 검색을 조합해 현재 게시판의 글을 빠르게 좁혀볼 수 있습니다.</p>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -394,7 +392,7 @@ watch(
         </div>
       </div>
 
-      <div v-if="isCategoryLoading" class="mt-3 text-sm text-slate-500 dark:text-slate-400">카테고리 목록을 불러오는 중입니다...</div>
+      <div v-if="isCategoryLoading" class="mt-3 text-sm text-muted">카테고리 목록을 불러오는 중입니다...</div>
       <div v-else-if="categoryErrorMessage" class="ui-state ui-state-danger mt-4">
         {{ categoryErrorMessage }}
       </div>
@@ -430,7 +428,7 @@ watch(
   </section>
 
   <form class="ui-toolbar mt-4 text-sm" @submit.prevent="handleSearch">
-    <label for="board-search" class="text-xs font-semibold tracking-[0.16em] text-slate-500 uppercase dark:text-slate-400">게시글 검색</label>
+    <label for="board-search" class="ui-field-label">게시글 검색</label>
     <input id="board-search" v-model="searchKeyword" type="search" placeholder="게시글 제목/본문/작성자 검색" class="ui-input min-w-[220px] flex-1" />
     <button
       type="submit"
@@ -474,5 +472,5 @@ watch(
     @update:page="handlePageChange"
   />
 
-  <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-slate-500 dark:text-slate-400">게시글을 불러오는 중...</div>
+  <div v-if="isLoading && articles.length > 0" class="mt-6 text-sm text-muted">게시글을 불러오는 중...</div>
 </template>

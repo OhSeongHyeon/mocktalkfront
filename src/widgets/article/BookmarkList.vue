@@ -63,11 +63,11 @@ const handlePageChange = (page: number) => {
 
 <template>
   <section class="mt-6">
-    <div class="ui-toolbar gap-3 text-xs text-slate-500 dark:text-slate-400">
+    <div class="ui-toolbar gap-3 text-xs text-muted">
       <label class="flex items-center gap-2">
         <input
           type="checkbox"
-          class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-200 dark:border-slate-700"
+          class="h-4 w-4 rounded border-line text-emerald-600 focus:ring-emerald-200"
           :checked="allSelected"
           :disabled="items.length === 0"
           @change="handleToggleAll"
@@ -84,19 +84,19 @@ const handlePageChange = (page: number) => {
         <div class="flex items-start gap-3">
           <input
             type="checkbox"
-            class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-200 dark:border-slate-700"
+            class="mt-1 h-4 w-4 rounded border-line text-emerald-600 focus:ring-emerald-200"
             :checked="selectedSet.has(item.id)"
             @change="handleToggle(item.id)"
           />
           <div class="min-w-0 flex-1">
             <button
               type="button"
-              class="text-left text-sm font-semibold text-slate-900 hover:text-slate-700 dark:text-slate-100 dark:hover:text-white"
+              class="text-left text-sm font-semibold text-ink hover:text-ink dark:hover:text-white"
               @click="handleSelect(item.id)"
             >
               {{ item.title }}
             </button>
-            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
               <span>{{ item.authorName }}</span>
               <span>{{ formatKoreanDate(item.createdAt) }}</span>
               <span>댓글 {{ item.commentCount }}</span>
@@ -109,7 +109,7 @@ const handlePageChange = (page: number) => {
       </article>
     </div>
 
-    <div v-if="showPagination" class="ui-toolbar mt-4 justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+    <div v-if="showPagination" class="ui-toolbar mt-4 justify-between gap-3 text-xs text-muted">
       <div class="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -127,8 +127,8 @@ const handlePageChange = (page: number) => {
             class="h-8 rounded-[0.55rem] border px-3 text-xs font-semibold transition"
             :class="
               pageIndex === currentPage
-                ? 'border-[color:var(--line-strong)] bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                ? 'border-[color:var(--line-strong)] bg-white text-ink'
+                : 'hover:bg-surface-soft border-line text-muted dark:border-line dark:text-subtle'
             "
             :disabled="isLoading"
             @click="handlePageChange(pageIndex)"

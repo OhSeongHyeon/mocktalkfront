@@ -35,7 +35,7 @@ const handleConfirm = async () => {
     description="이 화면은 로그인 후 이용할 수 있습니다. 로그인 페이지로 이동할까요?"
     confirm-label="로그인하기"
     cancel-label="닫기"
-    overlay-class="bg-slate-950/55"
+    overlay-class="bg-[var(--surface-overlay)]"
     aria-label="로그인 안내"
     @close="closePrompt"
     @confirm="handleConfirm"

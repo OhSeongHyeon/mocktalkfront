@@ -226,12 +226,10 @@ onMounted(async () => {
             <template #meta>
               <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <span class="ui-badge ui-badge-accent">표시 {{ members.length }}건</span>
-              <span class="text-xs text-slate-500 dark:text-slate-400">{{
-                statusFilter === 'ALL' ? '전체 상태' : `${statusLabel(statusFilter)} 상태`
-              }}</span>
+              <span class="text-xs text-muted">{{ statusFilter === 'ALL' ? '전체 상태' : `${statusLabel(statusFilter)} 상태` }}</span>
             </template>
             <template #actions>
-              <label class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">상태</label>
+              <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">상태</label>
               <select v-model="statusFilter" class="ui-select min-w-[9rem]">
                 <option v-for="option in statusOptions" :key="option" :value="option">
                   {{ option === 'ALL' ? '전체' : statusLabel(option) }}
@@ -240,19 +238,19 @@ onMounted(async () => {
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Board</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">이 게시판 멤버만 조회합니다.</p>
+                <p class="ui-eyebrow">Board</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-muted">이 게시판 멤버만 조회합니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Queue</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">{{ members.length }}건</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">필터 조건에 맞는 멤버/신청 목록입니다.</p>
+                <p class="ui-eyebrow">Queue</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ members.length }}건</p>
+                <p class="mt-1 text-xs text-muted">필터 조건에 맞는 멤버/신청 목록입니다.</p>
               </div>
               <div class="ui-data-panel p-4">
-                <p class="text-[11px] font-bold tracking-[0.18em] text-slate-400 uppercase dark:text-slate-500">Action</p>
-                <p class="mt-2 text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">승인, 역할 변경, 차단</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">소유자 변경은 시스템 관리자만 수행할 수 있습니다.</p>
+                <p class="ui-eyebrow">Action</p>
+                <p class="bbs-row-title mt-2 text-sm">승인, 역할 변경, 차단</p>
+                <p class="mt-1 text-xs text-muted">소유자 변경은 시스템 관리자만 수행할 수 있습니다.</p>
               </div>
             </div>
           </PageHeader>
@@ -262,16 +260,16 @@ onMounted(async () => {
           </div>
 
           <section class="ui-panel p-5">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-200/80 pb-3 dark:border-slate-800/80">
+            <div class="bg-surface-soft dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line pb-3">
               <div>
-                <h2 class="text-lg font-black tracking-tight text-slate-900 dark:text-slate-100">멤버 목록</h2>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">사용자별 상태와 최근 변경 시점을 한 줄에서 확인합니다.</p>
+                <h2 class="bbs-row-title text-lg">멤버 목록</h2>
+                <p class="mt-1 text-sm text-muted">사용자별 상태와 최근 변경 시점을 한 줄에서 확인합니다.</p>
               </div>
               <span class="ui-badge ui-badge-muted">총 {{ members.length }}건</span>
             </div>
 
-            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-              <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+            <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+              <span class="dark:bg-surface-soft0 h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)]"></span>
               불러오는 중...
             </div>
 
@@ -279,18 +277,18 @@ onMounted(async () => {
               <div v-for="member in members" :key="member.id" class="ui-list-row">
                 <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
                   <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                       <span :class="statusBadgeClass(member.boardRole)">{{ statusLabel(member.boardRole) }}</span>
                       <span class="ui-badge ui-badge-muted">{{ actionLabel(member.boardRole) }}</span>
                       <span>승인자 {{ member.grantedByName ?? '-' }}</span>
                     </div>
                     <div class="mt-2 flex flex-wrap items-center gap-2">
-                      <span class="text-sm font-black tracking-tight text-slate-900 dark:text-slate-100">#{{ member.userId }}</span>
-                      <span class="text-sm text-slate-600 dark:text-slate-300">{{ member.displayName }}</span>
-                      <span class="text-xs text-slate-400">{{ member.handle }}</span>
-                      <span class="text-xs text-slate-400">{{ member.loginId }}</span>
+                      <span class="bbs-row-title text-sm">#{{ member.userId }}</span>
+                      <span class="text-sm text-muted">{{ member.displayName }}</span>
+                      <span class="text-xs text-subtle">{{ member.handle }}</span>
+                      <span class="text-xs text-subtle">{{ member.loginId }}</span>
                     </div>
-                    <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    <p class="mt-2 text-xs text-muted">
                       신청 {{ formatDate(member.createdAt) }}<span v-if="member.updatedAt"> · 변경 {{ formatDate(member.updatedAt) }}</span>
                     </p>
                   </div>
@@ -350,7 +348,7 @@ onMounted(async () => {
                     >
                       차단 해제
                     </button>
-                    <span v-if="member.boardRole === 'OWNER'" class="text-xs font-semibold text-slate-400">소유자 변경은 ADMIN만 가능합니다.</span>
+                    <span v-if="member.boardRole === 'OWNER'" class="text-xs font-semibold text-subtle">소유자 변경은 ADMIN만 가능합니다.</span>
                   </div>
                 </div>
               </div>
@@ -358,7 +356,7 @@ onMounted(async () => {
               <div v-if="members.length === 0" class="ui-state ui-state-empty px-4 py-10">조건에 해당하는 멤버가 없습니다.</div>
             </div>
 
-            <div class="ui-toolbar mt-4 justify-between text-sm text-slate-500 dark:text-slate-400">
+            <div class="ui-toolbar mt-4 justify-between text-sm text-muted">
               <button type="button" class="ui-button-ghost h-10 px-4 text-xs disabled:opacity-40" :disabled="page === 0" @click="movePage(-1)">
                 이전
               </button>

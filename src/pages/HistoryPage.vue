@@ -87,14 +87,14 @@ onMounted(async () => {
         <div v-if="filteredItems.length > 0" class="flex flex-col gap-2">
           <div v-for="item in filteredItems" :key="item.articleId" class="ui-list-row sm:flex-row sm:items-center sm:justify-between">
             <button type="button" class="flex min-w-0 flex-1 flex-col gap-1 text-left" @click="goArticle(item)">
-              <p class="text-xs font-semibold text-slate-400">
+              <p class="text-xs font-semibold text-subtle">
                 {{ item.boardName ?? item.boardSlug }}
-                <span class="ml-2 text-[11px] text-slate-300">{{ item.boardSlug }}</span>
+                <span class="ml-2 text-[11px] text-subtle">{{ item.boardSlug }}</span>
               </p>
-              <p class="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <p class="truncate text-sm font-semibold text-ink">
                 {{ item.title }}
               </p>
-              <p class="text-xs text-slate-400">방문 {{ formatKoreanDateTime(item.visitedAt, item.visitedAt) }}</p>
+              <p class="text-xs text-subtle">방문 {{ formatKoreanDateTime(item.visitedAt, item.visitedAt) }}</p>
             </button>
             <button type="button" class="ui-button-danger h-8 shrink-0 px-3 text-xs" @click="handleRemove(item)">삭제</button>
           </div>

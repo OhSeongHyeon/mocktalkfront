@@ -42,7 +42,7 @@ const widthClass = computed(() => {
 </script>
 
 <template>
-  <div class="mx-auto w-full px-3 py-4 sm:px-4 sm:py-5" :class="widthClass">
+  <div class="mx-auto w-full px-3 py-5 sm:px-5 sm:py-6" :class="widthClass">
     <slot />
   </div>
 </template>
