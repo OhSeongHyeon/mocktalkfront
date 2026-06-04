@@ -1,0 +1,308 @@
+@layer components {
+  .ui-input,
+  .ui-select {
+    height: 2.125rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--surface-0);
+    padding: 0 0.6rem;
+    font-size: 0.8125rem;
+    color: var(--ink-1);
+  }
+
+  .ui-input:focus-visible,
+  .ui-select:focus-visible,
+  .ui-textarea:focus-visible {
+    outline: none;
+    border-color: var(--accent-strong);
+    box-shadow: var(--shadow-focus);
+  }
+
+  .ui-textarea {
+    width: 100%;
+    min-height: 4.5rem;
+    resize: vertical;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--surface-0);
+    padding: 0.55rem 0.6rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--ink-1);
+  }
+
+  .ui-icon-button {
+    display: inline-flex;
+    height: 2rem;
+    width: 2rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-subtle);
+    background: var(--surface-0);
+    color: var(--ink-2);
+  }
+
+  .ui-icon-button:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-1);
+    color: var(--ink-1);
+  }
+
+  .ui-button-ghost,
+  .ui-button-primary,
+  .ui-button-danger,
+  .ui-button-accent,
+  .ui-chip-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    background: var(--surface-0);
+    color: var(--ink-2);
+  }
+
+  .ui-button-ghost:hover,
+  .ui-chip-button-muted:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-1);
+    color: var(--ink-1);
+  }
+
+  .ui-button-primary {
+    border-color: var(--accent-strong);
+    background: var(--accent-soft);
+    color: var(--link);
+  }
+
+  .ui-button-accent {
+    border-color: var(--accent-strong);
+    background: var(--accent-strong);
+    color: #fff;
+  }
+
+  .ui-button-accent:hover {
+    filter: brightness(0.95);
+  }
+
+  .ui-button-danger {
+    border-color: color-mix(in srgb, var(--danger-ink) 35%, var(--line-strong));
+    background: var(--danger-soft);
+    color: var(--danger-ink);
+  }
+
+  .ui-badge {
+    display: inline-block;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--ink-3);
+  }
+
+  .ui-badge-accent {
+    color: var(--link);
+  }
+
+  .ui-badge-muted {
+    color: var(--ink-3);
+  }
+
+  .ui-badge-warning,
+  .ui-badge-success,
+  .ui-badge-danger {
+    color: inherit;
+  }
+
+  .ui-list-row {
+    display: block;
+    border-bottom: 1px solid var(--line-subtle);
+    padding: 0.55rem 0.75rem;
+    transition: background-color 100ms ease;
+  }
+
+  .ui-list-row:hover {
+    background: var(--surface-1);
+  }
+
+  .ui-state {
+    border: 1px solid var(--line-subtle);
+    background: var(--surface-1);
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .ui-state-danger {
+    border-color: color-mix(in srgb, var(--danger-ink) 30%, var(--line-subtle));
+    background: var(--danger-soft);
+    color: var(--danger-ink);
+  }
+
+  .ui-state-empty {
+    text-align: center;
+    color: var(--ink-3);
+  }
+
+  .ui-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--line-subtle);
+    border-bottom: 0;
+    background: var(--surface-1);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .ui-heading-page {
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink-1);
+  }
+
+  .ui-heading-section {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--ink-1);
+  }
+
+  .ui-lead {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .ui-caption {
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+
+  .ui-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .ui-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem 1rem;
+    border-bottom: 1px solid var(--line-subtle);
+    background: var(--surface-1);
+    padding: 0.65rem 0.75rem;
+  }
+
+  .ui-field-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+
+  .ui-search-field {
+    display: flex;
+    height: 2.125rem;
+    max-width: 28rem;
+    flex: 1;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-0);
+    padding: 0 0.25rem 0 0.6rem;
+  }
+
+  .ui-search-input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    background: transparent;
+    font-size: 0.8125rem;
+    outline: none;
+  }
+
+  .ui-menu-dropdown {
+    border: 1px solid var(--line-strong);
+    background: var(--surface-0);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    font-size: 0.8125rem;
+  }
+
+  .ui-menu-item {
+    display: block;
+    width: 100%;
+    padding: 0.4rem 0.75rem;
+    text-align: left;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink-1);
+    transition: background-color 100ms ease;
+  }
+
+  .ui-menu-item:hover {
+    background: var(--surface-1);
+  }
+
+  .ui-menu-item-danger {
+    color: var(--danger-ink);
+  }
+
+  .ui-panel-section {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .ui-panel-section--bordered {
+    border-bottom: 1px solid var(--line-subtle);
+  }
+
+  .ui-panel-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .ui-oauth-button {
+    display: flex;
+    height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid var(--line-strong);
+    background: var(--surface-0);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  .ui-oauth-button:hover {
+    background: var(--surface-1);
+  }
+
+  .ui-code-block {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--code-border);
+    background: var(--code-bg);
+    padding: 0.75rem 1rem;
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: var(--code-fg);
+    white-space: pre;
+  }
+
+  .ui-code-block code {
+    font: inherit;
+    color: inherit;
+  }
+}

@@ -46,26 +46,26 @@ const unsupportedNotes = [
 ];
 
 const sampleZipStructure = `batch-import.zip
-├─ manifest.yml                # 선택
+├─ manifest.yml # 선택
 ├─ posts/
-│  ├─ post-1.md
-│  └─ post-2.md
+│ ├─ post-1.md
+│ └─ post-2.md
 └─ assets/
-   ├─ cover.png
-   └─ demo.mp4`;
+ ├─ cover.png
+ └─ demo.mp4`;
 
 const sampleManifest = `defaults:
-  boardSlug: dev
-  categoryName: "백엔드"
-  visibility: PUBLIC
+ boardSlug: dev
+ categoryName: "백엔드"
+ visibility: PUBLIC
 
 articles:
-  - file: posts/post-1.md
-  - file: posts/post-2.md
-    title: "manifest 제목 우선"
-    boardSlug: notice
-    categoryName: "공지"
-    visibility: MEMBERS`;
+ - file: posts/post-1.md
+ - file: posts/post-2.md
+ title: "manifest 제목 우선"
+ boardSlug: notice
+ categoryName: "공지"
+ visibility: MEMBERS`;
 
 const sampleMarkdown = `---
 title: "Mermaid 사용기"
@@ -205,12 +205,12 @@ const resolveStatusBadgeClass = (executable: boolean) => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">게시글 대량 임포트</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">
+            <h1 class="ui-heading-page">게시글 대량 임포트</h1>
+            <p class="text-sm text-muted">
               <code class="font-mono text-[0.95em]">여러 .md/.markdown + 선택적 manifest + 본문 assets + zip</code>
               구조를 미리 검증하고 일괄 생성합니다.
             </p>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p class="mt-1 text-sm text-muted">
               Markdown 원본과 frontmatter는 <code class="font-mono text-[0.95em]">content_source</code>에 함께 보존됩니다.
             </p>
           </div>
@@ -219,57 +219,49 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">사용 가이드</h2>
-              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              <h2 class="text-lg font-semibold text-ink">사용 가이드</h2>
+              <p class="mt-1 text-sm text-muted">
                 이 화면은 <code class="font-mono text-[0.95em]">ADMIN</code>, <code class="font-mono text-[0.95em]">MANAGER</code> 전용입니다.
                 <span class="mt-1 block">기본값은 <code class="font-mono text-[0.95em]">카테고리 자동 생성 켜짐</code>입니다.</span>
               </p>
             </div>
-            <span
-              class="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
-            >
+            <span class="rounded-full border border-line bg-surface px-3 py-1 text-xs font-semibold text-muted dark:text-subtle">
               preview → execute
             </span>
           </div>
 
           <div class="mt-5 grid gap-4 xl:grid-cols-2">
-            <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-              <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">권장 zip 구조</h3>
-              <pre
-                class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
-              ><code>{{ sampleZipStructure }}</code></pre>
-              <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
+            <div class="ui-card">
+              <h3 class="text-sm font-semibold text-ink">권장 zip 구조</h3>
+              <pre class="ui-code-block ui-scrollbar mt-3 rounded-ui"><code>{{ sampleZipStructure }}</code></pre>
+              <p class="mt-3 text-xs leading-6 text-muted">
                 <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의 Markdown 파일을 자동 스캔합니다.
               </p>
             </div>
 
-            <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-              <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">실행 순서</h3>
-              <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <div class="ui-card">
+              <h3 class="text-sm font-semibold text-ink">실행 순서</h3>
+              <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                 <li v-for="step in importSteps" :key="step">{{ step }}</li>
               </ul>
             </div>
 
-            <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-              <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">메타데이터 우선순위</h3>
-              <ul class="mt-3 space-y-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+            <div class="ui-card">
+              <h3 class="text-sm font-semibold text-ink">메타데이터 우선순위</h3>
+              <ul class="mt-3 space-y-2 text-sm leading-6 text-muted">
                 <li v-for="rule in metadataRules" :key="rule">{{ rule }}</li>
               </ul>
             </div>
 
-            <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-              <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">manifest 예시</h3>
-              <pre
-                class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
-              ><code>{{ sampleManifest }}</code></pre>
+            <div class="ui-card">
+              <h3 class="text-sm font-semibold text-ink">manifest 예시</h3>
+              <pre class="ui-code-block ui-scrollbar mt-3"><code>{{ sampleManifest }}</code></pre>
             </div>
 
-            <div class="rounded-3xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-950/60">
-              <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Markdown 예시</h3>
-              <pre
-                class="ui-scrollbar mt-3 overflow-x-auto rounded-2xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
-              ><code>{{ sampleMarkdown }}</code></pre>
-              <p class="mt-3 text-xs leading-6 text-slate-500 dark:text-slate-400">
+            <div class="ui-card">
+              <h3 class="text-sm font-semibold text-ink">Markdown 예시</h3>
+              <pre class="ui-code-block ui-scrollbar mt-3"><code>{{ sampleMarkdown }}</code></pre>
+              <p class="mt-3 text-xs leading-6 text-muted">
                 저장 시 <code class="font-mono text-[0.95em]">title</code>, <code class="font-mono text-[0.95em]">boardSlug</code>,
                 <code class="font-mono text-[0.95em]">categoryName</code>, <code class="font-mono text-[0.95em]">visibility</code>는 현재 적용값으로
                 다시 정리되고, 나머지 frontmatter는 원본 그대로 보존됩니다.
@@ -277,7 +269,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
             </div>
           </div>
 
-          <div class="mt-4 rounded-3xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+          <div class="ui-card mt-4 border-amber-200 bg-amber-50/80 dark:border-amber-900/60 dark:bg-amber-950/20">
             <h3 class="text-sm font-semibold text-amber-900 dark:text-amber-100">현재 제한 사항</h3>
             <ul class="mt-3 space-y-2 text-sm leading-6 text-amber-800 dark:text-amber-200">
               <li v-for="note in unsupportedNotes" :key="note">{{ note }}</li>
@@ -289,27 +281,25 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section class="ui-panel mt-6 p-5">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="space-y-2">
-              <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">업로드 파일</p>
-              <p class="text-sm text-slate-500 dark:text-slate-400">{{ selectedFileName }}</p>
-              <p class="text-xs text-slate-400">
+              <p class="text-sm font-semibold text-ink">업로드 파일</p>
+              <p class="text-sm text-muted">{{ selectedFileName }}</p>
+              <p class="text-xs text-subtle">
                 <code class="font-mono text-[0.95em]">manifest.yml</code>은 선택입니다. 없으면 zip 안의
                 <code class="font-mono text-[0.95em]">.md</code>/<code class="font-mono text-[0.95em]">.markdown</code>
                 파일을 자동 스캔합니다.
               </p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-              <label
-                class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-              >
+              <label class="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-ink">
                 <input
                   v-model="autoCreateMissingCategories"
                   type="checkbox"
-                  class="h-4 w-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 dark:border-slate-600 dark:bg-slate-900"
+                  class="h-4 w-4 rounded border-line text-emerald-500 focus:ring-emerald-500 dark:border-line"
                 />
                 <span>카테고리 자동 생성</span>
               </label>
               <label
-                class="inline-flex cursor-pointer items-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-900"
+                class="inline-flex cursor-pointer items-center rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink transition hover:border-line hover:bg-surface-soft"
               >
                 zip 선택
                 <input
@@ -322,7 +312,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               </label>
               <button
                 type="button"
-                class="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+                class="rounded-full bg-[color:var(--accent-strong)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-soft dark:text-ink dark:hover:bg-surface-1"
                 :disabled="!selectedZipFile || isPreviewLoading || isExecuteLoading"
                 @click="runPreview"
               >
@@ -338,7 +328,7 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               </button>
               <button
                 type="button"
-                class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
                 :disabled="isPreviewLoading || isExecuteLoading"
                 @click="resetSelection"
               >
@@ -358,8 +348,8 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section v-if="previewResult" class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">미리보기 결과</h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
+              <h2 class="text-lg font-semibold text-ink">미리보기 결과</h2>
+              <p class="text-sm text-muted">
                 총 {{ previewResult.totalCount }}건 중 {{ previewResult.executableCount }}건 실행 가능, {{ previewResult.invalidCount }}건 검토 필요
               </p>
             </div>
@@ -369,9 +359,9 @@ const resolveStatusBadgeClass = (executable: boolean) => {
           </div>
 
           <div class="mt-4 overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm dark:divide-slate-800">
+            <table class="min-w-full divide-y divide-[color:var(--line-subtle)] text-sm">
               <thead>
-                <tr class="text-left text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+                <tr class="text-left text-xs font-semibold tracking-[0.12em] text-subtle uppercase">
                   <th class="px-3 py-3">파일</th>
                   <th class="px-3 py-3">제목</th>
                   <th class="px-3 py-3">게시판</th>
@@ -381,14 +371,14 @@ const resolveStatusBadgeClass = (executable: boolean) => {
                   <th class="px-3 py-3">상태</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-900">
+              <tbody class="divide-y divide-[color:var(--line-subtle)]">
                 <tr v-for="item in previewResult.items" :key="item.filePath">
-                  <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.filePath }}</td>
-                  <td class="px-3 py-4 align-top font-medium text-slate-900 dark:text-slate-100">{{ item.title ?? '-' }}</td>
-                  <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.boardSlug ?? '-' }}</td>
-                  <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.categoryName ?? '-' }}</td>
-                  <td class="px-3 py-4 align-top text-slate-600 dark:text-slate-300">{{ item.visibility ?? '-' }}</td>
-                  <td class="px-3 py-4 align-top text-xs text-slate-500 dark:text-slate-400">
+                  <td class="px-3 py-4 align-top text-muted">{{ item.filePath }}</td>
+                  <td class="px-3 py-4 align-top font-medium text-ink">{{ item.title ?? '-' }}</td>
+                  <td class="px-3 py-4 align-top text-muted">{{ item.boardSlug ?? '-' }}</td>
+                  <td class="px-3 py-4 align-top text-muted">{{ item.categoryName ?? '-' }}</td>
+                  <td class="px-3 py-4 align-top text-muted">{{ item.visibility ?? '-' }}</td>
+                  <td class="px-3 py-4 align-top text-xs text-muted">
                     {{ formatPreviewAssetSummary(item) }}
                   </td>
                   <td class="px-3 py-4 align-top">
@@ -411,8 +401,8 @@ const resolveStatusBadgeClass = (executable: boolean) => {
         <section v-if="executeResult" class="ui-panel mt-6 p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">실행 결과</h2>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
+              <h2 class="text-lg font-semibold text-ink">실행 결과</h2>
+              <p class="text-sm text-muted">
                 총 {{ executeResult.totalCount }}건 중 {{ executeResult.successCount }}건 생성, {{ executeResult.failedCount }}건 실패
               </p>
             </div>
@@ -424,24 +414,24 @@ const resolveStatusBadgeClass = (executable: boolean) => {
               v-for="item in executeResult.items"
               :key="`${item.filePath}-${item.articleId ?? 'failed'}`"
               :to="resolveCreatedArticlePath(item) ?? undefined"
-              class="block rounded-2xl border p-4"
+              class="ui-card block"
               :class="resolveExecuteCardClass(item)"
             >
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div class="flex flex-wrap items-center gap-2">
-                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ item.title ?? item.filePath }}</p>
+                    <p class="text-sm font-semibold text-ink">{{ item.title ?? item.filePath }}</p>
                     <span
                       v-if="resolveCreatedArticlePath(item)"
-                      class="rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-slate-950 dark:text-emerald-300"
+                      class="rounded-full border border-emerald-200 bg-surface px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:border-emerald-800 dark:text-emerald-300"
                     >
                       클릭해서 글 보기
                     </span>
                   </div>
-                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  <p class="mt-1 text-xs text-muted">
                     {{ item.filePath }} · {{ item.boardSlug ?? '-' }} · {{ item.categoryName ?? '-' }} · {{ item.visibility ?? '-' }}
                   </p>
-                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  <p class="mt-1 text-xs text-muted">
                     {{ formatExecuteAssetSummary(item) }}
                   </p>
                 </div>

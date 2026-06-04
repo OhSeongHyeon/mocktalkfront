@@ -34,7 +34,7 @@ const props = defineProps<ArticleUpsertPageLayoutProps>();
           {{ props.errorMessage }}
         </div>
 
-        <div v-if="props.isLoading" class="mt-6 text-sm text-slate-500">
+        <div v-if="props.isLoading" class="mt-6 text-sm text-muted">
           {{ props.loadingMessage }}
         </div>
 

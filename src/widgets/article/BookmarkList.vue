@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 
 import type { ArticleBookmarkItemResponse } from '../../entities/article';
+import { formatKoreanDate } from '../../shared/lib/date';
 
 interface BookmarkListProps {
   items: ArticleBookmarkItemResponse[];
@@ -58,27 +59,15 @@ const handlePageChange = (page: number) => {
   }
   emit('update:page', page);
 };
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-};
 </script>
 
 <template>
   <section class="mt-6">
-    <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+    <div class="ui-toolbar gap-3 text-xs text-muted">
       <label class="flex items-center gap-2">
         <input
           type="checkbox"
-          class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-200 dark:border-slate-700"
+          class="h-4 w-4 rounded border-line text-emerald-600 focus:ring-emerald-200"
           :checked="allSelected"
           :disabled="items.length === 0"
           @change="handleToggleAll"
@@ -90,30 +79,22 @@ const formatDate = (value: string) => {
 
     <div v-if="items.length === 0" class="ui-state ui-state-empty mt-4 px-6 py-10">북마크한 게시글이 없습니다.</div>
 
-    <div v-else class="mt-4 space-y-3">
-      <article
-        v-for="item in items"
-        :key="item.id"
-        class="ui-sub-panel flex flex-col gap-2 px-5 py-4 transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-sm"
-      >
+    <div v-else class="mt-4 space-y-2">
+      <article v-for="item in items" :key="item.id" class="ui-list-row gap-3">
         <div class="flex items-start gap-3">
           <input
             type="checkbox"
-            class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-200 dark:border-slate-700"
+            class="mt-1 h-4 w-4 rounded border-line text-emerald-600 focus:ring-emerald-200"
             :checked="selectedSet.has(item.id)"
             @change="handleToggle(item.id)"
           />
-          <div class="flex-1">
-            <button
-              type="button"
-              class="text-left text-sm font-semibold text-slate-900 hover:text-slate-700 dark:text-slate-100 dark:hover:text-white"
-              @click="handleSelect(item.id)"
-            >
+          <div class="min-w-0 flex-1">
+            <button type="button" class="text-left text-sm font-semibold text-ink hover:text-ink dark:hover:text-ink" @click="handleSelect(item.id)">
               {{ item.title }}
             </button>
-            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
               <span>{{ item.authorName }}</span>
-              <span>{{ formatDate(item.createdAt) }}</span>
+              <span>{{ formatKoreanDate(item.createdAt) }}</span>
               <span>댓글 {{ item.commentCount }}</span>
               <span>좋아요 {{ item.likeCount }}</span>
               <span>싫어요 {{ item.dislikeCount }}</span>
@@ -124,11 +105,11 @@ const formatDate = (value: string) => {
       </article>
     </div>
 
-    <div v-if="showPagination" class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+    <div v-if="showPagination" class="ui-toolbar mt-4 justify-between gap-3 text-xs text-muted">
       <div class="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+          class="ui-button-ghost h-8 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="!canGoPrevious || isLoading"
           @click="handlePageChange(currentPage - 1)"
         >
@@ -139,11 +120,11 @@ const formatDate = (value: string) => {
             v-for="pageIndex in pageNumbers"
             :key="pageIndex"
             type="button"
-            class="rounded-full border px-3 py-1 text-xs font-semibold transition"
+            class="h-8 rounded-[0.55rem] border px-3 text-xs font-semibold transition"
             :class="
               pageIndex === currentPage
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                ? 'border-[color:var(--line-strong)] bg-surface text-ink'
+                : 'border-line text-muted hover:bg-surface-soft dark:border-line dark:text-subtle'
             "
             :disabled="isLoading"
             @click="handlePageChange(pageIndex)"
@@ -153,7 +134,7 @@ const formatDate = (value: string) => {
         </div>
         <button
           type="button"
-          class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+          class="ui-button-ghost h-8 px-3 text-xs disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="!canGoNext || isLoading"
           @click="handlePageChange(currentPage + 1)"
         >

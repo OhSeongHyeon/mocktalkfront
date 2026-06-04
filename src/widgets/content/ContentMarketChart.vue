@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import * as echarts from 'echarts';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 import type { MarketSeriesPointResponse } from '../../entities/content';
+import type { ECharts } from 'echarts/core';
+
+type EChartsRuntime = typeof import('echarts/core');
 
 type MarketChartSeries = {
   name: string;
@@ -28,8 +30,11 @@ const props = withDefaults(
 
 const chartRef = ref<HTMLDivElement | null>(null);
 const isDark = ref(false);
-let chartInstance: echarts.ECharts | null = null;
+let chartInstance: ECharts | null = null;
 let themeObserver: MutationObserver | null = null;
+let echartsRuntime: EChartsRuntime | null = null;
+let echartsRuntimePromise: Promise<EChartsRuntime> | null = null;
+let isUnmounted = false;
 
 const lightPalette = ['#0f172a', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6'];
 const darkPalette = ['#e2e8f0', '#38bdf8', '#fbbf24', '#f87171', '#a78bfa'];
@@ -90,8 +95,26 @@ const resolveSeriesColor = (color: string | undefined, index: number) => {
   return color;
 };
 
+const loadEChartsRuntime = async () => {
+  if (!echartsRuntimePromise) {
+    echartsRuntimePromise = Promise.all([
+      import('echarts/core'),
+      import('echarts/charts'),
+      import('echarts/components'),
+      import('echarts/renderers'),
+    ]).then(([core, charts, components, renderers]) => {
+      core.use([charts.LineChart, components.GridComponent, components.LegendComponent, components.TooltipComponent, renderers.CanvasRenderer]);
+      return core;
+    });
+  }
+
+  echartsRuntime = await echartsRuntimePromise;
+  return echartsRuntime;
+};
+
 const renderChart = () => {
-  if (!chartInstance) {
+  const runtime = echartsRuntime;
+  if (!chartInstance || !runtime) {
     return;
   }
 
@@ -189,7 +212,7 @@ const renderChart = () => {
           areaStyle: isMultiSeries.value
             ? undefined
             : {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                color: new runtime.graphic.LinearGradient(0, 0, 0, 1, [
                   { offset: 0, color: isDark.value ? 'rgba(56, 189, 248, 0.22)' : 'rgba(245, 158, 11, 0.24)' },
                   { offset: 1, color: isDark.value ? 'rgba(56, 189, 248, 0.03)' : 'rgba(245, 158, 11, 0.02)' },
                 ]),
@@ -205,12 +228,18 @@ const handleResize = () => {
   chartInstance?.resize();
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!chartRef.value) {
     return;
   }
+
   syncThemeState();
-  chartInstance = echarts.init(chartRef.value);
+  const runtime = await loadEChartsRuntime();
+  if (isUnmounted || !chartRef.value) {
+    return;
+  }
+
+  chartInstance = runtime.init(chartRef.value);
   renderChart();
   themeObserver = new MutationObserver(() => {
     syncThemeState();
@@ -228,6 +257,7 @@ watch([normalizedSeries, () => props.title, () => props.unitLabel, () => props.c
 });
 
 onBeforeUnmount(() => {
+  isUnmounted = true;
   window.removeEventListener('resize', handleResize);
   themeObserver?.disconnect();
   themeObserver = null;

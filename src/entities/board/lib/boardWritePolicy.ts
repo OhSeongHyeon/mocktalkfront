@@ -14,6 +14,22 @@ const BOARD_ARTICLE_WRITE_POLICY_OPTIONS: WritePolicyOption[] = [
   { value: 'OWNER', label: '소유자만' },
 ];
 
+const resolveBoardWritePolicyLabel = (writePolicy: string) => {
+  if (writePolicy === 'ALL_AUTHENTICATED') {
+    return '회원 글쓰기';
+  }
+  if (writePolicy === 'MEMBER') {
+    return '멤버 전용';
+  }
+  if (writePolicy === 'MODERATOR') {
+    return '운영진 전용';
+  }
+  if (writePolicy === 'OWNER') {
+    return '개설자 전용';
+  }
+  return '정책 미정';
+};
+
 const isActiveMember = (role: BoardMemberStatus | null | undefined) => role === 'OWNER' || role === 'MODERATOR' || role === 'MEMBER';
 
 const canWriteByPolicy = (policy: BoardArticleWritePolicy, role: BoardMemberStatus | null | undefined) => {
@@ -72,4 +88,4 @@ const resolveWriteUnavailableReason = (board: BoardDetailResponse | null, authen
   return '게시판 소유자만 글을 작성할 수 있습니다.';
 };
 
-export { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, canWriteArticle, resolveWriteUnavailableReason };
+export { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, canWriteArticle, resolveBoardWritePolicyLabel, resolveWriteUnavailableReason };

@@ -11,6 +11,7 @@ import { createBoardCategory, deleteBoardCategory, getBoardCategories, updateBoa
 import type { BoardCategoryResponse } from '../entities/board';
 import { useAuthStore } from '../stores/auth';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
@@ -162,45 +163,68 @@ onMounted(async () => {
         </div>
 
         <div v-if="board && hasPermission" class="space-y-6">
-          <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">카테고리 관리</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">게시판 카테고리를 관리합니다.</p>
-          </div>
+          <PageHeader
+            eyebrow="Board Categories"
+            :title="`${boardName} 카테고리 관리`"
+            description="게시판 분류 체계를 빠르게 추가, 수정, 삭제합니다."
+          >
+            <template #meta>
+              <span class="ui-badge ui-badge-muted">카테고리 {{ categories.length }}건</span>
+              <span class="text-xs text-muted">정렬 기준: 이름 오름차순</span>
+            </template>
+            <div class="grid gap-3 md:grid-cols-3">
+              <div class="ui-data-panel p-4">
+                <p class="ui-eyebrow">Board</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
+                <p class="mt-1 text-xs text-muted">현재 게시판 분류만 표시합니다.</p>
+              </div>
+              <div class="ui-data-panel p-4">
+                <p class="ui-eyebrow">Create</p>
+                <p class="bbs-row-title mt-2 text-sm">새 카테고리 등록</p>
+                <p class="mt-1 text-xs text-muted">간단한 이름만 입력하면 바로 생성됩니다.</p>
+              </div>
+              <div class="ui-data-panel p-4">
+                <p class="ui-eyebrow">Edit</p>
+                <p class="bbs-row-title mt-2 text-sm">인라인 수정</p>
+                <p class="mt-1 text-xs text-muted">목록에서 바로 이름을 바꾸고 저장할 수 있습니다.</p>
+              </div>
+            </div>
+          </PageHeader>
 
           <div v-if="listError" class="ui-state ui-state-danger">
             {{ listError }}
           </div>
 
-          <div class="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <section class="ui-panel p-4">
-              <div class="flex items-center justify-between">
-                <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">카테고리 목록</h2>
-                <span class="text-xs text-slate-400">총 {{ categories.length }}건</span>
+          <div class="grid gap-6 xl:grid-cols-[minmax(0,1.06fr)_minmax(0,0.94fr)]">
+            <section class="ui-panel p-5">
+              <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
+                <div>
+                  <h2 class="bbs-row-title text-lg">카테고리 목록</h2>
+                  <p class="mt-1 text-sm text-muted">등록 시각과 수정 액션을 한 줄에서 확인합니다.</p>
+                </div>
+                <span class="ui-badge ui-badge-muted">총 {{ categories.length }}건</span>
               </div>
 
-              <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-                <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
+              <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
+                <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
                 불러오는 중...
               </div>
 
               <div v-else class="mt-4 flex flex-col gap-3">
-                <div
-                  v-for="category in categories"
-                  :key="category.id"
-                  class="rounded-2xl border border-slate-200 px-4 py-3 text-left transition dark:border-slate-800"
-                >
+                <div v-for="category in categories" :key="category.id" class="ui-list-row">
                   <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <div class="text-sm font-semibold text-slate-800 dark:text-slate-100">
-                        {{ category.categoryName }}
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="bbs-row-title text-sm">{{ category.categoryName }}</span>
+                        <span class="ui-badge ui-badge-muted">#{{ category.id }}</span>
                       </div>
-                      <p class="mt-1 text-xs text-slate-400">등록 {{ formatDate(category.createdAt) }}</p>
+                      <p class="mt-2 text-xs text-muted">등록 {{ formatDate(category.createdAt) }}</p>
                     </div>
                     <div class="flex items-center gap-2">
                       <button
                         v-if="editingId !== category.id"
                         type="button"
-                        class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300"
+                        class="ui-button-ghost h-9 px-4 text-xs disabled:opacity-40"
                         :disabled="isSubmitting"
                         @click="startEdit(category)"
                       >
@@ -208,7 +232,7 @@ onMounted(async () => {
                       </button>
                       <button
                         type="button"
-                        class="rounded-full border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-600 transition hover:border-rose-300 hover:text-rose-700 disabled:opacity-40 dark:border-rose-700 dark:text-rose-300"
+                        class="ui-button-danger h-9 px-4 text-xs disabled:opacity-40"
                         :disabled="isSubmitting"
                         @click="removeCategory(category)"
                       >
@@ -217,29 +241,19 @@ onMounted(async () => {
                     </div>
                   </div>
 
-                  <div v-if="editingId === category.id" class="mt-3 flex flex-wrap items-center gap-2">
-                    <input
-                      v-model="editName"
-                      type="text"
-                      class="h-10 flex-1 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                      placeholder="카테고리명 수정"
-                    />
-                    <button
-                      type="button"
-                      class="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
-                      :disabled="isSubmitting"
-                      @click="submitEdit(category)"
-                    >
-                      저장
-                    </button>
-                    <button
-                      type="button"
-                      class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:text-slate-300"
-                      :disabled="isSubmitting"
-                      @click="cancelEdit"
-                    >
-                      취소
-                    </button>
+                  <div v-if="editingId === category.id" class="ui-toolbar justify-between">
+                    <input v-model="editName" type="text" class="ui-input min-w-[12rem] flex-1" placeholder="카테고리명 수정" />
+                    <div class="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        class="ui-button-accent h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                        :disabled="isSubmitting"
+                        @click="submitEdit(category)"
+                      >
+                        저장
+                      </button>
+                      <button type="button" class="ui-button-ghost h-10 px-4 text-xs" :disabled="isSubmitting" @click="cancelEdit">취소</button>
+                    </div>
                   </div>
                 </div>
 
@@ -248,24 +262,25 @@ onMounted(async () => {
             </section>
 
             <section class="ui-panel p-5">
-              <div class="flex items-center justify-between">
+              <div class="dark:border-line/80 flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3">
                 <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Create</p>
-                  <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">카테고리 추가</h2>
+                  <p class="ui-eyebrow">Create</p>
+                  <h2 class="bbs-row-title mt-1 text-lg">카테고리 추가</h2>
                 </div>
               </div>
 
-              <div class="mt-6 flex flex-col gap-4">
-                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">카테고리명</label>
-                <input
-                  v-model="createName"
-                  type="text"
-                  class="h-11 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                  placeholder="예: 자유"
-                />
+              <div class="mt-6 grid gap-4">
+                <label class="flex flex-col gap-2 text-sm font-medium text-ink">
+                  카테고리명
+                  <input v-model="createName" type="text" class="ui-input" placeholder="예: 자유" />
+                </label>
+              </div>
+
+              <div class="ui-toolbar mt-5 justify-between text-xs text-muted">
+                <span>등록 후 목록에 즉시 반영됩니다.</span>
                 <button
                   type="button"
-                  class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="ui-button-accent h-11 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                   :disabled="isSubmitting"
                   @click="submitCreate"
                 >

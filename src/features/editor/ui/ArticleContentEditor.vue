@@ -139,7 +139,7 @@ const onMarkdownScroll = (event: Event) => {
 const onMarkdownKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Tab') {
     event.preventDefault();
-    insertBlock('  ', 2);
+    insertBlock(' ', 2);
     return;
   }
 
@@ -390,7 +390,7 @@ const addBlockquote = () => prefixSelectedLines('> ');
 const addCodeBlock = () => wrapSelection('```text\n', '\n```', '코드');
 const addLink = () => wrapSelection('[', '](https://example.com)', '링크 텍스트');
 const addTable = () => insertBlock('\n\n| 항목 | 값 |\n| --- | --- |\n| 예시 | 내용 |\n\n');
-const addMermaidBlock = () => wrapSelection('```mermaid\n', '\n```', 'graph TD\n  A[시작] --> B[다음]');
+const addMermaidBlock = () => wrapSelection('```mermaid\n', '\n```', 'graph TD\n A[시작] --> B[다음]');
 const addYouTubeEmbed = () => wrapSelection('!youtube[', ']', 'https://youtu.be/dQw4w9WgXcQ');
 const addBold = () => wrapSelection('**', '**', '굵은 텍스트');
 const addItalic = () => wrapSelection('*', '*', '기울임 텍스트');
@@ -618,26 +618,26 @@ const tabClass = (active: boolean) =>
     'inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold transition',
     active
       ? 'border-emerald-400 bg-emerald-500/15 text-emerald-700 dark:border-emerald-500/70 dark:bg-emerald-500/15 dark:text-emerald-200'
-      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white',
+      : 'border-line bg-surface text-muted hover:border-line hover:text-ink dark:text-subtle dark:hover:text-ink',
   ].join(' ');
 
 const actionButtonClass =
-  'inline-flex h-8 items-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white';
+  'inline-flex h-8 items-center rounded-xl border border-line bg-surface px-3 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle dark:hover:text-ink';
 
 const previewModeButtonClass = (active: boolean) =>
   [
     'inline-flex h-8 items-center rounded-xl border px-3 text-xs font-semibold transition',
     active
-      ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-200 dark:bg-slate-200 dark:text-slate-900'
-      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white',
+      ? 'border-[color:var(--accent-strong)] bg-[color:var(--accent-strong)] text-white dark:border-line dark:bg-surface-2 dark:text-ink'
+      : 'border-line bg-surface text-muted hover:border-line hover:text-ink dark:text-subtle dark:hover:text-ink',
   ].join(' ');
 
 const markdownPanelClass = computed(() =>
   [
-    'rounded-2xl border border-dashed px-4 py-3 transition',
+    'rounded-ui border border-dashed px-4 py-3 transition',
     isMarkdownDropActive.value
       ? 'border-emerald-400 bg-emerald-50/70 dark:border-emerald-500/70 dark:bg-emerald-500/10'
-      : 'border-slate-200 bg-slate-50/40 dark:border-slate-800 dark:bg-slate-900/40',
+      : 'border-line bg-surface-soft/40 dark:border-line',
   ].join(' '),
 );
 
@@ -742,8 +742,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
-    <div class="space-y-3 border-b border-slate-200 bg-slate-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/50">
+  <div class="ui-panel shadow-sm dark:border-line">
+    <div class="space-y-3 border-b border-line bg-surface-soft/70 px-4 py-3 dark:border-line">
       <div class="flex flex-wrap items-center gap-2">
         <button type="button" :class="tabClass(viewMode === 'markdown')" :disabled="isModeSwitching" @click="switchToMarkdownMode">Markdown</button>
         <button type="button" :class="tabClass(viewMode === 'wysiwyg')" :disabled="isModeSwitching" @click="switchToWysiwygMode">WYSIWYG</button>
@@ -798,7 +798,7 @@ onBeforeUnmount(() => {
       <div class="space-y-3 px-4 py-4">
         <div
           v-if="markdownImportFeedback"
-          class="rounded-2xl border px-4 py-3 text-xs font-medium"
+          class="rounded-ui border px-4 py-3 text-xs font-medium"
           :class="
             markdownImportFeedback.tone === 'warning'
               ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200'
@@ -817,35 +817,29 @@ onBeforeUnmount(() => {
           @dragleave="onMarkdownDragLeave"
           @drop.prevent="onMarkdownDrop"
         >
-          <div class="mb-3 flex items-center justify-between gap-3 text-xs font-semibold text-slate-500 dark:text-slate-300">
+          <div class="mb-3 flex items-center justify-between gap-3 text-xs font-semibold text-muted">
             <span>Markdown으로 작성하고, 오른쪽에서 실제 렌더 결과를 확인합니다.</span>
             <span class="text-[11px]">이미지/영상 드래그 앤 드롭 가능</span>
           </div>
-          <div
-            class="mb-3 rounded-xl border border-slate-200 bg-white/80 px-3 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400"
-          >
+          <div class="mb-3 rounded-xl border border-line bg-surface/80 px-3 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
             유튜브 임베드 문법:
-            <code class="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
-              >!youtube[dQw4w9WgXcQ]</code
-            >
+            <code class="mx-1 rounded bg-surface-soft px-1.5 py-0.5 text-[11px] font-semibold text-ink">!youtube[dQw4w9WgXcQ]</code>
             또는
-            <code class="mx-1 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 dark:bg-slate-900 dark:text-slate-200"
-              >!youtube[https://youtu.be/dQw4w9WgXcQ]</code
-            >
+            <code class="mx-1 rounded bg-surface-soft px-1.5 py-0.5 text-[11px] font-semibold text-ink">!youtube[https://youtu.be/dQw4w9WgXcQ]</code>
           </div>
 
           <div class="gap-4" :class="isMarkdownSplitMode ? 'grid lg:grid-cols-2 lg:items-stretch' : 'block'">
             <div v-if="markdownPreviewMode !== 'preview'" class="space-y-2" :class="isMarkdownSplitMode ? 'min-h-0' : ''">
-              <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">Markdown 작성</label>
+              <label class="block text-xs font-semibold text-muted">Markdown 작성</label>
               <div ref="markdownEditorShellRef" class="ui-markdown-editor-shell">
                 <div class="ui-markdown-editor-head">
                   <div>
-                    <p class="text-xs font-extrabold tracking-[0.12em] text-slate-500 dark:text-slate-400">SOURCE</p>
-                    <p class="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">Markdown 작업영역</p>
+                    <p class="text-xs font-extrabold tracking-[0.12em] text-muted">SOURCE</p>
+                    <p class="mt-1 text-sm font-semibold text-ink">Markdown 작업영역</p>
                   </div>
                   <div class="text-right">
-                    <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ markdownStatusText }}</p>
-                    <p class="mt-1 text-[11px] text-slate-400 dark:text-slate-500">Tab 들여쓰기 · Ctrl/Cmd+B/I/K 지원</p>
+                    <p class="text-xs font-semibold text-muted">{{ markdownStatusText }}</p>
+                    <p class="mt-1 text-[11px] text-subtle">Tab 들여쓰기 · Ctrl/Cmd+B/I/K 지원</p>
                   </div>
                 </div>
                 <div class="ui-markdown-editor-grid">
@@ -877,13 +871,13 @@ onBeforeUnmount(() => {
 
             <div v-if="markdownPreviewMode !== 'write'" class="space-y-2" :class="isMarkdownSplitMode ? 'min-h-0' : ''">
               <div class="flex items-center justify-between gap-2">
-                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300">미리보기</label>
-                <span v-if="isPreviewLoading" class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-300">렌더링 중...</span>
+                <label class="block text-xs font-semibold text-muted">미리보기</label>
+                <span v-if="isPreviewLoading" class="text-[11px] font-semibold text-success">렌더링 중...</span>
               </div>
               <div class="ui-markdown-preview-shell" :style="markdownPreviewShellStyle">
                 <div class="ui-markdown-preview-body ui-scrollbar">
-                  <p v-if="previewErrorMessage" class="text-sm font-semibold text-rose-500">{{ previewErrorMessage }}</p>
-                  <p v-else-if="!previewHtml" class="text-sm text-slate-400 dark:text-slate-500">미리보기가 여기에 표시됩니다.</p>
+                  <p v-if="previewErrorMessage" class="text-sm font-semibold text-danger">{{ previewErrorMessage }}</p>
+                  <p v-else-if="!previewHtml" class="text-sm text-subtle">미리보기가 여기에 표시됩니다.</p>
                   <div v-else ref="markdownPreviewRef" class="ui-content max-w-none" v-html="previewHtml"></div>
                 </div>
               </div>
@@ -891,17 +885,14 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div
-          v-if="uploads.length > 0"
-          class="rounded-2xl border border-slate-200/80 bg-white/85 p-3 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/60"
-        >
-          <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">업로드 큐</p>
+        <div v-if="uploads.length > 0" class="rounded-ui border border-line bg-surface p-3 shadow-sm dark:border-line">
+          <p class="text-xs font-semibold text-muted">업로드 큐</p>
           <div class="mt-2 space-y-2">
-            <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-slate-200 px-3 py-2 text-xs dark:border-slate-800">
+            <div v-for="item in uploads" :key="item.id" class="rounded-lg border border-line px-3 py-2 text-xs dark:border-line">
               <div class="flex items-center justify-between gap-3">
                 <div class="min-w-0">
-                  <p class="truncate font-semibold text-slate-700 dark:text-slate-200">{{ item.file.name }}</p>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ item.kind === 'image' ? '이미지' : '영상' }} · {{ item.message }}</p>
+                  <p class="truncate font-semibold text-ink">{{ item.file.name }}</p>
+                  <p class="text-[11px] text-muted">{{ item.kind === 'image' ? '이미지' : '영상' }} · {{ item.message }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                   <button
@@ -923,14 +914,14 @@ onBeforeUnmount(() => {
                   <button
                     v-if="item.status !== 'uploading'"
                     type="button"
-                    class="rounded border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-500 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+                    class="rounded border border-line px-2 py-1 text-[11px] font-semibold text-muted hover:border-line hover:bg-surface-soft dark:text-subtle"
                     @click="removeUpload(item.id)"
                   >
                     지우기
                   </button>
                 </div>
               </div>
-              <div class="mt-2 h-1.5 overflow-hidden rounded bg-slate-100 dark:bg-slate-800">
+              <div class="mt-2 h-1.5 overflow-hidden rounded bg-surface-2 bg-surface-soft">
                 <div
                   class="h-full rounded transition-all"
                   :class="
@@ -951,9 +942,7 @@ onBeforeUnmount(() => {
       </div>
     </template>
 
-    <div
-      class="border-t border-slate-200 bg-slate-50/60 px-4 py-2 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-400"
-    >
+    <div class="border-t border-line bg-surface-soft/60 px-4 py-2 text-[11px] text-muted dark:border-line dark:text-subtle">
       Markdown 글은 저장 전 서버 미리보기 렌더를 거치고, WYSIWYG 글은 sanitize된 HTML 기준으로 저장됩니다.
     </div>
 
@@ -965,15 +954,15 @@ onBeforeUnmount(() => {
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-slate-900 dark:text-slate-100">Markdown 전환 안내</h2>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">Markdown 전환 안내</h2>
+            <p class="mt-1 text-sm text-muted">
               현재 본문에는 Markdown에서 완전히 표현되지 않을 수 있는 요소가 있습니다. 일부 스타일이나 고급 요소는 전환 과정에서 단순화될 수 있습니다.
             </p>
           </div>
           <div class="flex items-center justify-end gap-2">
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+              class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
               @click="isMarkdownSwitchConfirmOpen = false"
             >
               취소
@@ -994,13 +983,13 @@ onBeforeUnmount(() => {
       <template #default="{ titleId }">
         <div class="space-y-4">
           <div>
-            <h2 :id="titleId" class="text-lg font-semibold text-slate-900 dark:text-slate-100">현재 초안을 덮어쓸까요?</h2>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">MD 파일을 불러오면 현재 Markdown 본문이 새 내용으로 교체됩니다.</p>
+            <h2 :id="titleId" class="text-lg font-semibold text-ink">현재 초안을 덮어쓸까요?</h2>
+            <p class="mt-1 text-sm text-muted">MD 파일을 불러오면 현재 Markdown 본문이 새 내용으로 교체됩니다.</p>
           </div>
           <div class="flex items-center justify-end gap-2">
             <button
               type="button"
-              class="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:text-slate-300 dark:hover:text-white"
+              class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:border-line dark:text-subtle dark:hover:text-ink"
               @click="isMarkdownImportConfirmOpen = false"
             >
               취소

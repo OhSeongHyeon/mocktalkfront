@@ -13,6 +13,21 @@ export const BOARD_VISIBILITY_OPTIONS: BoardVisibilityOption[] = [
   { value: 'UNLISTED', label: '운영자만', adminOnly: true },
 ];
 
+export const resolveBoardVisibilityLabel = (visibility: string) => {
+  switch (visibility) {
+    case 'PUBLIC':
+      return '공개';
+    case 'GROUP':
+      return '구독형';
+    case 'PRIVATE':
+      return '비공개';
+    case 'UNLISTED':
+      return '운영자 전용';
+    default:
+      return '기타';
+  }
+};
+
 export const resolveBoardVisibilityOptions = (isAdminUser: boolean, currentVisibility?: BoardVisibility) => {
   const options = BOARD_VISIBILITY_OPTIONS.filter((option) => !option.adminOnly || isAdminUser);
   if (!isAdminUser && currentVisibility === 'UNLISTED') {

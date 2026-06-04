@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { API_BASE_URL, ApiError } from '../shared/lib/http/api';
 import { applyProfileSummary } from '../shared/lib/profile';
@@ -12,6 +12,7 @@ import googleColorIcon from '../assets/icons/icon-google-color.svg';
 import googleMonoIcon from '../assets/icons/icon-google-mono.svg';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const loginId = ref('');
 const password = ref('');
@@ -26,6 +27,14 @@ const githubAuthUrl = `${apiBase}/oauth2/authorization/github`;
 
 const handleForgotPassword = () => {
   errorMessage.value = '비밀번호 찾기 기능은 준비 중입니다.';
+};
+
+const resolveLoginSuccessPath = () => {
+  const redirect = route.query.redirect;
+  if (typeof redirect !== 'string' || !redirect.startsWith('/') || redirect.startsWith('//') || redirect === '/login') {
+    return '/';
+  }
+  return redirect;
 };
 
 const handleSubmit = async () => {
@@ -49,9 +58,9 @@ const handleSubmit = async () => {
       const profile = await getMyProfile();
       applyProfileSummary(profile);
     } catch {
-      // 로그인 직후 프로필 조회 실패는 무시
+      // ignore
     }
-    await router.push('/');
+    await router.push(resolveLoginSuccessPath());
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 401) {
@@ -70,115 +79,68 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
-    <header class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
-      <RouterLink to="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-        <span class="inline">MockTalk</span>
-      </RouterLink>
-      <RouterLink to="/" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
-        홈으로
-      </RouterLink>
+  <div class="auth-shell">
+    <header class="auth-header">
+      <div class="mx-auto flex h-[3.75rem] max-w-md items-center justify-between px-4">
+        <RouterLink to="/" class="app-brand-title">MockTalk</RouterLink>
+        <RouterLink to="/" class="ui-button-ghost h-8 px-2.5 text-xs">홈</RouterLink>
+      </div>
     </header>
 
-    <main class="mx-auto flex w-full max-w-6xl flex-1 items-start justify-center px-4 pb-16 pt-8 sm:px-6 lg:px-8">
-      <section class="w-full max-w-md">
-        <form class="ui-panel flex flex-col gap-6 p-6 sm:p-7" @submit.prevent="handleSubmit">
-          <div class="flex flex-col gap-2">
-            <label for="login-id" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 로그인 아이디 </label>
-            <input
-              id="login-id"
-              v-model="loginId"
-              name="loginId"
-              type="text"
-              autocomplete="username"
-              placeholder="아이디를 입력하세요"
-              class="ui-input"
-              :disabled="isSubmitting"
-            />
-          </div>
+    <main class="mx-auto w-full max-w-md px-4 py-8">
+      <form class="bbs-box p-4" @submit.prevent="handleSubmit">
+        <h1 class="ui-heading-page">로그인</h1>
+        <p class="ui-caption mt-1">아이디 또는 소셜 계정으로 로그인합니다.</p>
 
-          <div class="flex flex-col gap-2">
-            <label for="login-password" class="text-sm font-semibold text-slate-700 dark:text-slate-200"> 비밀번호 </label>
+        <div class="mt-4 space-y-3">
+          <div>
+            <label for="login-id" class="ui-field-label">아이디</label>
+            <input id="login-id" v-model="loginId" type="text" autocomplete="username" class="ui-input mt-1 w-full" :disabled="isSubmitting" />
+          </div>
+          <div>
+            <label for="login-password" class="ui-field-label">비밀번호</label>
             <input
               id="login-password"
               v-model="password"
-              name="password"
               type="password"
               autocomplete="current-password"
-              placeholder="비밀번호를 입력하세요"
-              class="ui-input"
+              class="ui-input mt-1 w-full"
               :disabled="isSubmitting"
             />
           </div>
+        </div>
 
-          <div class="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
-            <label class="inline-flex items-center gap-2">
-              <input v-model="rememberMe" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-red-500 dark:border-slate-700" />
-              로그인 유지
-            </label>
-            <a
-              href="#"
-              class="font-semibold text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-              @click.prevent="handleForgotPassword"
-            >
-              비밀번호 찾기
-            </a>
-          </div>
+        <div class="mt-3 flex items-center justify-between text-xs text-muted">
+          <label class="inline-flex items-center gap-1.5">
+            <input v-model="rememberMe" type="checkbox" class="h-3.5 w-3.5" />
+            로그인 유지
+          </label>
+          <a href="#" class="text-link hover:underline" @click.prevent="handleForgotPassword">비밀번호 찾기</a>
+        </div>
 
-          <button
-            type="submit"
-            class="h-11 rounded-2xl bg-[color:var(--accent-strong)] text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-            :disabled="!canSubmit"
-          >
-            {{ isSubmitting ? '로그인 중...' : '로그인' }}
-          </button>
+        <button type="submit" class="ui-button-accent mt-4 h-9 w-full text-sm" :disabled="!canSubmit">
+          {{ isSubmitting ? '로그인 중...' : '로그인' }}
+        </button>
 
-          <div class="flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
-            <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-            또는
-            <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-          </div>
+        <div class="mt-3 grid gap-2">
+          <a :href="googleAuthUrl" class="ui-oauth-button">
+            <img :src="googleColorIcon" alt="" class="h-4 w-4 dark:hidden" />
+            <img :src="googleMonoIcon" alt="" class="hidden h-4 w-4 dark:block" />
+            Google
+          </a>
+          <a :href="githubAuthUrl" class="ui-oauth-button">
+            <img :src="githubIcon" alt="" class="h-4 w-4" />
+            GitHub
+          </a>
+        </div>
 
-          <div class="flex flex-col gap-3">
-            <a
-              :href="googleAuthUrl"
-              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800"
-            >
-              <span
-                class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                aria-hidden="true"
-              >
-                <img :src="googleColorIcon" alt="" aria-hidden="true" class="h-4 w-4 dark:hidden" />
-                <img :src="googleMonoIcon" alt="" aria-hidden="true" class="hidden h-4 w-4 dark:block" />
-              </span>
-              Google로 계속하기
-            </a>
-            <a
-              :href="githubAuthUrl"
-              class="flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-slate-700 dark:hover:bg-slate-800"
-            >
-              <span
-                class="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                aria-hidden="true"
-              >
-                <img :src="githubIcon" alt="" aria-hidden="true" class="h-4 w-4 dark:invert" />
-              </span>
-              GitHub로 계속하기
-            </a>
-          </div>
+        <p v-if="errorMessage" class="ui-state ui-state-danger mt-3 text-sm" role="alert">{{ errorMessage }}</p>
 
-          <p v-if="errorMessage" class="ui-state ui-state-danger text-sm font-semibold" role="alert">
-            {{ errorMessage }}
-          </p>
-
-          <div class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            아직 계정이 없나요?
-            <RouterLink to="/join" class="font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white">
-              회원가입
-            </RouterLink>
-          </div>
-        </form>
-      </section>
+        <p class="mt-4 text-center text-xs text-muted">
+          계정이 없으신가요?
+          <RouterLink to="/join" class="font-semibold text-link hover:underline">회원가입</RouterLink>
+        </p>
+      </form>
     </main>
   </div>
 </template>

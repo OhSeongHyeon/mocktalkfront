@@ -26,7 +26,7 @@ const depthValue = props.depth ?? 0;
 <template>
   <div class="space-y-4">
     <div v-for="comment in comments" :key="comment.id" class="flex gap-4">
-      <div v-if="depthValue > 0" class="mt-2 h-full w-6 border-l-2 border-slate-200/70 dark:border-slate-800/70"></div>
+      <div v-if="depthValue > 0" class="mt-2 h-full w-6 border-l-2 border-line"></div>
       <div class="flex-1">
         <CommentItem
           :comment="comment"

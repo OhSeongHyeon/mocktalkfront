@@ -1,5 +1,5 @@
 # ================= STAGE 1: 빌드 환경 (Node.js) =================
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 # 작업 디렉토리를 설정합니다.
 WORKDIR /app
@@ -21,8 +21,8 @@ RUN npm run build
 # ================= STAGE 2: 실행 환경 (Nginx) =================
 FROM nginx:stable-alpine
 
-# envsubst 도구를 포함하는 gettext 패키지 설치
-RUN apk add --no-cache gettext
+# Alpine 보안 패치 반영 후 envsubst용 gettext 설치
+RUN apk upgrade --no-cache && apk add --no-cache gettext
 
 # 빌드된 정적 파일 복사
 COPY --from=builder /app/dist /usr/share/nginx/html

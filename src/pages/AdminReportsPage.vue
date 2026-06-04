@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
+import { MODERATION_STATUS_OPTIONS, formatModerationStatusLabel, type ModerationStatusFilter } from '../features/admin/lib/reportModeration';
 import { ApiError } from '../shared/lib/http/api';
 import { getAdminReport, getAdminReports, processAdminReport } from '../features/admin/system';
 import type { ReportDetailResponse, ReportListItemResponse, ReportStatus } from '../features/admin/system';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import PageHeader from '../shared/ui/PageHeader.vue';
+import ReportModerationWorkspace from '../widgets/admin/ReportModerationWorkspace.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
-type StatusFilter = ReportStatus | 'ALL';
-
-const statusFilter = ref<StatusFilter>('ALL');
+const statusFilter = ref<ModerationStatusFilter>('ALL');
 const page = ref(0);
 const size = ref(10);
 const totalPages = ref(0);
@@ -24,51 +25,36 @@ const isProcessing = ref(false);
 const processStatus = ref<ReportStatus>('PENDING');
 const processNote = ref('');
 
-const statusOptions: StatusFilter[] = ['ALL', 'PENDING', 'IN_REVIEW', 'RESOLVED', 'REJECTED'];
-
-const selectedReportSnapshot = computed(() => {
-  if (!selectedReport.value?.targetSnapshot) {
-    return null;
+const detailCards = computed(() => {
+  if (!selectedReport.value) {
+    return [];
   }
-  try {
-    const parsed = JSON.parse(selectedReport.value.targetSnapshot);
-    return JSON.stringify(parsed, null, 2);
-  } catch {
-    return selectedReport.value.targetSnapshot;
-  }
+  return [
+    {
+      eyebrow: 'Target',
+      title: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}`,
+      description: `게시판 ${selectedReport.value.boardId ?? '-'}`,
+    },
+    {
+      eyebrow: 'Reporter',
+      title: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}`,
+      description: `사유 ${selectedReport.value.reasonCode}`,
+    },
+  ];
 });
 
-const statusLabel = (status: ReportStatus) => {
-  const labels: Record<ReportStatus, string> = {
-    PENDING: '대기',
-    IN_REVIEW: '검토',
-    RESOLVED: '해결',
-    REJECTED: '반려',
-  };
-  return labels[status] ?? status;
-};
-
-const statusBadgeClass = (status: ReportStatus) => {
-  const base = 'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold';
-  if (status === 'PENDING') {
-    return `${base} bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200`;
+const detailRows = computed(() => {
+  if (!selectedReport.value) {
+    return [];
   }
-  if (status === 'IN_REVIEW') {
-    return `${base} bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-200`;
-  }
-  if (status === 'RESOLVED') {
-    return `${base} bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200`;
-  }
-  return `${base} bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-200`;
-};
-
-const formatDate = (value: string | null) => {
-  if (!value) {
-    return '-';
-  }
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('ko-KR');
-};
+  return [
+    { label: '신고 번호', value: `#${selectedReport.value.id}` },
+    { label: '대상', value: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}` },
+    { label: '사유', value: selectedReport.value.reasonCode },
+    { label: '신고자 / 대상자', value: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}` },
+    { label: '게시판', value: selectedReport.value.boardId ?? '-' },
+  ];
+});
 
 const loadReports = async () => {
   listError.value = '';
@@ -155,190 +141,64 @@ onMounted(async () => {
 <template>
   <AppShell>
     <PageContainer width="wide">
-      <div>
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">신고 관리</h1>
-            <p class="text-sm text-slate-500 dark:text-slate-400">사이트 전체 신고를 빠르게 검토하고 처리하세요.</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">상태</label>
-            <select
-              v-model="statusFilter"
-              class="h-10 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-            >
-              <option v-for="option in statusOptions" :key="option" :value="option">
-                {{ option === 'ALL' ? '전체' : statusLabel(option) }}
+      <div class="space-y-6">
+        <PageHeader eyebrow="Admin Reports" title="신고 관리" description="사이트 전체 신고를 빠르게 검토하고 상태를 갱신합니다.">
+          <template #meta>
+            <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
+            <span class="ui-badge ui-badge-accent">표시 {{ reports.length }}건</span>
+            <span class="text-xs text-muted">{{ statusFilter === 'ALL' ? '전체 상태' : `${formatModerationStatusLabel(statusFilter)} 상태` }}</span>
+          </template>
+          <template #actions>
+            <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">상태</label>
+            <select v-model="statusFilter" class="ui-select min-w-[9rem]">
+              <option v-for="option in MODERATION_STATUS_OPTIONS" :key="option" :value="option">
+                {{ option === 'ALL' ? '전체' : formatModerationStatusLabel(option) }}
               </option>
             </select>
+          </template>
+          <div class="grid gap-3 md:grid-cols-3">
+            <div class="ui-data-panel p-4">
+              <p class="ui-eyebrow">Queue</p>
+              <p class="bbs-row-title mt-2 text-2xl">{{ reports.length }}</p>
+              <p class="mt-1 text-xs text-muted">현재 페이지에서 확인 중인 신고 건수</p>
+            </div>
+            <div class="ui-data-panel p-4">
+              <p class="ui-eyebrow">Selected</p>
+              <p class="bbs-row-title mt-2 text-sm">
+                {{ selectedReport ? `#${selectedReport.id}` : '미선택' }}
+              </p>
+              <p class="mt-1 text-xs text-muted">좌측 목록에서 대상을 선택해 상세를 열 수 있습니다.</p>
+            </div>
+            <div class="ui-data-panel p-4">
+              <p class="ui-eyebrow">Action</p>
+              <p class="bbs-row-title mt-2 text-sm">상태 변경 + 메모 기록</p>
+              <p class="mt-1 text-xs text-muted">처리 메모는 운영 로그 추적 기준으로 활용됩니다.</p>
+            </div>
           </div>
-        </div>
+        </PageHeader>
 
-        <div v-if="listError" class="ui-state ui-state-danger mt-6">
-          {{ listError }}
-        </div>
-
-        <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-          <section class="ui-panel p-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 목록</h2>
-              <span class="text-xs text-slate-400">총 {{ reports.length }}건</span>
-            </div>
-
-            <div v-if="isLoadingList" class="mt-4 flex items-center gap-2 text-sm text-slate-500">
-              <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-              불러오는 중...
-            </div>
-
-            <div v-else class="mt-4 flex flex-col gap-3">
-              <button
-                v-for="item in reports"
-                :key="item.id"
-                type="button"
-                class="rounded-2xl border px-4 py-3 text-left transition"
-                :class="[
-                  item.id === selectedId
-                    ? 'border-slate-300 bg-slate-50 shadow-sm dark:border-slate-600 dark:bg-slate-900'
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/50',
-                ]"
-                @click="selectReport(item.id)"
-              >
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <div class="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      <span>#{{ item.id }}</span>
-                      <span class="text-xs text-slate-400">{{ item.targetType }} · {{ item.targetId }}</span>
-                    </div>
-                    <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">신고자 {{ item.reporterUserId }} · 사유 {{ item.reasonCode }}</p>
-                  </div>
-                  <span :class="statusBadgeClass(item.status)">{{ statusLabel(item.status) }}</span>
-                </div>
-                <div class="mt-2 text-xs text-slate-400">접수 {{ formatDate(item.createdAt) }}</div>
-              </button>
-
-              <div v-if="reports.length === 0" class="ui-state ui-state-empty px-4 py-10">현재 조건에 해당하는 신고가 없습니다.</div>
-            </div>
-
-            <div class="mt-4 flex items-center justify-between text-sm text-slate-500">
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                :disabled="page === 0"
-                @click="movePage(-1)"
-              >
-                이전
-              </button>
-              <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-              <button
-                type="button"
-                class="ui-chip-button ui-chip-button-muted px-4 py-2 disabled:opacity-40"
-                :disabled="page + 1 >= totalPages"
-                @click="movePage(1)"
-              >
-                다음
-              </button>
-            </div>
-          </section>
-
-          <section class="ui-panel p-5">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Detail</p>
-                <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-100">신고 상세</h2>
-              </div>
-              <div v-if="selectedReport" :class="statusBadgeClass(selectedReport.status)">
-                {{ statusLabel(selectedReport.status) }}
-              </div>
-            </div>
-
-            <div v-if="detailError" class="ui-state ui-state-danger mt-4">
-              {{ detailError }}
-            </div>
-
-            <div v-if="isLoadingDetail" class="mt-6 text-sm text-slate-500">상세 정보를 불러오는 중...</div>
-
-            <div v-else-if="selectedReport" class="mt-6 space-y-6">
-              <div
-                class="grid gap-4 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-              >
-                <div class="flex flex-wrap justify-between gap-3">
-                  <span>신고 번호</span>
-                  <span class="font-semibold text-slate-900 dark:text-slate-100">#{{ selectedReport.id }}</span>
-                </div>
-                <div class="flex flex-wrap justify-between gap-3">
-                  <span>대상</span>
-                  <span class="font-semibold text-slate-900 dark:text-slate-100">
-                    {{ selectedReport.targetType }} · {{ selectedReport.targetId }}
-                  </span>
-                </div>
-                <div class="flex flex-wrap justify-between gap-3">
-                  <span>사유</span>
-                  <span class="font-semibold text-slate-900 dark:text-slate-100">{{ selectedReport.reasonCode }}</span>
-                </div>
-                <div class="flex flex-wrap justify-between gap-3">
-                  <span>신고자 / 대상자</span>
-                  <span class="font-semibold text-slate-900 dark:text-slate-100">
-                    {{ selectedReport.reporterUserId }} / {{ selectedReport.targetUserId ?? '-' }}
-                  </span>
-                </div>
-                <div class="flex flex-wrap justify-between gap-3">
-                  <span>게시판</span>
-                  <span class="font-semibold text-slate-900 dark:text-slate-100">{{ selectedReport.boardId ?? '-' }}</span>
-                </div>
-              </div>
-
-              <div>
-                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">신고 상세</h3>
-                <p
-                  class="mt-2 rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300"
-                >
-                  {{ selectedReport.reasonDetail || '상세 사유가 없습니다.' }}
-                </p>
-              </div>
-
-              <div v-if="selectedReportSnapshot">
-                <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-200">대상 스냅샷</h3>
-                <pre
-                  class="mt-2 max-h-64 overflow-auto rounded-2xl border border-slate-200/80 bg-slate-950 px-4 py-3 text-xs text-slate-100 dark:border-slate-800"
-                  >{{ selectedReportSnapshot }}</pre
-                >
-              </div>
-
-              <div class="grid gap-4 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-slate-800 dark:bg-slate-900/60">
-                <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-                  <span>접수 {{ formatDate(selectedReport.createdAt) }}</span>
-                  <span>처리 {{ formatDate(selectedReport.processedAt) }}</span>
-                </div>
-                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 상태</label>
-                <select
-                  v-model="processStatus"
-                  class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                >
-                  <option v-for="option in statusOptions.filter((item) => item !== 'ALL')" :key="option" :value="option">
-                    {{ statusLabel(option) }}
-                  </option>
-                </select>
-                <label class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">처리 메모</label>
-                <textarea
-                  v-model="processNote"
-                  rows="4"
-                  class="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                  placeholder="처리 결과와 사유를 간단히 기록하세요."
-                ></textarea>
-                <button
-                  type="button"
-                  class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[color:var(--accent-strong)] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                  :disabled="isProcessing"
-                  @click="handleProcess"
-                >
-                  {{ isProcessing ? '처리 중...' : '처리 저장' }}
-                </button>
-              </div>
-            </div>
-
-            <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">좌측에서 신고를 선택하세요.</div>
-          </section>
-        </div>
+        <ReportModerationWorkspace
+          :reports="reports"
+          :selected-id="selectedId"
+          :selected-report="selectedReport"
+          :detail-cards="detailCards"
+          :detail-rows="detailRows"
+          :list-description="'접수 순서대로 빠르게 훑고 필요한 항목만 선택합니다.'"
+          :list-error="listError"
+          :detail-error="detailError"
+          :is-loading-list="isLoadingList"
+          :is-loading-detail="isLoadingDetail"
+          :is-processing="isProcessing"
+          :page="page"
+          :total-pages="totalPages"
+          :process-status="processStatus"
+          :process-note="processNote"
+          @select-report="selectReport"
+          @move-page="movePage"
+          @update:process-status="processStatus = $event"
+          @update:process-note="processNote = $event"
+          @process="handleProcess"
+        />
       </div>
     </PageContainer>
   </AppShell>

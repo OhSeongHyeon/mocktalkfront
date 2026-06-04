@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { getBoards } from '../entities/board';
+import { getBoards, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
 import type { BoardResponse } from '../entities/board';
 import FileImage from '../entities/file/ui/FileImage.vue';
 import PageContainer from '../shared/ui/PageContainer.vue';
+import { formatKoreanDate } from '../shared/lib/date';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import { ApiError } from '../shared/lib/http/api';
+import { LayoutGrid } from '@lucide/vue';
+
+import AppIcon from '../shared/ui/AppIcon.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
-import boardPlaceholderIcon from '../assets/icons/icon-board-placeholder.svg';
 
 type AppShellExposed = {
   getMainElement: () => HTMLElement | null;
@@ -30,11 +33,6 @@ let observer: IntersectionObserver | null = null;
 const isInitialLoading = computed(() => isLoading.value && boards.value.length === 0);
 const visibleBoards = computed(() => boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug)));
 const visibleBoardCount = computed(() => visibleBoards.value.length);
-
-const resolveDescription = (description: string | null) => {
-  const trimmed = description?.trim();
-  return trimmed ? trimmed : '설명이 없습니다.';
-};
 
 const loadNextPage = async () => {
   if (isLoading.value || !hasNext.value) {
@@ -94,14 +92,11 @@ onBeforeUnmount(() => {
 <template>
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
-      <div class="space-y-6">
-        <PageHeader class="animate-rise" eyebrow="탐색" title="커뮤니티" description="">
+      <div class="space-y-4">
+        <PageHeader class="animate-rise" eyebrow="Boards" title="커뮤니티" description="공개된 커뮤니티를 게시판형 목록으로 빠르게 훑을 수 있습니다.">
           <template #meta>
-            <span
-              class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"
-            >
-              게시판 {{ visibleBoardCount }}개
-            </span>
+            <span class="ui-badge ui-badge-success">게시판 {{ visibleBoardCount }}개</span>
+            <span v-if="isLoading && visibleBoards.length > 0" class="ui-badge ui-badge-muted">추가 로딩 중</span>
           </template>
         </PageHeader>
 
@@ -109,45 +104,61 @@ onBeforeUnmount(() => {
           {{ listError }}
         </div>
 
-        <div v-if="visibleBoards.length > 0" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <RouterLink
-            v-for="board in visibleBoards"
-            :key="board.id"
-            :to="`/b/${board.slug}`"
-            class="ui-sub-panel group block overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:hover:border-slate-700"
+        <div v-if="visibleBoards.length > 0" class="bbs-box overflow-hidden">
+          <div
+            class="hidden grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] gap-3 border-b border-line bg-surface-1 px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
-            <div class="aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-              <FileImage
-                v-if="board.boardImage"
-                :file="board.boardImage"
-                variant="thumb"
-                :alt="board.boardName"
-                class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
-                <img :src="boardPlaceholderIcon" alt="" aria-hidden="true" class="h-7 w-7" />
-                <span class="text-xs">대표 이미지 없음</span>
+            <span>이미지</span>
+            <span>게시판</span>
+            <span class="text-center">공개 범위</span>
+            <span class="text-center">개설일</span>
+          </div>
+          <RouterLink v-for="board in visibleBoards" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
+            <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] md:items-center">
+              <div class="h-14 overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface-soft">
+                <FileImage
+                  v-if="board.boardImage"
+                  :file="board.boardImage"
+                  variant="thumb"
+                  :alt="board.boardName"
+                  class="h-full w-full object-cover"
+                />
+                <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 text-subtle">
+                  <AppIcon :icon="LayoutGrid" :size="20" icon-class="text-muted" />
+                </div>
               </div>
-            </div>
-            <div class="flex flex-col gap-2 px-4 py-4">
-              <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">
-                {{ board.boardName }}
-              </h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
-                {{ resolveDescription(board.description) }}
-              </p>
+
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="ui-badge ui-badge-muted">{{
+                    board.articleWritePolicy === 'ALL_AUTHENTICATED' ? '회원 글쓰기' : '운영 정책 적용'
+                  }}</span>
+                  <span class="bbs-meta">/{{ board.slug }}</span>
+                </div>
+                <h3 class="bbs-row-title mt-1 truncate transition group-hover:text-link">
+                  {{ board.boardName }}
+                </h3>
+                <p class="ui-caption mt-1 line-clamp-1 leading-5">
+                  {{ resolveBoardSummaryDescription(board.description) }}
+                </p>
+              </div>
+
+              <div class="hidden justify-center md:flex">
+                <span class="ui-badge ui-badge-success">{{ resolveBoardVisibilityLabel(board.visibility) }}</span>
+              </div>
+
+              <div class="bbs-meta hidden text-center md:block">
+                {{ formatKoreanDate(board.createdAt, { month: '2-digit', day: '2-digit' }) }}
+              </div>
             </div>
           </RouterLink>
         </div>
 
         <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 게시판이 없습니다.</div>
 
-        <div v-if="isInitialLoading" class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-slate-400 dark:bg-slate-500"></span>
-          게시판을 불러오는 중입니다.
-        </div>
+        <div v-if="isInitialLoading" class="ui-section-loading">게시판을 불러오는 중입니다.</div>
 
-        <div v-if="isLoading && visibleBoards.length > 0" class="text-sm text-slate-500">더 불러오는 중...</div>
+        <div v-if="isLoading && visibleBoards.length > 0" class="ui-section-loading">더 불러오는 중...</div>
 
         <div ref="sentinelRef" class="h-8 w-full"></div>
       </div>
