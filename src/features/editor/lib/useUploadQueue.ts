@@ -1,5 +1,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 
+import { translate } from '../../../shared/i18n/translate';
+
 type UploadKind = 'image' | 'video';
 type UploadStatus = 'uploading' | 'success' | 'error' | 'canceled';
 
@@ -42,7 +44,7 @@ const createUploadItem = (file: File, kind: UploadKind): UploadItem => ({
   kind,
   progress: 0,
   status: 'uploading',
-  message: '업로드 대기',
+  message: translate('editor.upload.status.pending'),
 });
 
 const useUploadQueue = <TUploadResult>(options: UseUploadQueueOptions<TUploadResult>) => {
@@ -73,7 +75,7 @@ const useUploadQueue = <TUploadResult>(options: UseUploadQueueOptions<TUploadRes
     clearUploadAutoRemoveTimer(item.id);
     item.status = 'uploading';
     item.progress = 0;
-    item.message = '업로드 중';
+    item.message = translate('editor.upload.status.uploading');
 
     const task = options.createUploadTask(item.file, (percent) => {
       item.progress = percent;
@@ -85,7 +87,7 @@ const useUploadQueue = <TUploadResult>(options: UseUploadQueueOptions<TUploadRes
       const url = options.resolveUploadedUrl(item.kind, uploaded);
       if (!url) {
         item.status = 'error';
-        item.message = '파일 URL 생성 실패';
+        item.message = translate('editor.upload.status.urlFailed');
         return;
       }
       const imageNaturalSize =
@@ -93,16 +95,16 @@ const useUploadQueue = <TUploadResult>(options: UseUploadQueueOptions<TUploadRes
       options.onInsertUploadedFile(item.kind, url, imageNaturalSize);
       item.status = 'success';
       item.progress = 100;
-      item.message = '업로드 완료';
+      item.message = translate('editor.upload.status.success');
       scheduleUploadAutoRemove(item.id);
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
         item.status = 'canceled';
-        item.message = '업로드 취소';
+        item.message = translate('editor.upload.status.canceled');
         return;
       }
       item.status = 'error';
-      item.message = error instanceof Error ? error.message : '파일 업로드 실패';
+      item.message = error instanceof Error ? error.message : translate('editor.upload.status.failed');
     } finally {
       item.cancel = undefined;
     }

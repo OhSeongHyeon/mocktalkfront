@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { i18n } from '../../test/plugins';
 import { useAuthStore } from '../../stores/auth';
 import { useNotificationStore } from '../../stores/notification';
 import TopMenuBar from './TopMenuBar.vue';
@@ -58,7 +59,7 @@ const mountTopMenuBar = async (initialPath = '/', props: Record<string, unknown>
   const wrapper = mount(TopMenuBar, {
     props,
     global: {
-      plugins: [pinia, router],
+      plugins: [pinia, router, i18n],
     },
   });
   await flushPromises();
@@ -193,7 +194,7 @@ describe('widgets/layout/TopMenuBar', () => {
 
     const wrapper = mount(TopMenuBar, {
       global: {
-        plugins: [pinia, router],
+        plugins: [pinia, router, i18n],
       },
     });
     await flushPromises();
@@ -225,7 +226,7 @@ describe('widgets/layout/TopMenuBar', () => {
     const router = await createRouterInstance('/');
     const wrapper = mount(TopMenuBar, {
       global: {
-        plugins: [pinia, router],
+        plugins: [pinia, router, i18n],
       },
     });
     await flushPromises();

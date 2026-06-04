@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import ArticleUpsertForm from '../widgets/article/ArticleUpsertForm.vue';
@@ -23,6 +24,7 @@ import type { FileResponse } from '../entities/file';
 import { uploadArticleAttachmentFile } from '../entities/file';
 import { useAuthStore } from '../stores/auth';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const articleId = computed(() => Number(route.params.articleId));
@@ -65,14 +67,18 @@ const selectedCategoryName = computed(() => {
 
 const visibilityOptions = computed(() => {
   const base = [
-    { value: 'PUBLIC', label: '전체 공개' },
-    { value: 'MEMBERS', label: '로그인 사용자' },
+    { value: 'PUBLIC', label: t('article.visibility.upsert.PUBLIC') },
+    { value: 'MEMBERS', label: t('article.visibility.upsert.MEMBERS') },
   ];
   if (isAdmin.value) {
-    return [...base, { value: 'MODERATORS', label: '운영진' }, { value: 'ADMINS', label: '사이트 관리자' }];
+    return [
+      ...base,
+      { value: 'MODERATORS', label: t('article.visibility.upsert.MODERATORS') },
+      { value: 'ADMINS', label: t('article.visibility.upsert.ADMINS') },
+    ];
   }
   if (isBoardAdmin.value) {
-    return [...base, { value: 'MODERATORS', label: '운영진' }];
+    return [...base, { value: 'MODERATORS', label: t('article.visibility.upsert.MODERATORS') }];
   }
   return base;
 });
@@ -134,7 +140,7 @@ const loadCategories = async (boardId: number) => {
       isCategoryAccessDenied.value = true;
       return;
     }
-    categoryErrorMessage.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+    categoryErrorMessage.value = error instanceof ApiError ? error.message : t('article.upsert.loadCategoriesFailed');
   } finally {
     isCategoryLoading.value = false;
   }
@@ -149,7 +155,7 @@ const loadArticle = async () => {
   isAttachmentUploading.value = false;
   attachmentErrorMessage.value = '';
   if (!Number.isFinite(articleId.value)) {
-    errorMessage.value = '게시글 정보가 올바르지 않습니다.';
+    errorMessage.value = t('article.upsert.invalidArticle');
     return;
   }
   isLoading.value = true;
@@ -166,14 +172,14 @@ const loadArticle = async () => {
     await loadCategories(article.value.board?.id ?? 0);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
-      errorMessage.value = '게시글을 찾을 수 없습니다.';
+      errorMessage.value = t('article.errors.notFound');
       return;
     }
     if (error instanceof ApiError && error.status === 403) {
-      errorMessage.value = '게시글 접근 권한이 없습니다.';
+      errorMessage.value = t('article.errors.forbidden');
       return;
     }
-    errorMessage.value = error instanceof ApiError ? error.message : '게시글을 불러오지 못했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('article.errors.loadFailed');
   } finally {
     isLoading.value = false;
   }
@@ -195,7 +201,7 @@ const loadProfile = async () => {
   try {
     profile.value = await getMyProfile();
   } catch (error) {
-    errorMessage.value = error instanceof ApiError ? error.message : '사용자 정보를 불러오지 못했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('article.upsert.loadProfileFailed');
   }
 };
 
@@ -204,11 +210,11 @@ const submit = async () => {
     return;
   }
   if (!isAuthor.value) {
-    errorMessage.value = '게시글 수정 권한이 없습니다.';
+    errorMessage.value = t('article.upsert.noEditPermission');
     return;
   }
   if (isInvalid.value) {
-    errorMessage.value = '제목과 본문을 입력해주세요.';
+    errorMessage.value = t('article.upsert.requiredFields');
     return;
   }
   isSubmitting.value = true;
@@ -239,7 +245,7 @@ const submit = async () => {
     const boardSlug = article.value.board?.slug ?? slug.value;
     router.push(`/b/${boardSlug}/articles/${article.value.id}`);
   } catch (error) {
-    errorMessage.value = error instanceof ApiError ? error.message : '게시글 수정에 실패했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('article.upsert.updateFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -274,7 +280,7 @@ const addAttachments = async (files: File[]) => {
         }
         attachmentFiles.value = [...attachmentFiles.value, uploaded];
       } catch (error) {
-        const message = error instanceof ApiError ? error.message : '업로드 실패';
+        const message = error instanceof ApiError ? error.message : t('article.upsert.uploadFailed');
         failedMessages.push(`${file.name}: ${message}`);
       }
     }
@@ -313,13 +319,13 @@ watch(
 
 <template>
   <ArticleUpsertPageLayout
-    :board-title="article?.board?.boardName ?? '커뮤니티'"
-    :board-description="article?.board?.description ?? '설명이 없습니다.'"
+    :board-title="article?.board?.boardName ?? t('board.defaults.communityName')"
+    :board-description="article?.board?.description ?? t('board.defaults.noDescription')"
     :board-image-file="article?.board?.boardImage ?? null"
     :board-link-to="article?.board?.slug ? `/b/${article.board.slug}` : undefined"
     :error-message="errorMessage"
     :is-loading="isLoading"
-    loading-message="게시글 정보를 불러오는 중입니다..."
+    :loading-message="t('article.upsert.loadingArticle')"
   >
     <ArticleUpsertForm
       v-model:title="title"
@@ -341,9 +347,7 @@ watch(
       :is-submitting="isSubmitting"
       :is-invalid="isInvalid"
       :is-submit-blocked="isAttachmentUploading || !isAuthor"
-      :submit-permission-message="
-        !isAuthor ? '게시글 수정 권한이 없습니다.' : isAttachmentUploading ? '첨부파일 업로드가 완료될 때까지 기다려주세요.' : ''
-      "
+      :submit-permission-message="!isAuthor ? t('article.upsert.noEditPermission') : isAttachmentUploading ? t('article.upsert.waitForUpload') : ''"
       @add-attachments="addAttachments"
       @remove-attachment="removeAttachment"
       @apply-import-metadata="applyImportedMetadata"

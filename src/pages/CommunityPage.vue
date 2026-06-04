@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { getBoards, resolveBoardSummaryDescription, resolveBoardVisibilityLabel } from '../entities/board';
 import type { BoardResponse } from '../entities/board';
@@ -17,6 +18,8 @@ type AppShellExposed = {
   getMainElement: () => HTMLElement | null;
 };
 
+const { t } = useI18n();
+
 const appShellRef = ref<AppShellExposed | null>(null);
 const scrollAreaRef = ref<HTMLElement | null>(null);
 const sentinelRef = ref<HTMLDivElement | null>(null);
@@ -33,6 +36,10 @@ let observer: IntersectionObserver | null = null;
 const isInitialLoading = computed(() => isLoading.value && boards.value.length === 0);
 const visibleBoards = computed(() => boards.value.filter((board) => !['notice', 'inquiry'].includes(board.slug)));
 const visibleBoardCount = computed(() => visibleBoards.value.length);
+const boardCountLabel = computed(() => t('community.page.boardCount', { count: visibleBoardCount.value }));
+
+const resolveWritePolicyLabel = (policy: BoardResponse['articleWritePolicy']) =>
+  policy === 'ALL_AUTHENTICATED' ? t('community.page.writePolicy.member') : t('community.page.writePolicy.managed');
 
 const loadNextPage = async () => {
   if (isLoading.value || !hasNext.value) {
@@ -50,7 +57,7 @@ const loadNextPage = async () => {
     hasNext.value = data.hasNext;
     nextPage.value = data.page + 1;
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '게시판 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('community.page.error');
     hasNext.value = false;
   } finally {
     isLoading.value = false;
@@ -93,10 +100,10 @@ onBeforeUnmount(() => {
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
       <div class="space-y-4">
-        <PageHeader class="animate-rise" eyebrow="Boards" title="커뮤니티">
+        <PageHeader class="animate-rise" :eyebrow="t('community.page.eyebrow')" :title="t('community.page.title')">
           <template #meta>
-            <span class="ui-badge ui-badge-success">게시판 {{ visibleBoardCount }}개</span>
-            <span v-if="isLoading && visibleBoards.length > 0" class="ui-badge ui-badge-muted">추가 로딩 중</span>
+            <span class="ui-badge ui-badge-success">{{ boardCountLabel }}</span>
+            <span v-if="isLoading && visibleBoards.length > 0" class="ui-badge ui-badge-muted">{{ t('community.page.loadingMore') }}</span>
           </template>
         </PageHeader>
 
@@ -108,10 +115,10 @@ onBeforeUnmount(() => {
           <div
             class="hidden grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] gap-3 border-b border-line bg-surface-1 px-3 py-2 text-xs font-semibold text-subtle md:grid"
           >
-            <span>이미지</span>
-            <span>게시판</span>
-            <span class="text-center">공개 범위</span>
-            <span class="text-center">개설일</span>
+            <span>{{ t('community.page.columns.image') }}</span>
+            <span>{{ t('community.page.columns.board') }}</span>
+            <span class="text-center">{{ t('community.page.columns.visibility') }}</span>
+            <span class="text-center">{{ t('community.page.columns.createdAt') }}</span>
           </div>
           <RouterLink v-for="board in visibleBoards" :key="board.id" :to="`/b/${board.slug}`" class="bbs-row group block">
             <div class="grid gap-3 md:grid-cols-[3.5rem_minmax(0,1fr)_6rem_6.5rem] md:items-center">
@@ -130,9 +137,7 @@ onBeforeUnmount(() => {
 
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="ui-badge ui-badge-muted">{{
-                    board.articleWritePolicy === 'ALL_AUTHENTICATED' ? '회원 글쓰기' : '운영 정책 적용'
-                  }}</span>
+                  <span class="ui-badge ui-badge-muted">{{ resolveWritePolicyLabel(board.articleWritePolicy) }}</span>
                   <span class="bbs-meta">/{{ board.slug }}</span>
                 </div>
                 <h3 class="bbs-row-title mt-1 truncate transition group-hover:text-link">
@@ -154,11 +159,11 @@ onBeforeUnmount(() => {
           </RouterLink>
         </div>
 
-        <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">아직 게시판이 없습니다.</div>
+        <div v-else-if="!isInitialLoading && !listError" class="ui-state ui-state-empty px-6 py-12">{{ t('community.page.empty') }}</div>
 
-        <div v-if="isInitialLoading" class="ui-section-loading">게시판을 불러오는 중입니다.</div>
+        <div v-if="isInitialLoading" class="ui-section-loading">{{ t('community.page.loading') }}</div>
 
-        <div v-if="isLoading && visibleBoards.length > 0" class="ui-section-loading">더 불러오는 중...</div>
+        <div v-if="isLoading && visibleBoards.length > 0" class="ui-section-loading">{{ t('community.page.loadingMoreList') }}</div>
 
         <div ref="sentinelRef" class="h-8 w-full"></div>
       </div>

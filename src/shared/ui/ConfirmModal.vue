@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import BaseModal from './BaseModal.vue';
 
@@ -22,8 +23,6 @@ type ConfirmModalProps = {
 
 const props = withDefaults(defineProps<ConfirmModalProps>(), {
   description: '',
-  confirmLabel: '확인',
-  cancelLabel: '취소',
   confirmVariant: 'primary',
   confirmDisabled: false,
   cancelDisabled: false,
@@ -40,6 +39,8 @@ const emit = defineEmits<{
   (event: 'close'): void;
 }>();
 
+const { t } = useI18n();
+
 const confirmButtonClass = computed(() => {
   const base = 'h-11 px-5 text-sm';
   if (props.confirmVariant === 'danger') {
@@ -50,7 +51,9 @@ const confirmButtonClass = computed(() => {
 
 const cancelButtonClass = 'ui-button-ghost h-11 px-5 text-sm';
 
-const ariaLabel = computed(() => props.ariaLabel || props.title || '확인 모달');
+const resolvedConfirmLabel = computed(() => props.confirmLabel || t('common.confirm'));
+const resolvedCancelLabel = computed(() => props.cancelLabel || t('common.cancel'));
+const ariaLabel = computed(() => props.ariaLabel || props.title || t('common.confirmModal'));
 </script>
 
 <template>
@@ -71,10 +74,10 @@ const ariaLabel = computed(() => props.ariaLabel || props.title || '확인 모�
     <slot />
     <div class="mt-6 flex items-center justify-end gap-2">
       <button type="button" :class="cancelButtonClass" :disabled="cancelDisabled" @click="emit('close')">
-        {{ cancelLabel }}
+        {{ resolvedCancelLabel }}
       </button>
       <button type="button" :class="confirmButtonClass" :disabled="confirmDisabled" @click="emit('confirm')">
-        {{ confirmLabel }}
+        {{ resolvedConfirmLabel }}
       </button>
     </div>
   </BaseModal>

@@ -1,33 +1,17 @@
 import type { BoardDetailResponse, BoardMemberStatus } from '..';
+import { translate } from '../../../shared/i18n/translate';
 
 export type BoardArticleWritePolicy = 'ALL_AUTHENTICATED' | 'MEMBER' | 'MODERATOR' | 'OWNER';
 
-interface WritePolicyOption {
-  value: BoardArticleWritePolicy;
-  label: string;
-}
-
-const BOARD_ARTICLE_WRITE_POLICY_OPTIONS: WritePolicyOption[] = [
-  { value: 'ALL_AUTHENTICATED', label: '로그인 사용자 전체' },
-  { value: 'MEMBER', label: '멤버 이상' },
-  { value: 'MODERATOR', label: '운영진 이상' },
-  { value: 'OWNER', label: '소유자만' },
-];
+export const BOARD_ARTICLE_WRITE_POLICY_VALUES: BoardArticleWritePolicy[] = ['ALL_AUTHENTICATED', 'MEMBER', 'MODERATOR', 'OWNER'];
 
 const resolveBoardWritePolicyLabel = (writePolicy: string) => {
-  if (writePolicy === 'ALL_AUTHENTICATED') {
-    return '회원 글쓰기';
+  const key = `board.writePolicy.short.${writePolicy}`;
+  const translated = translate(key);
+  if (translated !== key) {
+    return translated;
   }
-  if (writePolicy === 'MEMBER') {
-    return '멤버 전용';
-  }
-  if (writePolicy === 'MODERATOR') {
-    return '운영진 전용';
-  }
-  if (writePolicy === 'OWNER') {
-    return '개설자 전용';
-  }
-  return '정책 미정';
+  return translate('board.writePolicy.short.UNKNOWN');
 };
 
 const isActiveMember = (role: BoardMemberStatus | null | undefined) => role === 'OWNER' || role === 'MODERATOR' || role === 'MEMBER';
@@ -61,17 +45,17 @@ const canWriteArticle = (board: BoardDetailResponse | null, authenticated: boole
 
 const resolveWriteUnavailableReason = (board: BoardDetailResponse | null, authenticated: boolean, siteAdmin: boolean) => {
   if (!authenticated) {
-    return '로그인 후 글쓰기가 가능합니다.';
+    return translate('board.writePolicy.unavailable.loginRequired');
   }
   if (!board) {
-    return '게시판 정보를 확인 중입니다.';
+    return translate('board.writePolicy.unavailable.loadingBoard');
   }
   const role = board.memberStatus;
   if (role === 'PENDING') {
-    return '가입 승인 후 글쓰기가 가능합니다.';
+    return translate('board.writePolicy.unavailable.pendingApproval');
   }
   if (role === 'BANNED') {
-    return '제재 상태에서는 글을 작성할 수 없습니다.';
+    return translate('board.writePolicy.unavailable.banned');
   }
   if (siteAdmin) {
     return '';
@@ -80,12 +64,12 @@ const resolveWriteUnavailableReason = (board: BoardDetailResponse | null, authen
     return '';
   }
   if (board.articleWritePolicy === 'MEMBER') {
-    return '멤버 이상만 글을 작성할 수 있습니다.';
+    return translate('board.writePolicy.unavailable.membersOnly');
   }
   if (board.articleWritePolicy === 'MODERATOR') {
-    return '운영진 이상만 글을 작성할 수 있습니다.';
+    return translate('board.writePolicy.unavailable.moderatorsOnly');
   }
-  return '게시판 소유자만 글을 작성할 수 있습니다.';
+  return translate('board.writePolicy.unavailable.ownerOnly');
 };
 
-export { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, canWriteArticle, resolveBoardWritePolicyLabel, resolveWriteUnavailableReason };
+export { canWriteArticle, resolveBoardWritePolicyLabel, resolveWriteUnavailableReason };

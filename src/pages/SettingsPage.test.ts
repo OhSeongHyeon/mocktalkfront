@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const applyThemeMock = vi.hoisted(() => vi.fn());
@@ -12,14 +12,15 @@ vi.mock('../shared/lib/theme', () => ({
   subscribeThemeChange: subscribeThemeChangeMock,
 }));
 
+import { createTestPinia, getTestPlugins } from '../test/plugins';
 import SettingsPage from './SettingsPage.vue';
 
 const mountPage = async () => {
-  const pinia = createPinia();
+  const pinia = createTestPinia();
   setActivePinia(pinia);
   const wrapper = mount(SettingsPage, {
     global: {
-      plugins: [pinia],
+      plugins: [...getTestPlugins(pinia)],
       stubs: {
         AppShell: {
           template: '<div><slot /></div>',

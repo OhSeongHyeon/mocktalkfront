@@ -1,4 +1,5 @@
 import type { NotificationResponse } from '../../features/notification';
+import { translate } from '../i18n/translate';
 
 const buildSenderLabel = (notification: NotificationResponse) => {
   const name = notification.senderName?.trim() ?? '';
@@ -17,24 +18,24 @@ const buildSenderLabel = (notification: NotificationResponse) => {
 
 const formatNotificationMessage = (notification: NotificationResponse) => {
   const senderLabel = buildSenderLabel(notification);
-  const senderPrefix = senderLabel ? `${senderLabel}님이 ` : '';
-  const titleSuffix = notification.articleTitle ? `: ${notification.articleTitle}` : '';
+  const senderPrefix = senderLabel ? `${senderLabel}${translate('notification.senderSuffix')}` : '';
+  const titleSuffix = notification.articleTitle ? translate('notification.titleSuffix', { title: notification.articleTitle }) : '';
 
   switch (notification.notiType) {
     case 'ARTICLE_COMMENT':
-      return `${senderPrefix}내 게시글에 댓글을 남겼습니다${titleSuffix}`;
+      return translate('notification.articleComment', { prefix: senderPrefix, suffix: titleSuffix });
     case 'COMMENT_REPLY':
-      return `${senderPrefix}내 댓글에 답글을 남겼습니다${titleSuffix}`;
+      return translate('notification.commentReply', { prefix: senderPrefix, suffix: titleSuffix });
     case 'MENTION':
-      return `${senderPrefix}나를 언급했습니다${titleSuffix}`;
+      return translate('notification.mention', { prefix: senderPrefix, suffix: titleSuffix });
     case 'REACTION':
-      return `${senderPrefix}내 글에 반응했습니다${titleSuffix}`;
+      return translate('notification.reaction', { prefix: senderPrefix, suffix: titleSuffix });
     case 'BOARD_NOTICE':
-      return `게시판 공지가 등록되었습니다${titleSuffix}`;
+      return translate('notification.boardNotice', { suffix: titleSuffix });
     case 'SYSTEM':
-      return '시스템 알림이 도착했습니다.';
+      return translate('notification.system');
     default:
-      return '새 알림이 도착했습니다.';
+      return translate('notification.default');
   }
 };
 

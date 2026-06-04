@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
 import type { ArticleSummaryResponse } from '../../entities/board';
+import { i18n } from '../../test/plugins';
 import ArticleList from './ArticleList.vue';
 
 const createArticle = (overrides: Partial<ArticleSummaryResponse> = {}): ArticleSummaryResponse => ({
@@ -38,6 +39,9 @@ describe('widgets/article/ArticleList', () => {
         hasNext: true,
         resolveHref: (article: ArticleSummaryResponse) => `/b/test-board/articles/${article.id}`,
       },
+      global: {
+        plugins: [i18n],
+      },
     });
 
     // when
@@ -70,6 +74,9 @@ describe('widgets/article/ArticleList', () => {
         articles: [],
         isLoading: false,
         emptyMessage: '비어 있음',
+      },
+      global: {
+        plugins: [i18n],
       },
     });
 

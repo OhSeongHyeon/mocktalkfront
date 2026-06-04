@@ -1,8 +1,9 @@
 import { mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia } from 'pinia';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import { describe, expect, it } from 'vitest';
 
+import { createTestPinia, getTestPlugins } from '../../test/plugins';
 import { useAuthStore } from '../../stores/auth';
 import SideMenuBar from './SideMenuBar.vue';
 
@@ -40,7 +41,7 @@ const createRouterInstance = async (initialPath: string) => {
 describe('widgets/layout/SideMenuBar', () => {
   it('모바일 오픈 상태에서 배경을 누르면 close 이벤트를 발생시킨다', async () => {
     // given
-    const pinia = createPinia();
+    const pinia = createTestPinia();
     setActivePinia(pinia);
     const router = await createRouterInstance('/boards');
     const wrapper = mount(SideMenuBar, {
@@ -51,7 +52,7 @@ describe('widgets/layout/SideMenuBar', () => {
         topMenuPositionMode: 'fixed',
       },
       global: {
-        plugins: [pinia, router],
+        plugins: [...getTestPlugins(pinia), router],
       },
     });
 
@@ -66,7 +67,7 @@ describe('widgets/layout/SideMenuBar', () => {
 
   it('백오피스 경로에서는 관리자 메뉴와 활성 항목을 렌더링한다', async () => {
     // given
-    const pinia = createPinia();
+    const pinia = createTestPinia();
     setActivePinia(pinia);
     const authStore = useAuthStore();
     authStore.setAccessToken(createToken('ADMIN'), 60);
@@ -79,7 +80,7 @@ describe('widgets/layout/SideMenuBar', () => {
         topMenuPositionMode: 'fixed',
       },
       global: {
-        plugins: [pinia, router],
+        plugins: [...getTestPlugins(pinia), router],
       },
     });
 
@@ -96,7 +97,7 @@ describe('widgets/layout/SideMenuBar', () => {
   });
 
   it('compact 모드에서도 메뉴 아이콘을 렌더링한다', async () => {
-    const pinia = createPinia();
+    const pinia = createTestPinia();
     setActivePinia(pinia);
     const router = await createRouterInstance('/');
     const wrapper = mount(SideMenuBar, {
@@ -107,7 +108,7 @@ describe('widgets/layout/SideMenuBar', () => {
         topMenuPositionMode: 'fixed',
       },
       global: {
-        plugins: [pinia, router],
+        plugins: [...getTestPlugins(pinia), router],
       },
     });
 

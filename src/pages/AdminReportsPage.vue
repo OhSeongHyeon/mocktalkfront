@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { MODERATION_STATUS_OPTIONS, formatModerationStatusLabel, type ModerationStatusFilter } from '../features/admin/lib/reportModeration';
 import { ApiError } from '../shared/lib/http/api';
@@ -9,6 +10,8 @@ import PageContainer from '../shared/ui/PageContainer.vue';
 import PageHeader from '../shared/ui/PageHeader.vue';
 import ReportModerationWorkspace from '../widgets/admin/ReportModerationWorkspace.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
+
+const { t } = useI18n();
 
 const statusFilter = ref<ModerationStatusFilter>('ALL');
 const page = ref(0);
@@ -33,12 +36,12 @@ const detailCards = computed(() => {
     {
       eyebrow: 'Target',
       title: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}`,
-      description: `게시판 ${selectedReport.value.boardId ?? '-'}`,
+      description: t('admin.moderation.cardBoard', { boardId: selectedReport.value.boardId ?? '-' }),
     },
     {
       eyebrow: 'Reporter',
       title: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}`,
-      description: `사유 ${selectedReport.value.reasonCode}`,
+      description: t('admin.moderation.cardReason', { reasonCode: selectedReport.value.reasonCode }),
     },
   ];
 });
@@ -48,11 +51,14 @@ const detailRows = computed(() => {
     return [];
   }
   return [
-    { label: '신고 번호', value: `#${selectedReport.value.id}` },
-    { label: '대상', value: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}` },
-    { label: '사유', value: selectedReport.value.reasonCode },
-    { label: '신고자 / 대상자', value: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}` },
-    { label: '게시판', value: selectedReport.value.boardId ?? '-' },
+    { label: t('admin.moderation.detailRowReportId'), value: `#${selectedReport.value.id}` },
+    { label: t('admin.moderation.detailRowTarget'), value: `${selectedReport.value.targetType} · ${selectedReport.value.targetId}` },
+    { label: t('admin.moderation.detailRowReason'), value: selectedReport.value.reasonCode },
+    {
+      label: t('admin.moderation.detailRowUsers'),
+      value: `${selectedReport.value.reporterUserId} / ${selectedReport.value.targetUserId ?? '-'}`,
+    },
+    { label: t('admin.moderation.detailRowBoard'), value: selectedReport.value.boardId ?? '-' },
   ];
 });
 
@@ -72,7 +78,7 @@ const loadReports = async () => {
       await selectReport(firstItem.id);
     }
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '신고 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.moderation.reports.errors.loadList');
   } finally {
     isLoadingList.value = false;
   }
@@ -88,7 +94,7 @@ const selectReport = async (reportId: number) => {
     processStatus.value = detail.status;
     processNote.value = detail.processedNote ?? '';
   } catch (error) {
-    detailError.value = error instanceof ApiError ? error.message : '신고 상세를 불러오지 못했습니다.';
+    detailError.value = error instanceof ApiError ? error.message : t('admin.moderation.reports.errors.loadDetail');
   } finally {
     isLoadingDetail.value = false;
   }
@@ -110,7 +116,7 @@ const handleProcess = async () => {
     );
     reports.value = updatedList;
   } catch (error) {
-    detailError.value = error instanceof ApiError ? error.message : '신고 처리를 완료하지 못했습니다.';
+    detailError.value = error instanceof ApiError ? error.message : t('admin.moderation.reports.errors.process');
   } finally {
     isProcessing.value = false;
   }
@@ -142,17 +148,21 @@ onMounted(async () => {
   <AppShell>
     <PageContainer width="wide">
       <div class="space-y-6">
-        <PageHeader eyebrow="Admin Reports" title="신고 관리" description="사이트 전체 신고를 빠르게 검토하고 상태를 갱신합니다.">
+        <PageHeader eyebrow="Admin Reports" :title="t('admin.moderation.reports.title')" :description="t('admin.moderation.reports.description')">
           <template #meta>
-            <span class="ui-badge ui-badge-muted">현재 페이지 {{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
-            <span class="ui-badge ui-badge-accent">표시 {{ reports.length }}건</span>
-            <span class="text-xs text-muted">{{ statusFilter === 'ALL' ? '전체 상태' : `${formatModerationStatusLabel(statusFilter)} 상태` }}</span>
+            <span class="ui-badge ui-badge-muted">{{ t('admin.common.currentPage', { current: page + 1, total: Math.max(totalPages, 1) }) }}</span>
+            <span class="ui-badge ui-badge-accent">{{ t('admin.common.displayCount', { count: reports.length }) }}</span>
+            <span class="text-xs text-muted">{{
+              statusFilter === 'ALL'
+                ? t('admin.common.statusAll')
+                : t('admin.common.statusFilter', { status: formatModerationStatusLabel(statusFilter) })
+            }}</span>
           </template>
           <template #actions>
-            <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">상태</label>
+            <label class="text-xs font-semibold tracking-[0.18em] text-subtle uppercase dark:text-muted">{{ t('admin.common.statusLabel') }}</label>
             <select v-model="statusFilter" class="ui-select min-w-[9rem]">
               <option v-for="option in MODERATION_STATUS_OPTIONS" :key="option" :value="option">
-                {{ option === 'ALL' ? '전체' : formatModerationStatusLabel(option) }}
+                {{ option === 'ALL' ? t('admin.common.all') : formatModerationStatusLabel(option) }}
               </option>
             </select>
           </template>
@@ -160,19 +170,19 @@ onMounted(async () => {
             <div class="ui-data-panel p-4">
               <p class="ui-eyebrow">Queue</p>
               <p class="bbs-row-title mt-2 text-2xl">{{ reports.length }}</p>
-              <p class="mt-1 text-xs text-muted">현재 페이지에서 확인 중인 신고 건수</p>
+              <p class="mt-1 text-xs text-muted">{{ t('admin.common.queuePageCount') }}</p>
             </div>
             <div class="ui-data-panel p-4">
               <p class="ui-eyebrow">Selected</p>
               <p class="bbs-row-title mt-2 text-sm">
-                {{ selectedReport ? `#${selectedReport.id}` : '미선택' }}
+                {{ selectedReport ? `#${selectedReport.id}` : t('admin.common.notSelected') }}
               </p>
-              <p class="mt-1 text-xs text-muted">좌측 목록에서 대상을 선택해 상세를 열 수 있습니다.</p>
+              <p class="mt-1 text-xs text-muted">{{ t('admin.common.listSelectHint') }}</p>
             </div>
             <div class="ui-data-panel p-4">
               <p class="ui-eyebrow">Action</p>
-              <p class="bbs-row-title mt-2 text-sm">상태 변경 + 메모 기록</p>
-              <p class="mt-1 text-xs text-muted">처리 메모는 운영 로그 추적 기준으로 활용됩니다.</p>
+              <p class="bbs-row-title mt-2 text-sm">{{ t('admin.common.statusChangeMemo') }}</p>
+              <p class="mt-1 text-xs text-muted">{{ t('admin.common.memoAuditHint') }}</p>
             </div>
           </div>
         </PageHeader>
@@ -183,7 +193,7 @@ onMounted(async () => {
           :selected-report="selectedReport"
           :detail-cards="detailCards"
           :detail-rows="detailRows"
-          :list-description="'접수 순서대로 빠르게 훑고 필요한 항목만 선택합니다.'"
+          :list-description="t('admin.moderation.reports.listDescription')"
           :list-error="listError"
           :detail-error="detailError"
           :is-loading-list="isLoadingList"

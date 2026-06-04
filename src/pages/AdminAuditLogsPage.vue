@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { ApiError } from '../shared/lib/http/api';
 import { getAdminAuditLogs } from '../features/admin/system';
 import type { AdminActionType, AdminAuditLogResponse, AdminTargetType } from '../features/admin/system';
 import PageContainer from '../shared/ui/PageContainer.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
+
+const { t } = useI18n();
 
 const page = ref(0);
 const size = ref(10);
@@ -59,7 +62,7 @@ const loadLogs = async () => {
     totalPages.value = response.totalPages;
     selectedLog.value = response.items[0] ?? null;
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '운영 로그를 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.auditLogs.errors.loadList');
   } finally {
     isLoading.value = false;
   }
@@ -96,21 +99,26 @@ const selectLog = (log: AdminAuditLogResponse) => {
 const filterSummary = computed(() => {
   const parts: string[] = [];
   if (actionFilter.value !== 'ALL') {
-    parts.push(`액션 ${actionFilter.value}`);
+    parts.push(t('admin.common.filterSummaryAction', { action: actionFilter.value }));
   }
   if (targetFilter.value !== 'ALL') {
-    parts.push(`대상 ${targetFilter.value}`);
+    parts.push(t('admin.common.filterSummaryTarget', { target: targetFilter.value }));
   }
   if (actorUserId.value) {
-    parts.push(`행위자 ${actorUserId.value}`);
+    parts.push(t('admin.common.filterSummaryActor', { actor: actorUserId.value }));
   }
   if (targetId.value) {
-    parts.push(`대상ID ${targetId.value}`);
+    parts.push(t('admin.common.filterSummaryTargetId', { id: targetId.value }));
   }
   if (fromAt.value || toAt.value) {
-    parts.push(`기간 ${fromAt.value || '시작'} ~ ${toAt.value || '오늘'}`);
+    parts.push(
+      t('admin.common.filterSummaryPeriod', {
+        from: fromAt.value || t('admin.common.periodStart'),
+        to: toAt.value || t('admin.common.periodToday'),
+      }),
+    );
   }
-  return parts.length ? parts.join(' · ') : '전체 로그';
+  return parts.length ? parts.join(' · ') : t('admin.common.allLogs');
 });
 
 const detailJsonPretty = computed(() => {
@@ -141,8 +149,8 @@ onMounted(async () => {
       <div>
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 class="ui-heading-page">운영 로그</h1>
-            <p class="text-sm text-muted">관리자 활동 이력을 확인합니다.</p>
+            <h1 class="ui-heading-page">{{ t('admin.auditLogs.title') }}</h1>
+            <p class="text-sm text-muted">{{ t('admin.auditLogs.description') }}</p>
           </div>
         </div>
 
@@ -153,7 +161,7 @@ onMounted(async () => {
               class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
             >
               <option v-for="option in actionOptions" :key="option" :value="option">
-                {{ option === 'ALL' ? '모든 액션' : option }}
+                {{ option === 'ALL' ? t('admin.common.allActions') : option }}
               </option>
             </select>
             <select
@@ -161,20 +169,20 @@ onMounted(async () => {
               class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
             >
               <option v-for="option in targetOptions" :key="option" :value="option">
-                {{ option === 'ALL' ? '모든 대상' : option }}
+                {{ option === 'ALL' ? t('admin.common.allTargets') : option }}
               </option>
             </select>
             <input
               v-model="actorUserId"
               type="number"
               class="h-10 rounded-full border border-line bg-surface px-4 text-sm text-ink shadow-sm focus:border-[color:var(--accent-strong)] focus:outline-none"
-              placeholder="행위자 ID"
+              :placeholder="t('admin.common.actorIdPlaceholder')"
             />
             <input
               v-model="targetId"
               type="number"
               class="h-10 rounded-full border border-line bg-surface px-4 text-sm text-ink shadow-sm focus:border-[color:var(--accent-strong)] focus:outline-none"
-              placeholder="대상 ID"
+              :placeholder="t('admin.common.targetIdPlaceholder')"
             />
             <input
               v-model="fromAt"
@@ -191,14 +199,14 @@ onMounted(async () => {
               class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
               @click="applyFilters"
             >
-              적용
+              {{ t('admin.common.apply') }}
             </button>
             <button
               type="button"
               class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
               @click="resetFilters"
             >
-              초기화
+              {{ t('admin.common.reset') }}
             </button>
           </div>
           <p class="mt-3 text-xs text-subtle">{{ filterSummary }}</p>
@@ -211,13 +219,13 @@ onMounted(async () => {
         <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           <section class="ui-panel p-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-ink">로그 목록</h2>
-              <span class="text-xs text-subtle">총 {{ logs.length }}건</span>
+              <h2 class="text-sm font-semibold text-ink">{{ t('admin.auditLogs.listTitle') }}</h2>
+              <span class="text-xs text-subtle">{{ t('admin.common.totalCount', { count: logs.length }) }}</span>
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
               <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-              불러오는 중...
+              {{ t('common.loading') }}
             </div>
 
             <div v-else class="mt-4 flex flex-col gap-3">
@@ -239,14 +247,14 @@ onMounted(async () => {
                       <span>#{{ log.id }}</span>
                       <span class="text-xs text-subtle">{{ log.actionType }} · {{ log.targetType }}</span>
                     </div>
-                    <p class="mt-1 text-xs text-muted">행위자 {{ log.actorUserId }}</p>
+                    <p class="mt-1 text-xs text-muted">{{ t('admin.auditLogs.actorLine', { actorId: log.actorUserId }) }}</p>
                   </div>
                   <span class="text-xs text-subtle">{{ formatDate(log.createdAt) }}</span>
                 </div>
                 <p class="mt-2 text-xs text-muted">{{ log.summary }}</p>
               </button>
 
-              <div v-if="logs.length === 0" class="ui-state ui-state-empty px-4 py-10">조건에 해당하는 로그가 없습니다.</div>
+              <div v-if="logs.length === 0" class="ui-state ui-state-empty px-4 py-10">{{ t('admin.auditLogs.empty') }}</div>
             </div>
 
             <div class="mt-4 flex items-center justify-between text-sm text-muted">
@@ -256,7 +264,7 @@ onMounted(async () => {
                 :disabled="page === 0"
                 @click="movePage(-1)"
               >
-                이전
+                {{ t('common.previous') }}
               </button>
               <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <button
@@ -265,7 +273,7 @@ onMounted(async () => {
                 :disabled="page + 1 >= totalPages"
                 @click="movePage(1)"
               >
-                다음
+                {{ t('common.next') }}
               </button>
             </div>
           </section>
@@ -274,37 +282,37 @@ onMounted(async () => {
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-xs tracking-[0.2em] text-subtle uppercase">Detail</p>
-                <h2 class="mt-1 text-lg font-semibold text-ink">로그 상세</h2>
+                <h2 class="mt-1 text-lg font-semibold text-ink">{{ t('admin.auditLogs.detailTitle') }}</h2>
               </div>
             </div>
 
             <div v-if="selectedLog" class="mt-6 space-y-4 text-sm text-muted">
               <div class="flex justify-between">
-                <span>로그 번호</span>
+                <span>{{ t('admin.common.logNumber') }}</span>
                 <span class="font-semibold text-ink">#{{ selectedLog.id }}</span>
               </div>
               <div class="flex justify-between">
-                <span>행위자</span>
+                <span>{{ t('admin.common.actor') }}</span>
                 <span class="font-semibold text-ink">{{ selectedLog.actorUserId }}</span>
               </div>
               <div class="flex justify-between">
-                <span>액션</span>
+                <span>{{ t('admin.common.action') }}</span>
                 <span class="font-semibold text-ink">{{ selectedLog.actionType }}</span>
               </div>
               <div class="flex justify-between">
-                <span>대상</span>
+                <span>{{ t('admin.common.target') }}</span>
                 <span class="font-semibold text-ink"> {{ selectedLog.targetType }} · {{ selectedLog.targetId ?? '-' }} </span>
               </div>
               <div class="flex justify-between">
-                <span>게시판</span>
+                <span>{{ t('admin.common.board') }}</span>
                 <span class="font-semibold text-ink">{{ selectedLog.boardId ?? '-' }}</span>
               </div>
               <div class="flex justify-between">
-                <span>시간</span>
+                <span>{{ t('admin.common.time') }}</span>
                 <span class="font-semibold text-ink">{{ formatDate(selectedLog.createdAt) }}</span>
               </div>
               <div class="flex justify-between">
-                <span>요청 IP</span>
+                <span>{{ t('admin.common.requestIp') }}</span>
                 <span class="font-semibold text-ink">{{ selectedLog.ipAddress ?? '-' }}</span>
               </div>
               <div class="flex justify-between">
@@ -317,7 +325,7 @@ onMounted(async () => {
               <pre v-if="detailJsonPretty" class="ui-code-block rounded-ui whitespace-pre-wrap">{{ detailJsonPretty }}</pre>
             </div>
 
-            <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">로그를 선택하세요.</div>
+            <div v-else class="ui-state ui-state-empty mt-10 px-6 py-10">{{ t('admin.common.selectLog') }}</div>
           </section>
         </div>
       </div>

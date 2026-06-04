@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { ArticleBookmarkItemResponse } from '../../entities/article';
 import { formatKoreanDate } from '../../shared/lib/date';
@@ -14,6 +15,7 @@ interface BookmarkListProps {
   hasNext?: boolean;
 }
 
+const { t } = useI18n();
 const props = defineProps<BookmarkListProps>();
 const emit = defineEmits<{
   (event: 'toggle', articleId: number): void;
@@ -72,12 +74,12 @@ const handlePageChange = (page: number) => {
           :disabled="items.length === 0"
           @change="handleToggleAll"
         />
-        <span>전체 선택</span>
+        <span>{{ t('article.bookmarkPage.selectAll') }}</span>
       </label>
-      <span>선택 {{ selectedIds.length }}개</span>
+      <span>{{ t('article.bookmarkPage.selectedCount', { count: selectedIds.length }) }}</span>
     </div>
 
-    <div v-if="items.length === 0" class="ui-state ui-state-empty mt-4 px-6 py-10">북마크한 게시글이 없습니다.</div>
+    <div v-if="items.length === 0" class="ui-state ui-state-empty mt-4 px-6 py-10">{{ t('article.bookmarkPage.listEmpty') }}</div>
 
     <div v-else class="mt-4 space-y-2">
       <article v-for="item in items" :key="item.id" class="ui-list-row gap-3">
@@ -95,10 +97,10 @@ const handlePageChange = (page: number) => {
             <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
               <span>{{ item.authorName }}</span>
               <span>{{ formatKoreanDate(item.createdAt) }}</span>
-              <span>댓글 {{ item.commentCount }}</span>
-              <span>좋아요 {{ item.likeCount }}</span>
-              <span>싫어요 {{ item.dislikeCount }}</span>
-              <span>조회 {{ item.hit }}</span>
+              <span>{{ t('article.bookmarkPage.stats.comments', { count: item.commentCount }) }}</span>
+              <span>{{ t('article.bookmarkPage.stats.likes', { count: item.likeCount }) }}</span>
+              <span>{{ t('article.bookmarkPage.stats.dislikes', { count: item.dislikeCount }) }}</span>
+              <span>{{ t('article.bookmarkPage.stats.views', { count: item.hit }) }}</span>
             </div>
           </div>
         </div>
@@ -113,7 +115,7 @@ const handlePageChange = (page: number) => {
           :disabled="!canGoPrevious || isLoading"
           @click="handlePageChange(currentPage - 1)"
         >
-          이전
+          {{ t('common.previous') }}
         </button>
         <div class="flex flex-wrap items-center gap-1">
           <button
@@ -138,10 +140,10 @@ const handlePageChange = (page: number) => {
           :disabled="!canGoNext || isLoading"
           @click="handlePageChange(currentPage + 1)"
         >
-          다음
+          {{ t('common.next') }}
         </button>
       </div>
-      <span>페이지 {{ currentPage + 1 }} / {{ totalPages }}</span>
+      <span>{{ t('common.pageOf', { current: currentPage + 1, total: totalPages }) }}</span>
     </div>
   </section>
 </template>

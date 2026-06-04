@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 type BaseModalProps = {
   open: boolean;
@@ -17,14 +18,18 @@ const props = withDefaults(defineProps<BaseModalProps>(), {
   overlayClass: 'bg-[var(--surface-overlay)]',
   panelClass: '',
   size: 'md',
-  ariaLabel: '모달',
+  ariaLabel: '',
 });
 
 const emit = defineEmits<{
   (event: 'close'): void;
 }>();
 
+const { t } = useI18n();
+
 const titleId = `modal-title-${Math.random().toString(36).slice(2, 9)}`;
+
+const resolvedAriaLabel = computed(() => props.ariaLabel || t('common.modal'));
 
 const panelClasses = computed(() => {
   const sizeMap: Record<string, string> = {
@@ -79,7 +84,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true" :aria-label="ariaLabel">
+  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true" :aria-label="resolvedAriaLabel">
     <div class="absolute inset-0 backdrop-blur-sm" :class="overlayClass" @click="handleBackdropClick"></div>
     <div :class="panelClasses" @click.stop>
       <slot :title-id="titleId" />

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { RouterLink, useRoute } from 'vue-router';
 
 import BoardAdminNav from '../widgets/layout/BoardAdminNav.vue';
 import FileImage from '../entities/file/ui/FileImage.vue';
 import { ApiError } from '../shared/lib/http/api';
-import { BOARD_ARTICLE_WRITE_POLICY_OPTIONS, type BoardArticleWritePolicy } from '../entities/board/lib/boardWritePolicy';
+import { BOARD_ARTICLE_WRITE_POLICY_VALUES, type BoardArticleWritePolicy } from '../entities/board/lib/boardWritePolicy';
 import { resolveBoardVisibilityOptions, type BoardVisibility } from '../entities/board/lib/boardVisibility';
 import type { BoardCategoryResponse } from '../entities/board';
 import { getBoardCategories } from '../entities/board';
@@ -19,6 +20,7 @@ import PageHeader from '../shared/ui/PageHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
 const route = useRoute();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
@@ -44,13 +46,19 @@ const form = reactive({
   articleWritePolicy: 'ALL_AUTHENTICATED' as BoardArticleWritePolicy,
 });
 const visibilityOptions = computed(() => resolveBoardVisibilityOptions(isAdmin.value, form.visibility));
+const articleWritePolicyOptions = computed(() =>
+  BOARD_ARTICLE_WRITE_POLICY_VALUES.map((value) => ({
+    value,
+    label: t(`board.writePolicy.option.${value}`),
+  })),
+);
 
 const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus === 'OWNER' || memberStatus === 'MODERATOR';
 
 const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMember(board.value.memberStatus) : false));
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
-const boardName = computed(() => board.value?.boardName ?? '게시판');
+const boardName = computed(() => board.value?.boardName ?? t('admin.common.defaultBoardName'));
 
 const resetImageInput = () => {
   fileInputKey.value += 1;
@@ -93,7 +101,7 @@ const loadBoard = async () => {
   try {
     board.value = await getBoardBySlug(boardSlug.value);
     if (!hasPermission.value) {
-      boardError.value = '게시판 관리자 권한이 없습니다.';
+      boardError.value = t('admin.common.noBoardAdmin');
       return;
     }
     form.boardName = board.value.boardName;
@@ -101,7 +109,7 @@ const loadBoard = async () => {
     form.visibility = board.value.visibility as BoardVisibility;
     form.articleWritePolicy = board.value.articleWritePolicy;
   } catch (error) {
-    boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : t('admin.common.loadBoardFailed');
   }
 };
 
@@ -117,7 +125,7 @@ const loadCategories = async () => {
     categories.value = await getBoardCategories(board.value.id);
   } catch (error) {
     categories.value = [];
-    categoryError.value = error instanceof ApiError ? error.message : '카테고리 목록을 불러오지 못했습니다.';
+    categoryError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.settings.errors.loadCategories');
   } finally {
     isCategoryLoading.value = false;
   }
@@ -131,11 +139,11 @@ const submitSettings = async () => {
   }
   const boardNameValue = form.boardName.trim();
   if (!boardNameValue) {
-    formError.value = '게시판명을 입력해주세요.';
+    formError.value = t('admin.boardForm.errors.nameRequired');
     return;
   }
   if (boardNameValue.length > 255) {
-    formError.value = '게시판명은 255자 이하로 입력해주세요.';
+    formError.value = t('admin.boardForm.errors.nameMaxLength');
     return;
   }
   isSaving.value = true;
@@ -147,9 +155,9 @@ const submitSettings = async () => {
       articleWritePolicy: form.articleWritePolicy,
     });
     applyBoardUpdate(updated);
-    formSuccess.value = '게시판 설정이 저장되었습니다.';
+    formSuccess.value = t('admin.boardForm.success.settingsSaved');
   } catch (error) {
-    formError.value = error instanceof ApiError ? error.message : '게시판 설정 저장에 실패했습니다.';
+    formError.value = error instanceof ApiError ? error.message : t('admin.boardForm.errors.saveFailed');
   } finally {
     isSaving.value = false;
   }
@@ -165,10 +173,10 @@ const uploadImage = async () => {
   try {
     const updated = await uploadBoardAdminImage(board.value.id, imageFile.value);
     applyBoardUpdate(updated);
-    imageSuccess.value = '대표 이미지가 업로드되었습니다.';
+    imageSuccess.value = t('admin.boardForm.success.imageUploaded');
     clearSelectedImage();
   } catch (error) {
-    imageError.value = error instanceof ApiError ? error.message : '대표 이미지 업로드에 실패했습니다.';
+    imageError.value = error instanceof ApiError ? error.message : t('admin.boardForm.errors.imageUploadFailed');
   } finally {
     isUploading.value = false;
   }
@@ -180,17 +188,17 @@ const removeImage = async () => {
   if (!board.value || !board.value.boardImage) {
     return;
   }
-  if (!window.confirm('대표 이미지를 삭제할까요?')) {
+  if (!window.confirm(t('admin.boardForm.confirm.deleteImage'))) {
     return;
   }
   isRemoving.value = true;
   try {
     const updated = await deleteBoardAdminImage(board.value.id);
     applyBoardUpdate(updated);
-    imageSuccess.value = '대표 이미지가 삭제되었습니다.';
+    imageSuccess.value = t('admin.boardForm.success.imageDeleted');
     clearSelectedImage();
   } catch (error) {
-    imageError.value = error instanceof ApiError ? error.message : '대표 이미지 삭제에 실패했습니다.';
+    imageError.value = error instanceof ApiError ? error.message : t('admin.boardForm.errors.imageDeleteFailed');
   } finally {
     isRemoving.value = false;
   }
@@ -220,49 +228,55 @@ onBeforeUnmount(() => {
         <div v-if="board && hasPermission" class="space-y-6">
           <PageHeader
             eyebrow="Board Settings"
-            :title="`${boardName} 설정`"
-            description="기본 정보, 대표 이미지, 카테고리 운영 진입을 한곳에 모았습니다."
+            :title="t('admin.boardAdmin.settings.title', { boardName })"
+            :description="t('admin.boardAdmin.settings.description')"
           >
             <template #meta>
-              <span class="ui-badge ui-badge-muted">게시판 ID {{ board.id }}</span>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.boardAdmin.settings.boardId', { id: board.id }) }}</span>
               <span class="ui-badge ui-badge-accent">{{ form.visibility }}</span>
-              <span class="text-xs text-muted">작성 권한 {{ form.articleWritePolicy }}</span>
+              <span class="text-xs text-muted">{{ t('admin.boardAdmin.settings.writePolicy', { policy: form.articleWritePolicy }) }}</span>
             </template>
             <div class="grid gap-3 md:grid-cols-3">
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Profile</p>
                 <p class="bbs-row-title mt-2 text-sm">{{ boardName }}</p>
-                <p class="mt-1 text-xs text-muted">{{ board.description || '설명이 없습니다.' }}</p>
+                <p class="mt-1 text-xs text-muted">{{ board.description || t('admin.common.noDescription') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Image</p>
                 <p class="bbs-row-title mt-2 text-sm">
-                  {{ board.boardImage ? '대표 이미지 설정됨' : '대표 이미지 없음' }}
+                  {{ board.boardImage ? t('admin.boardAdmin.settings.featuredImageSet') : t('admin.boardAdmin.settings.featuredImageNone') }}
                 </p>
-                <p class="mt-1 text-xs text-muted">업로드와 삭제를 같은 패널에서 처리합니다.</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.settings.featuredImagePanelHint') }}</p>
               </div>
               <div class="ui-data-panel p-4">
                 <p class="ui-eyebrow">Categories</p>
-                <p class="bbs-row-title mt-2 text-sm">{{ categories.length }}개</p>
-                <p class="mt-1 text-xs text-muted">카테고리 관리 화면으로 바로 이동할 수 있습니다.</p>
+                <p class="bbs-row-title mt-2 text-sm">{{ t('admin.boardAdmin.settings.categoryCount', { count: categories.length }) }}</p>
+                <p class="mt-1 text-xs text-muted">{{ t('admin.boardAdmin.settings.categoryPanelHint') }}</p>
               </div>
             </div>
           </PageHeader>
 
           <section class="ui-panel p-6">
             <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
-              <h2 class="bbs-row-title text-lg">기본 정보</h2>
-              <span class="ui-badge ui-badge-muted">게시판 ID {{ board.id }}</span>
+              <h2 class="bbs-row-title text-lg">{{ t('admin.boardAdmin.settings.basicInfo') }}</h2>
+              <span class="ui-badge ui-badge-muted">{{ t('admin.boardAdmin.settings.boardId', { id: board.id }) }}</span>
             </div>
 
             <form class="mt-6 grid gap-4 md:grid-cols-2" @submit.prevent="submitSettings">
               <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                게시판명
-                <input v-model="form.boardName" type="text" maxlength="255" class="ui-input" placeholder="게시판 이름을 입력하세요" />
+                {{ t('admin.boardForm.boardName') }}
+                <input
+                  v-model="form.boardName"
+                  type="text"
+                  maxlength="255"
+                  class="ui-input"
+                  :placeholder="t('admin.boardAdmin.settings.boardNamePlaceholder')"
+                />
               </label>
 
               <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                공개 범위
+                {{ t('admin.boardForm.visibility') }}
                 <select v-model="form.visibility" class="ui-select">
                   <option v-for="option in visibilityOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
@@ -271,17 +285,22 @@ onBeforeUnmount(() => {
               </label>
 
               <label class="flex flex-col gap-2 text-sm font-medium text-ink">
-                게시글 작성 권한
+                {{ t('admin.boardForm.articleWritePolicy') }}
                 <select v-model="form.articleWritePolicy" class="ui-select">
-                  <option v-for="option in BOARD_ARTICLE_WRITE_POLICY_OPTIONS" :key="option.value" :value="option.value">
+                  <option v-for="option in articleWritePolicyOptions" :key="option.value" :value="option.value">
                     {{ option.label }}
                   </option>
                 </select>
               </label>
 
               <label class="flex flex-col gap-2 text-sm font-medium text-ink md:col-span-2">
-                게시판 설명
-                <textarea v-model="form.description" rows="4" class="ui-textarea" placeholder="게시판 소개를 입력하세요"></textarea>
+                {{ t('admin.boardAdmin.settings.boardDescription') }}
+                <textarea
+                  v-model="form.description"
+                  rows="4"
+                  class="ui-textarea"
+                  :placeholder="t('admin.boardForm.descriptionPlaceholder')"
+                ></textarea>
               </label>
 
               <div v-if="formError" class="ui-state ui-state-danger md:col-span-2">
@@ -296,7 +315,7 @@ onBeforeUnmount(() => {
 
               <div class="flex flex-wrap items-center gap-3 md:col-span-2">
                 <button type="submit" class="ui-button-accent h-11 px-6 text-sm disabled:opacity-60" :disabled="isSaving">
-                  {{ isSaving ? '저장 중...' : '설정 저장' }}
+                  {{ isSaving ? t('admin.boardForm.saving') : t('admin.boardForm.saveSettings') }}
                 </button>
               </div>
             </form>
@@ -304,30 +323,36 @@ onBeforeUnmount(() => {
 
           <section class="ui-panel p-6">
             <div class="flex items-center justify-between gap-3 border border-b border-line bg-surface-soft pb-3 dark:border-line">
-              <h2 class="bbs-row-title text-lg">대표 이미지</h2>
-              <span class="ui-badge ui-badge-muted">현재 {{ board.boardImage ? '설정됨' : '없음' }}</span>
+              <h2 class="bbs-row-title text-lg">{{ t('admin.boardForm.featuredImage') }}</h2>
+              <span class="ui-badge ui-badge-muted">{{
+                t('admin.boardAdmin.settings.featuredCurrent', {
+                  state: board.boardImage ? t('admin.boardAdmin.settings.featuredSet') : t('admin.boardAdmin.settings.featuredUnset'),
+                })
+              }}</span>
             </div>
 
             <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]">
               <div class="ui-card border-dashed">
                 <div class="relative overflow-hidden rounded-ui bg-surface-soft">
-                  <img v-if="previewUrl" :src="previewUrl" alt="대표 이미지 미리보기" class="h-48 w-full object-cover" />
+                  <img v-if="previewUrl" :src="previewUrl" :alt="t('admin.boardForm.featuredImagePreview')" class="h-48 w-full object-cover" />
                   <FileImage
                     v-else-if="board?.boardImage"
                     :file="board.boardImage"
                     variant="medium"
-                    alt="대표 이미지 미리보기"
+                    :alt="t('admin.boardForm.featuredImagePreview')"
                     class="h-48 w-full object-cover"
                   />
-                  <div v-else class="flex h-48 items-center justify-center text-sm text-subtle">대표 이미지가 없습니다.</div>
+                  <div v-else class="flex h-48 items-center justify-center text-sm text-subtle">{{ t('admin.boardForm.noFeaturedImage') }}</div>
                 </div>
               </div>
 
               <div class="flex flex-col gap-4">
-                <p class="text-sm text-muted">대표 이미지는 게시판 카드와 상단 헤더에 노출됩니다. 이미지를 교체하면 이전 이미지는 삭제됩니다.</p>
+                <p class="text-sm text-muted">{{ t('admin.boardForm.featuredImageExposure') }}</p>
 
                 <div class="flex flex-wrap gap-2">
-                  <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`board-admin-image-${fileInputKey}`"> 이미지 선택 </label>
+                  <label class="ui-button-ghost h-10 cursor-pointer px-4 text-xs" :for="`board-admin-image-${fileInputKey}`">
+                    {{ t('admin.boardForm.selectImage') }}
+                  </label>
                   <input
                     :id="`board-admin-image-${fileInputKey}`"
                     :key="fileInputKey"
@@ -342,7 +367,7 @@ onBeforeUnmount(() => {
                     :disabled="!imageFile || isUploading"
                     @click="uploadImage"
                   >
-                    {{ isUploading ? '업로드 중...' : '업로드' }}
+                    {{ isUploading ? t('admin.common.uploading') : t('admin.boardAdmin.settings.upload') }}
                   </button>
                   <button
                     type="button"
@@ -350,7 +375,7 @@ onBeforeUnmount(() => {
                     :disabled="!imageFile"
                     @click="clearSelectedImage"
                   >
-                    선택 취소
+                    {{ t('admin.boardForm.cancelSelection') }}
                   </button>
                   <button
                     type="button"
@@ -358,7 +383,7 @@ onBeforeUnmount(() => {
                     :disabled="!board.boardImage || isRemoving"
                     @click="removeImage"
                   >
-                    {{ isRemoving ? '삭제 중...' : '이미지 삭제' }}
+                    {{ isRemoving ? t('admin.common.removing') : t('admin.boardForm.deleteImage') }}
                   </button>
                 </div>
 
@@ -378,24 +403,28 @@ onBeforeUnmount(() => {
           <section class="ui-panel p-6">
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 class="bbs-row-title text-lg">카테고리 관리</h2>
-                <p class="mt-1 text-sm text-muted">게시글 분류용 카테고리를 등록·수정·삭제합니다.</p>
+                <h2 class="bbs-row-title text-lg">{{ t('admin.boardAdmin.settings.categoriesTitle') }}</h2>
+                <p class="mt-1 text-sm text-muted">{{ t('admin.boardAdmin.settings.categoriesDescription') }}</p>
               </div>
-              <RouterLink :to="`/b/${board.slug}/admin/categories`" class="ui-button-accent h-10 px-4 text-xs"> 카테고리 관리로 이동 </RouterLink>
+              <RouterLink :to="`/b/${board.slug}/admin/categories`" class="ui-button-accent h-10 px-4 text-xs">
+                {{ t('admin.boardAdmin.settings.goCategories') }}
+              </RouterLink>
             </div>
 
-            <div v-if="isCategoryLoading" class="mt-4 text-sm text-muted">카테고리 목록을 불러오는 중입니다...</div>
+            <div v-if="isCategoryLoading" class="mt-4 text-sm text-muted">{{ t('admin.boardAdmin.settings.loadingCategories') }}</div>
             <div v-else-if="categoryError" class="ui-state ui-state-danger mt-4">
               {{ categoryError }}
             </div>
-            <div v-else-if="categories.length === 0" class="ui-state ui-state-empty mt-4">등록된 카테고리가 없습니다.</div>
+            <div v-else-if="categories.length === 0" class="ui-state ui-state-empty mt-4">{{ t('admin.boardAdmin.settings.emptyCategories') }}</div>
             <div v-else class="mt-4">
               <div class="flex flex-wrap gap-2">
                 <span v-for="category in categories.slice(0, 10)" :key="category.id" class="ui-badge ui-badge-muted">
                   {{ category.categoryName }}
                 </span>
               </div>
-              <p v-if="categories.length > 10" class="mt-2 text-xs text-muted">외 {{ categories.length - 10 }}개 카테고리</p>
+              <p v-if="categories.length > 10" class="mt-2 text-xs text-muted">
+                {{ t('admin.common.moreCategories', { count: categories.length - 10 }) }}
+              </p>
             </div>
           </section>
         </div>

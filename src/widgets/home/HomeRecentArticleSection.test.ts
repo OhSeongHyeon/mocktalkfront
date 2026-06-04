@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ArticleRecentItemResponse, ArticleRecommendedItemResponse, ArticleTrendingItemResponse } from '../../entities/article';
 import { getRecentArticles, getRecommendedArticles, getTrendingArticles } from '../../entities/article';
+import { i18n } from '../../test/plugins';
 import HomeRecentArticleSection from './HomeRecentArticleSection.vue';
 
 vi.mock('../../entities/article', async () => {
@@ -96,6 +97,7 @@ describe('widgets/home/HomeRecentArticleSection', () => {
 
     const wrapper = mount(HomeRecentArticleSection, {
       global: {
+        plugins: [i18n],
         stubs: {
           ArticleFeedCard: {
             props: ['article'],
@@ -133,6 +135,7 @@ describe('widgets/home/HomeRecentArticleSection', () => {
 
     const wrapper = mount(HomeRecentArticleSection, {
       global: {
+        plugins: [i18n],
         stubs: {
           ArticleFeedCard: {
             props: ['article'],
@@ -176,6 +179,7 @@ describe('widgets/home/HomeRecentArticleSection', () => {
 
     const wrapper = mount(HomeRecentArticleSection, {
       global: {
+        plugins: [i18n],
         stubs: {
           ArticleFeedCard: {
             props: ['article'],

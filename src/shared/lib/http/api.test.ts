@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { i18n } from '../../i18n';
 import { useAuthStore } from '../../../stores/auth';
 import { createJsonResponse, mockFetchSequence } from '../../../test/utils/httpMock';
 import { ApiError, request } from './api';
+
+const readAcceptLanguage = (init?: RequestInit) => new Headers(init?.headers).get('Accept-Language');
 
 const OLD_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.old';
 const NEW_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.new';
@@ -10,6 +13,41 @@ const NEW_TOKEN = 'e30.eyJyb2xlIjoiVVNFUiJ9.new';
 describe('shared/lib/http/api characterization', () => {
   beforeEach(() => {
     useAuthStore().clearAccessToken();
+    i18n.global.locale.value = 'ko';
+  });
+
+  it('API 요청에 Accept-Language ko 헤더를 포함한다', async () => {
+    const fetchSpy = mockFetchSequence(createJsonResponse({ ok: true }));
+
+    await request<{ ok: boolean }>('/articles');
+
+    expect(readAcceptLanguage(fetchSpy.mock.calls[0]?.[1])).toBe('ko');
+  });
+
+  it('locale이 en이면 Accept-Language en 헤더를 포함한다', async () => {
+    i18n.global.locale.value = 'en';
+    const fetchSpy = mockFetchSequence(createJsonResponse({ ok: true }));
+
+    await request<{ ok: boolean }>('/articles');
+
+    expect(readAcceptLanguage(fetchSpy.mock.calls[0]?.[1])).toBe('en');
+  });
+
+  it('refresh 요청에도 Accept-Language 헤더를 포함한다', async () => {
+    useAuthStore().setAccessToken(OLD_TOKEN, 60);
+    const fetchSpy = mockFetchSequence(
+      createJsonResponse({ message: 'unauthorized' }, { status: 401 }),
+      createJsonResponse({
+        accessToken: NEW_TOKEN,
+        tokenType: 'Bearer',
+        expiresInSec: 3600,
+      }),
+      createJsonResponse({ ok: true }),
+    );
+
+    await request<{ ok: boolean }>('/articles');
+
+    expect(readAcceptLanguage(fetchSpy.mock.calls[1]?.[1])).toBe('ko');
   });
 
   it('401 발생 시 refresh 성공 후 원래 요청을 재시도한다', async () => {

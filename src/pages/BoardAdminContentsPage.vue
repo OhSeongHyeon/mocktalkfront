@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -24,6 +25,7 @@ type ReportedFilter = 'ALL' | 'REPORTED' | 'UNREPORTED';
 type NoticeFilter = 'ALL' | 'NOTICE' | 'NORMAL';
 
 const route = useRoute();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const board = ref<BoardDetailResponse | null>(null);
@@ -48,7 +50,7 @@ const isAllowedMember = (memberStatus: BoardMemberStatus | null) => memberStatus
 const hasPermission = computed(() => isAdmin.value || (board.value ? isAllowedMember(board.value.memberStatus) : false));
 
 const boardSlug = computed(() => String(route.params.slug ?? ''));
-const boardName = computed(() => board.value?.boardName ?? '게시판');
+const boardName = computed(() => board.value?.boardName ?? t('admin.common.defaultBoardName'));
 
 const reportedParam = computed(() => {
   if (reportedFilter.value === 'ALL') {
@@ -82,10 +84,10 @@ const loadBoard = async () => {
   try {
     board.value = await getBoardBySlug(boardSlug.value);
     if (!hasPermission.value) {
-      boardError.value = '게시판 관리자 권한이 없습니다.';
+      boardError.value = t('admin.common.noBoardAdmin');
     }
   } catch (error) {
-    boardError.value = error instanceof ApiError ? error.message : '게시판 정보를 불러오지 못했습니다.';
+    boardError.value = error instanceof ApiError ? error.message : t('admin.common.loadBoardFailed');
   }
 };
 
@@ -119,7 +121,7 @@ const loadContents = async () => {
       totalPages.value = response.totalPages;
     }
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '콘텐츠 목록을 불러오지 못했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.contents.errors.loadList');
   } finally {
     isLoading.value = false;
   }
@@ -158,7 +160,7 @@ const toggleNotice = async (article: BoardAdminArticleItemResponse) => {
     const updated = await updateBoardAdminArticleNotice(board.value.id, article.id, { notice: !article.notice });
     articles.value = articles.value.map((item) => (item.id === updated.id ? updated : item));
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '공지 변경에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.contents.errors.noticeFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -168,7 +170,7 @@ const deleteArticle = async (article: BoardAdminArticleItemResponse) => {
   if (!board.value) {
     return;
   }
-  if (!window.confirm('게시글을 삭제할까요?')) {
+  if (!window.confirm(t('admin.boardAdmin.contents.confirmDeleteArticle'))) {
     return;
   }
   isSubmitting.value = true;
@@ -177,7 +179,7 @@ const deleteArticle = async (article: BoardAdminArticleItemResponse) => {
     await deleteBoardAdminArticle(board.value.id, article.id);
     await loadContents();
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '게시글 삭제에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.contents.errors.deleteArticleFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -187,7 +189,7 @@ const deleteComment = async (comment: BoardAdminCommentItemResponse) => {
   if (!board.value) {
     return;
   }
-  if (!window.confirm('댓글을 삭제할까요?')) {
+  if (!window.confirm(t('admin.boardAdmin.contents.confirmDeleteComment'))) {
     return;
   }
   isSubmitting.value = true;
@@ -196,7 +198,7 @@ const deleteComment = async (comment: BoardAdminCommentItemResponse) => {
     await deleteBoardAdminComment(board.value.id, comment.id);
     await loadContents();
   } catch (error) {
-    listError.value = error instanceof ApiError ? error.message : '댓글 삭제에 실패했습니다.';
+    listError.value = error instanceof ApiError ? error.message : t('admin.boardAdmin.contents.errors.deleteCommentFailed');
   } finally {
     isSubmitting.value = false;
   }
@@ -222,8 +224,8 @@ onMounted(async () => {
         <div v-if="board && hasPermission" class="space-y-6">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 class="ui-heading-page">콘텐츠 관리</h1>
-              <p class="text-sm text-muted">게시글과 댓글을 관리합니다.</p>
+              <h1 class="ui-heading-page">{{ t('admin.boardAdmin.contents.title') }}</h1>
+              <p class="text-sm text-muted">{{ t('admin.boardAdmin.contents.description') }}</p>
             </div>
             <div class="flex items-center gap-2 rounded-full border border-line bg-surface px-2 py-1 text-xs font-semibold text-muted">
               <button
@@ -232,7 +234,7 @@ onMounted(async () => {
                 :class="contentType === 'ARTICLE' ? 'bg-[color:var(--accent-strong)] text-white' : 'text-muted'"
                 @click="switchContentType('ARTICLE')"
               >
-                게시글
+                {{ t('admin.boardAdmin.contents.tabArticles') }}
               </button>
               <button
                 type="button"
@@ -240,7 +242,7 @@ onMounted(async () => {
                 :class="contentType === 'COMMENT' ? 'bg-[color:var(--accent-strong)] text-white' : 'text-muted'"
                 @click="switchContentType('COMMENT')"
               >
-                댓글
+                {{ t('admin.boardAdmin.contents.tabComments') }}
               </button>
             </div>
           </div>
@@ -251,31 +253,31 @@ onMounted(async () => {
                 v-model="reportedFilter"
                 class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
               >
-                <option value="ALL">전체</option>
-                <option value="REPORTED">신고 있음</option>
-                <option value="UNREPORTED">신고 없음</option>
+                <option value="ALL">{{ t('admin.boardAdmin.contents.filterReportedAll') }}</option>
+                <option value="REPORTED">{{ t('admin.boardAdmin.contents.filterReportedYes') }}</option>
+                <option value="UNREPORTED">{{ t('admin.boardAdmin.contents.filterReportedNo') }}</option>
               </select>
               <select
                 v-if="contentType === 'ARTICLE'"
                 v-model="noticeFilter"
                 class="h-10 rounded-full border border-line bg-surface px-4 text-sm font-semibold text-ink shadow-sm transition focus:border-[color:var(--accent-strong)] focus:outline-none"
               >
-                <option value="ALL">전체</option>
-                <option value="NOTICE">공지</option>
-                <option value="NORMAL">일반</option>
+                <option value="ALL">{{ t('admin.boardAdmin.contents.filterNoticeAll') }}</option>
+                <option value="NOTICE">{{ t('admin.boardAdmin.contents.filterNoticeYes') }}</option>
+                <option value="NORMAL">{{ t('admin.boardAdmin.contents.filterNoticeNo') }}</option>
               </select>
               <input
                 v-model="authorId"
                 type="number"
                 class="h-10 rounded-full border border-line bg-surface px-4 text-sm text-ink shadow-sm focus:border-[color:var(--accent-strong)] focus:outline-none"
-                placeholder="작성자 ID"
+                :placeholder="t('admin.common.authorIdPlaceholder')"
               />
               <button
                 type="button"
                 class="rounded-full border border-line px-4 py-2 text-xs font-semibold text-muted transition hover:border-line hover:text-ink dark:text-subtle"
                 @click="applyFilters"
               >
-                적용
+                {{ t('admin.common.apply') }}
               </button>
             </div>
           </div>
@@ -286,13 +288,15 @@ onMounted(async () => {
 
           <section class="ui-panel p-4">
             <div class="flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-ink">목록</h2>
-              <span class="text-xs text-subtle"> {{ contentType === 'ARTICLE' ? articles.length : comments.length }}건 </span>
+              <h2 class="text-sm font-semibold text-ink">{{ t('admin.boardAdmin.contents.listTitle') }}</h2>
+              <span class="text-xs text-subtle">{{
+                t('admin.common.displayCount', { count: contentType === 'ARTICLE' ? articles.length : comments.length })
+              }}</span>
             </div>
 
             <div v-if="isLoading" class="mt-4 flex items-center gap-2 text-sm text-muted">
               <span class="h-2 w-2 animate-pulse rounded-full bg-[var(--line-strong)] dark:bg-surface-2"></span>
-              불러오는 중...
+              {{ t('common.loading') }}
             </div>
 
             <div v-else class="mt-4 flex flex-col gap-3">
@@ -309,26 +313,29 @@ onMounted(async () => {
                         <span class="text-xs text-subtle">{{ article.authorName }}</span>
                       </div>
                       <p class="mt-1 text-sm text-ink">{{ article.title }}</p>
-                      <p class="mt-1 text-xs text-subtle">작성 {{ formatDate(article.createdAt) }} · 삭제 {{ formatDate(article.deletedAt) }}</p>
+                      <p class="mt-1 text-xs text-subtle">
+                        {{ t('admin.boardAdmin.contents.writtenAt') }} {{ formatDate(article.createdAt) }} ·
+                        {{ t('admin.boardAdmin.contents.deletedAtLabel') }} {{ formatDate(article.deletedAt) }}
+                      </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                       <span
                         v-if="article.notice"
                         class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-200"
                       >
-                        공지
+                        {{ t('admin.boardAdmin.contents.notice') }}
                       </span>
                       <span
                         v-if="article.reported"
                         class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
                       >
-                        신고
+                        {{ t('admin.boardAdmin.contents.reported') }}
                       </span>
                       <span
                         v-if="article.deletedAt"
                         class="inline-flex items-center rounded-full bg-surface-2 bg-surface-soft px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
                       >
-                        삭제됨
+                        {{ t('admin.common.deleted') }}
                       </span>
                     </div>
                   </div>
@@ -339,7 +346,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="toggleNotice(article)"
                     >
-                      {{ article.notice ? '공지 해제' : '공지 설정' }}
+                      {{ article.notice ? t('admin.boardAdmin.contents.unsetNotice') : t('admin.boardAdmin.contents.setNotice') }}
                     </button>
                     <button
                       type="button"
@@ -347,7 +354,7 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="deleteArticle(article)"
                     >
-                      삭제
+                      {{ t('common.delete') }}
                     </button>
                   </div>
                 </div>
@@ -365,22 +372,27 @@ onMounted(async () => {
                         <span>#{{ comment.id }}</span>
                         <span class="text-xs text-subtle">{{ comment.authorName }}</span>
                       </div>
-                      <p class="mt-1 text-xs text-subtle">게시글: {{ comment.articleTitle }} (#{{ comment.articleId }})</p>
+                      <p class="mt-1 text-xs text-subtle">
+                        {{ t('admin.boardAdmin.contents.articleLine', { title: comment.articleTitle, id: comment.articleId }) }}
+                      </p>
                       <p class="mt-2 text-sm text-ink">{{ comment.content }}</p>
-                      <p class="mt-1 text-xs text-subtle">작성 {{ formatDate(comment.createdAt) }} · 삭제 {{ formatDate(comment.deletedAt) }}</p>
+                      <p class="mt-1 text-xs text-subtle">
+                        {{ t('admin.boardAdmin.contents.writtenAt') }} {{ formatDate(comment.createdAt) }} ·
+                        {{ t('admin.boardAdmin.contents.deletedAtLabel') }} {{ formatDate(comment.deletedAt) }}
+                      </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                       <span
                         v-if="comment.reported"
                         class="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200"
                       >
-                        신고
+                        {{ t('admin.boardAdmin.contents.reported') }}
                       </span>
                       <span
                         v-if="comment.deletedAt"
                         class="inline-flex items-center rounded-full bg-surface-2 bg-surface-soft px-2.5 py-1 text-xs font-semibold text-muted dark:text-subtle"
                       >
-                        삭제됨
+                        {{ t('admin.common.deleted') }}
                       </span>
                     </div>
                   </div>
@@ -391,17 +403,17 @@ onMounted(async () => {
                       :disabled="isSubmitting"
                       @click="deleteComment(comment)"
                     >
-                      삭제
+                      {{ t('common.delete') }}
                     </button>
                   </div>
                 </div>
               </template>
 
               <div v-if="contentType === 'ARTICLE' && articles.length === 0" class="ui-state ui-state-empty px-4 py-10">
-                조건에 해당하는 게시글이 없습니다.
+                {{ t('admin.boardAdmin.contents.emptyArticles') }}
               </div>
               <div v-if="contentType === 'COMMENT' && comments.length === 0" class="ui-state ui-state-empty px-4 py-10">
-                조건에 해당하는 댓글이 없습니다.
+                {{ t('admin.boardAdmin.contents.emptyComments') }}
               </div>
             </div>
 
@@ -412,7 +424,7 @@ onMounted(async () => {
                 :disabled="page === 0"
                 @click="movePage(-1)"
               >
-                이전
+                {{ t('common.previous') }}
               </button>
               <span>{{ page + 1 }} / {{ Math.max(totalPages, 1) }}</span>
               <button
@@ -421,7 +433,7 @@ onMounted(async () => {
                 :disabled="page + 1 >= totalPages"
                 @click="movePage(1)"
               >
-                다음
+                {{ t('common.next') }}
               </button>
             </div>
           </section>

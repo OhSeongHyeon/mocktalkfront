@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { resolveBoardVisibilityLabel } from '../entities/board';
@@ -12,6 +13,7 @@ import PageHeader from '../shared/ui/PageHeader.vue';
 import SectionHeader from '../shared/ui/SectionHeader.vue';
 import AppShell from '../widgets/layout/AppShell.vue';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
@@ -30,17 +32,17 @@ const results = ref<SearchResponse | null>(null);
 const isLoading = ref(false);
 const errorMessage = ref('');
 
-const types: { label: string; value: SearchType }[] = [
-  { label: '전체', value: 'ALL' },
-  { label: '게시판', value: 'BOARD' },
-  { label: '게시글', value: 'ARTICLE' },
-  { label: '댓글', value: 'COMMENT' },
-  { label: '사용자', value: 'USER' },
-];
-const orders: { label: string; value: 'LATEST' | 'OLDEST' }[] = [
-  { label: '최신순', value: 'LATEST' },
-  { label: '과거순', value: 'OLDEST' },
-];
+const types = computed<{ label: string; value: SearchType }[]>(() => [
+  { label: t('search.types.ALL'), value: 'ALL' },
+  { label: t('search.types.BOARD'), value: 'BOARD' },
+  { label: t('search.types.ARTICLE'), value: 'ARTICLE' },
+  { label: t('search.types.COMMENT'), value: 'COMMENT' },
+  { label: t('search.types.USER'), value: 'USER' },
+]);
+const orders = computed<{ label: string; value: 'LATEST' | 'OLDEST' }[]>(() => [
+  { label: t('search.order.LATEST'), value: 'LATEST' },
+  { label: t('search.order.OLDEST'), value: 'OLDEST' },
+]);
 const sizeOptions = [10, 20, 30, 40, 50];
 const paginationWindow = 10;
 
@@ -80,7 +82,7 @@ const currentPageInfo = computed(() => {
       return emptyPage(page.value, size.value);
   }
 });
-const selectedTypeLabel = computed(() => types.find((type) => type.value === selectedType.value)?.label ?? '검색');
+const selectedTypeLabel = computed(() => types.value.find((type) => type.value === selectedType.value)?.label ?? t('search.fallbackTypeLabel'));
 const paginationPages = computed(() => {
   const info = currentPageInfo.value;
   if (!info) {
@@ -115,7 +117,7 @@ const scrollToTop = () => {
 
 const resolveType = (value: unknown): SearchType => {
   const candidate = typeof value === 'string' ? value.toUpperCase() : 'ALL';
-  if (types.some((type) => type.value === candidate)) {
+  if (types.value.some((type) => type.value === candidate)) {
     return candidate as SearchType;
   }
   return 'ALL';
@@ -153,7 +155,7 @@ const loadSearch = async () => {
       size: size.value,
     });
   } catch (error) {
-    errorMessage.value = error instanceof ApiError ? error.message : '검색에 실패했습니다.';
+    errorMessage.value = error instanceof ApiError ? error.message : t('search.errors.failed');
     results.value = ensureResults(page.value, size.value);
   } finally {
     isLoading.value = false;
@@ -235,29 +237,29 @@ watch(
   <AppShell ref="appShellRef">
     <PageContainer width="auto">
       <div class="space-y-4">
-        <PageHeader eyebrow="Search" title="통합검색" description="게시판, 게시글, 댓글, 사용자를 같은 밀도로 한 번에 찾을 수 있습니다.">
+        <PageHeader eyebrow="Search" :title="t('search.title')" :description="t('search.description')">
           <template #meta>
             <span class="ui-badge ui-badge-accent">{{ selectedTypeLabel }}</span>
-            <span class="ui-badge ui-badge-muted">{{ selectedOrder === 'LATEST' ? '최신순' : '과거순' }}</span>
-            <span class="ui-badge ui-badge-muted">표시 {{ size }}개</span>
+            <span class="ui-badge ui-badge-muted">{{ selectedOrder === 'LATEST' ? t('search.badge.latest') : t('search.badge.oldest') }}</span>
+            <span class="ui-badge ui-badge-muted">{{ t('search.badge.displayCount', { count: size }) }}</span>
           </template>
 
           <form class="space-y-3" @submit.prevent="handleSubmit">
             <div class="ui-toolbar">
-              <label for="global-search-page" class="text-xs font-semibold text-muted">검색어</label>
-              <input id="global-search-page" v-model="keyword" type="search" placeholder="게시판, 게시글, 댓글, 사용자" class="ui-input flex-1" />
+              <label for="global-search-page" class="text-xs font-semibold text-muted">{{ t('search.keywordLabel') }}</label>
+              <input id="global-search-page" v-model="keyword" type="search" :placeholder="t('search.keywordPlaceholder')" class="ui-input flex-1" />
               <button
                 type="submit"
                 class="ui-button-primary h-10 px-4 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="!keyword.trim() || isLoading"
               >
-                검색
+                {{ t('search.searchButton') }}
               </button>
             </div>
 
             <div class="ui-toolbar">
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-semibold text-muted">검색 범위</span>
+                <span class="text-xs font-semibold text-muted">{{ t('search.scopeLabel') }}</span>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="type in types"
@@ -273,7 +275,7 @@ watch(
               </div>
 
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-semibold text-muted">정렬</span>
+                <span class="text-xs font-semibold text-muted">{{ t('search.sortLabel') }}</span>
                 <div class="flex flex-wrap gap-2">
                   <button
                     v-for="order in orders"
@@ -289,7 +291,7 @@ watch(
               </div>
 
               <div class="flex flex-wrap items-center gap-2">
-                <label for="search-size" class="text-xs font-semibold text-muted">표시 개수</label>
+                <label for="search-size" class="text-xs font-semibold text-muted">{{ t('search.pageSizeLabel') }}</label>
                 <select
                   id="search-size"
                   v-model.number="size"
@@ -297,7 +299,7 @@ watch(
                   :disabled="isLoading"
                   @change="handleSizeChange(size)"
                 >
-                  <option v-for="option in sizeOptions" :key="option" :value="option">{{ option }}개</option>
+                  <option v-for="option in sizeOptions" :key="option" :value="option">{{ t('search.pageSizeOption', { count: option }) }}</option>
                 </select>
               </div>
             </div>
@@ -308,18 +310,18 @@ watch(
           {{ errorMessage }}
         </div>
 
-        <div v-if="isLoading" class="text-sm text-muted">검색 결과를 불러오는 중입니다...</div>
+        <div v-if="isLoading" class="text-sm text-muted">{{ t('search.loading') }}</div>
 
         <div v-if="selectedType === 'ALL'" class="space-y-8">
           <section>
-            <SectionHeader title="게시판">
+            <SectionHeader :title="t('search.sections.board')">
               <template #actions>
                 <button v-if="results?.boards.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('BOARD')">
-                  더보기
+                  {{ t('search.loadMore') }}
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="boardResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="boardResults.length === 0" class="mt-3 text-xs text-subtle">{{ t('search.emptyResult', { keyword }) }}</div>
             <div v-else class="mt-3 space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
                 <div class="grid gap-3 sm:grid-cols-[3.25rem_minmax(0,1fr)_auto] sm:items-center">
@@ -331,7 +333,7 @@ watch(
                       :alt="board.boardName"
                       class="h-full w-full object-cover"
                     />
-                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-subtle">없음</div>
+                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-subtle">{{ t('common.none') }}</div>
                   </div>
 
                   <div class="min-w-0">
@@ -341,25 +343,25 @@ watch(
                     </div>
                     <div class="bbs-row-title mt-1 text-sm">{{ board.boardName }}</div>
                     <p class="mt-1 line-clamp-1 text-xs leading-5 text-muted">
-                      {{ board.description ?? '설명이 없습니다.' }}
+                      {{ board.description ?? t('board.defaults.noDescription') }}
                     </p>
                   </div>
 
-                  <span class="ui-badge ui-badge-muted">이동</span>
+                  <span class="ui-badge ui-badge-muted">{{ t('search.go') }}</span>
                 </div>
               </RouterLink>
             </div>
           </section>
 
           <section>
-            <SectionHeader title="게시글">
+            <SectionHeader :title="t('search.sections.article')">
               <template #actions>
                 <button v-if="results?.articles.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('ARTICLE')">
-                  더보기
+                  {{ t('search.loadMore') }}
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="articleResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="articleResults.length === 0" class="mt-3 text-xs text-subtle">{{ t('search.emptyResult', { keyword }) }}</div>
             <div v-else class="mt-3 space-y-2">
               <RouterLink
                 v-for="article in articleResults"
@@ -376,21 +378,21 @@ watch(
                     </div>
                     <div class="bbs-row-title mt-1 truncate text-sm">{{ article.title }}</div>
                   </div>
-                  <span class="ui-badge ui-badge-muted">게시글</span>
+                  <span class="ui-badge ui-badge-muted">{{ t('search.badgeArticle') }}</span>
                 </div>
               </RouterLink>
             </div>
           </section>
 
           <section>
-            <SectionHeader title="댓글">
+            <SectionHeader :title="t('search.sections.comment')">
               <template #actions>
                 <button v-if="results?.comments.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('COMMENT')">
-                  더보기
+                  {{ t('search.loadMore') }}
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="commentResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="commentResults.length === 0" class="mt-3 text-xs text-subtle">{{ t('search.emptyResult', { keyword }) }}</div>
             <div v-else class="mt-3 space-y-2">
               <RouterLink
                 v-for="comment in commentResults"
@@ -409,14 +411,14 @@ watch(
           </section>
 
           <section>
-            <SectionHeader title="사용자">
+            <SectionHeader :title="t('search.sections.user')">
               <template #actions>
                 <button v-if="results?.users.hasNext" type="button" class="ui-button-ghost h-9 px-4 text-xs" @click="openSection('USER')">
-                  더보기
+                  {{ t('search.loadMore') }}
                 </button>
               </template>
             </SectionHeader>
-            <div v-if="userResults.length === 0" class="mt-3 text-xs text-subtle">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+            <div v-if="userResults.length === 0" class="mt-3 text-xs text-subtle">{{ t('search.emptyResult', { keyword }) }}</div>
             <div v-else class="mt-3 space-y-2">
               <div v-for="user in userResults" :key="user.id" class="ui-list-row text-sm text-ink">
                 <div class="flex items-center justify-between gap-3">
@@ -424,7 +426,7 @@ watch(
                     <div class="bbs-row-title">@{{ user.handle }}</div>
                     <div class="text-xs text-muted">{{ user.displayName }}</div>
                   </div>
-                  <span class="ui-badge ui-badge-muted">사용자</span>
+                  <span class="ui-badge ui-badge-muted">{{ t('search.badgeUser') }}</span>
                 </div>
               </div>
             </div>
@@ -432,13 +434,13 @@ watch(
         </div>
 
         <div v-else class="space-y-5">
-          <SectionHeader :title="`${selectedTypeLabel} 검색 결과`" description="현재 선택한 범위의 검색 결과입니다." />
+          <SectionHeader :title="t('search.filteredTitle', { type: selectedTypeLabel })" :description="t('search.filteredDescription')" />
 
-          <div v-if="currentPageInfo.items.length === 0" class="ui-state ui-state-empty px-4 py-6">‘{{ keyword }}’ 검색 결과가 없습니다.</div>
+          <div v-if="currentPageInfo.items.length === 0" class="ui-state ui-state-empty px-4 py-6">{{ t('search.emptyResult', { keyword }) }}</div>
           <div v-else class="space-y-3">
             <div class="ui-toolbar justify-between text-xs text-muted">
-              <span>{{ selectedTypeLabel }} {{ currentPageInfo.items.length }}건</span>
-              <span>페이지 {{ currentPageInfo.page + 1 }}</span>
+              <span>{{ t('search.resultCount', { type: selectedTypeLabel, count: currentPageInfo.items.length }) }}</span>
+              <span>{{ t('search.pageNumber', { page: currentPageInfo.page + 1 }) }}</span>
             </div>
             <div v-if="selectedType === 'BOARD'" class="space-y-2">
               <RouterLink v-for="board in boardResults" :key="board.id" :to="`/b/${board.slug}`" class="ui-list-row group">
@@ -451,7 +453,7 @@ watch(
                       :alt="board.boardName"
                       class="h-full w-full object-cover"
                     />
-                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-subtle">없음</div>
+                    <div v-else class="flex h-full w-full items-center justify-center text-xs text-subtle">{{ t('common.none') }}</div>
                   </div>
 
                   <div class="min-w-0">
@@ -461,11 +463,11 @@ watch(
                     </div>
                     <div class="bbs-row-title mt-1 text-sm">{{ board.boardName }}</div>
                     <p class="mt-1 line-clamp-1 text-xs leading-5 text-muted">
-                      {{ board.description ?? '설명이 없습니다.' }}
+                      {{ board.description ?? t('board.defaults.noDescription') }}
                     </p>
                   </div>
 
-                  <span class="ui-badge ui-badge-muted">이동</span>
+                  <span class="ui-badge ui-badge-muted">{{ t('search.go') }}</span>
                 </div>
               </RouterLink>
             </div>
@@ -486,7 +488,7 @@ watch(
                     </div>
                     <div class="bbs-row-title mt-1 truncate text-sm">{{ article.title }}</div>
                   </div>
-                  <span class="ui-badge ui-badge-muted">게시글</span>
+                  <span class="ui-badge ui-badge-muted">{{ t('search.badgeArticle') }}</span>
                 </div>
               </RouterLink>
             </div>
@@ -514,7 +516,7 @@ watch(
                     <div class="bbs-row-title">@{{ user.handle }}</div>
                     <div class="text-xs text-muted">{{ user.displayName }}</div>
                   </div>
-                  <span class="ui-badge ui-badge-muted">사용자</span>
+                  <span class="ui-badge ui-badge-muted">{{ t('search.badgeUser') }}</span>
                 </div>
               </div>
             </div>
@@ -528,7 +530,7 @@ watch(
                 :disabled="!currentPageInfo.hasPrevious || isLoading"
                 @click="handlePageChange(currentPageInfo.page - 1)"
               >
-                이전
+                {{ t('common.previous') }}
               </button>
               <button
                 type="button"
@@ -536,7 +538,7 @@ watch(
                 :disabled="currentPageInfo.page === 0 || isLoading"
                 @click="handlePageChange(0)"
               >
-                처음
+                {{ t('search.pagination.first') }}
               </button>
               <button
                 type="button"
@@ -544,7 +546,7 @@ watch(
                 :disabled="!canJumpBackWindow || isLoading"
                 @click="handlePageChange(Math.max(0, currentPageInfo.page - paginationWindow))"
               >
-                이전 10
+                {{ t('search.pagination.previousWindow') }}
               </button>
               <div class="flex flex-wrap items-center gap-1">
                 <button
@@ -567,7 +569,7 @@ watch(
                 :disabled="!canJumpForwardWindow || isLoading"
                 @click="handlePageChange(currentPageInfo.page + paginationWindow)"
               >
-                다음 10
+                {{ t('search.pagination.nextWindow') }}
               </button>
               <button
                 type="button"
@@ -575,10 +577,10 @@ watch(
                 :disabled="!currentPageInfo.hasNext || isLoading"
                 @click="handlePageChange(currentPageInfo.page + 1)"
               >
-                다음
+                {{ t('common.next') }}
               </button>
             </div>
-            <span>페이지 {{ currentPageInfo.page + 1 }}</span>
+            <span>{{ t('search.pageNumber', { page: currentPageInfo.page + 1 }) }}</span>
           </div>
         </div>
       </div>

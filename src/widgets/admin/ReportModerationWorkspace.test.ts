@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { i18n } from '../../test/plugins';
 import ReportModerationWorkspace from './ReportModerationWorkspace.vue';
 
 const createProps = () => ({
@@ -54,6 +55,7 @@ describe('widgets/admin/ReportModerationWorkspace', () => {
     // given
     const wrapper = mount(ReportModerationWorkspace, {
       props: createProps(),
+      global: { plugins: [i18n] },
     });
 
     // when
@@ -71,6 +73,7 @@ describe('widgets/admin/ReportModerationWorkspace', () => {
     // given
     const wrapper = mount(ReportModerationWorkspace, {
       props: createProps(),
+      global: { plugins: [i18n] },
     });
 
     // when

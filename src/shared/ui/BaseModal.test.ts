@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
 
+import { i18n } from '../../test/plugins';
 import BaseModal from './BaseModal.vue';
 
 describe('shared/ui/BaseModal', () => {
@@ -12,6 +13,9 @@ describe('shared/ui/BaseModal', () => {
       },
       slots: {
         default: '<p>내용</p>',
+      },
+      global: {
+        plugins: [i18n],
       },
     });
 
@@ -33,6 +37,9 @@ describe('shared/ui/BaseModal', () => {
       },
       slots: {
         default: '<p>내용</p>',
+      },
+      global: {
+        plugins: [i18n],
       },
     });
 

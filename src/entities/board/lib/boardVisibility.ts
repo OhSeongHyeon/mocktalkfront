@@ -1,3 +1,5 @@
+import { translate } from '../../../shared/i18n/translate';
+
 export type BoardVisibility = 'PUBLIC' | 'GROUP' | 'PRIVATE' | 'UNLISTED';
 
 export type BoardVisibilityOption = {
@@ -6,35 +8,34 @@ export type BoardVisibilityOption = {
   adminOnly?: boolean;
 };
 
-export const BOARD_VISIBILITY_OPTIONS: BoardVisibilityOption[] = [
-  { value: 'PUBLIC', label: '공개' },
-  { value: 'GROUP', label: '구독 멤버만' },
-  { value: 'PRIVATE', label: '소유자만' },
-  { value: 'UNLISTED', label: '운영자만', adminOnly: true },
-];
+export const BOARD_VISIBILITY_VALUES: BoardVisibility[] = ['PUBLIC', 'GROUP', 'PRIVATE', 'UNLISTED'];
+
+const buildVisibilityOptions = (): BoardVisibilityOption[] =>
+  BOARD_VISIBILITY_VALUES.map((value) => ({
+    value,
+    label: translate(`board.visibility.option.${value}`),
+    adminOnly: value === 'UNLISTED',
+  }));
 
 export const resolveBoardVisibilityLabel = (visibility: string) => {
-  switch (visibility) {
-    case 'PUBLIC':
-      return '공개';
-    case 'GROUP':
-      return '구독형';
-    case 'PRIVATE':
-      return '비공개';
-    case 'UNLISTED':
-      return '운영자 전용';
-    default:
-      return '기타';
+  const key = `board.visibility.${visibility}`;
+  const translated = translate(key);
+  if (translated !== key) {
+    return translated;
   }
+  return translate('board.visibility.OTHER');
 };
 
 export const resolveBoardVisibilityOptions = (isAdminUser: boolean, currentVisibility?: BoardVisibility) => {
-  const options = BOARD_VISIBILITY_OPTIONS.filter((option) => !option.adminOnly || isAdminUser);
+  const options = buildVisibilityOptions().filter((option) => !option.adminOnly || isAdminUser);
   if (!isAdminUser && currentVisibility === 'UNLISTED') {
-    const unlistedOption = BOARD_VISIBILITY_OPTIONS.find((option) => option.value === 'UNLISTED');
+    const unlistedOption = buildVisibilityOptions().find((option) => option.value === 'UNLISTED');
     if (unlistedOption) {
       return [...options, unlistedOption];
     }
   }
   return options;
 };
+
+/** @deprecated Use resolveBoardVisibilityOptions at runtime for locale-aware labels */
+export const BOARD_VISIBILITY_OPTIONS = buildVisibilityOptions();
