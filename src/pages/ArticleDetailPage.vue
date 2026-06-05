@@ -124,7 +124,6 @@ const formatFileSize = (size: number) => {
 const attachments = computed(() => article.value?.attachments ?? []);
 const sanitizedContent = computed(() => (article.value?.content ? sanitizeHtml(article.value.content) : ''));
 const renderedContent = ref('');
-const isContentMediaLoading = ref(false);
 let detachMediaRecovery: (() => void) | undefined;
 const articleCategoryLabel = computed(() => {
   const trimmed = article.value?.categoryName?.trim();
@@ -154,16 +153,10 @@ const bindArticleContentMediaRecovery = async () => {
 
 const refreshRenderedContent = async () => {
   const content = sanitizedContent.value;
-  const shouldHydrateMedia = isAuthenticated.value && hasFileViewMediaUrls(content);
-  isContentMediaLoading.value = shouldHydrateMedia;
-
-  try {
-    renderedContent.value = await resolveProtectedFileViewUrlsInHtml(content, isAuthenticated.value);
-    if (shouldHydrateMedia) {
-      await bindArticleContentMediaRecovery();
-    }
-  } finally {
-    isContentMediaLoading.value = false;
+  renderedContent.value = await resolveProtectedFileViewUrlsInHtml(content, isAuthenticated.value);
+  const shouldAttachMediaRecovery = isAuthenticated.value && hasFileViewMediaUrls(content);
+  if (shouldAttachMediaRecovery) {
+    await bindArticleContentMediaRecovery();
   }
 };
 
@@ -294,7 +287,6 @@ const loadArticle = async () => {
         boardName: article.value.board?.boardName ?? null,
       });
       await refreshRenderedContent();
-      void renderArticleMermaid();
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
@@ -308,6 +300,11 @@ const loadArticle = async () => {
     errorMessage.value = error instanceof ApiError ? error.message : t('article.errors.loadFailed');
   } finally {
     isLoading.value = false;
+  }
+
+  if (article.value && !errorMessage.value) {
+    await nextTick();
+    await renderArticleMermaid();
   }
 };
 
@@ -1057,6 +1054,10 @@ onUnmounted(() => {
           {{ errorMessage }}
         </div>
 
+        <div v-else-if="isLoading" class="mt-6 flex min-h-[24rem] items-center justify-center">
+          <p class="ui-section-loading">{{ t('article.detail.loading') }}</p>
+        </div>
+
         <div v-else class="mt-6 space-y-6">
           <article class="ui-panel overflow-hidden">
             <div class="border-b border-line px-5 py-5 sm:px-6">
@@ -1078,12 +1079,7 @@ onUnmounted(() => {
             </div>
 
             <div class="px-5 py-5 sm:px-6">
-              <div v-if="article?.content" class="relative min-h-48">
-                <div v-if="isContentMediaLoading" class="flex min-h-48 items-center justify-center">
-                  <p class="ui-section-loading">{{ t('article.detail.mediaLoading') }}</p>
-                </div>
-                <div v-show="!isContentMediaLoading" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
-              </div>
+              <div v-if="article?.content" ref="articleContentRef" class="ui-content max-w-none" v-html="renderedContent"></div>
               <div v-else class="text-sm text-muted">{{ t('article.detail.noContent') }}</div>
             </div>
 
@@ -1252,8 +1248,6 @@ onUnmounted(() => {
 
           <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
         </div>
-
-        <div v-if="isLoading" class="mt-6 text-sm text-muted">{{ t('article.detail.loading') }}</div>
       </div>
     </PageContainer>
 
