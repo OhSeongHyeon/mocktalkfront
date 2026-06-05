@@ -23,6 +23,9 @@ import type { UserProfileResponse } from '../entities/user';
 import { getMyProfile } from '../entities/user';
 import type { FileResponse } from '../entities/file';
 import { uploadArticleAttachmentFile } from '../entities/file';
+import ConfirmModal from '../shared/ui/ConfirmModal.vue';
+import { isArticleUpsertDirty } from '../shared/lib/articleUpsertDirty';
+import { useUnsavedChangesGuard } from '../shared/lib/useUnsavedChangesGuard';
 import { useAuthStore } from '../stores/auth';
 
 const { t } = useI18n();
@@ -96,6 +99,27 @@ const isInvalid = computed(() => {
     return true;
   }
   return false;
+});
+
+const upsertFormState = computed(() => ({
+  title: title.value,
+  contentSource: contentSource.value,
+  contentFormat: contentFormat.value,
+  visibility: visibility.value,
+  selectedCategoryId: selectedCategoryId.value,
+  attachmentIds: attachmentFiles.value.map((file) => file.id),
+}));
+
+const isDirty = computed(() => {
+  if (isLoading.value) {
+    return false;
+  }
+  return isArticleUpsertDirty(upsertFormState.value, null, 'create');
+});
+
+const { allowLeaveWithoutConfirm, cancelLeave, confirmLeave, isLeaveModalOpen, requestLeave } = useUnsavedChangesGuard({
+  isDirty,
+  shouldBypassRouteLeave: (to, from) => from.name === 'article-create' && to.name === 'article-create',
 });
 
 const applyAllowedVisibility = (nextVisibility?: string | null) => {
@@ -256,6 +280,7 @@ const submit = async () => {
   };
   try {
     const response = await createArticle(payload);
+    allowLeaveWithoutConfirm();
     router.push(`/b/${board.value.slug}/articles/${response.id}`);
   } catch (error) {
     errorMessage.value = error instanceof ApiError ? error.message : t('article.upsert.saveFailed');
@@ -265,11 +290,13 @@ const submit = async () => {
 };
 
 const cancel = () => {
-  if (!board.value) {
-    router.push('/');
-    return;
-  }
-  router.push(`/b/${board.value.slug}`);
+  requestLeave(() => {
+    if (!board.value) {
+      router.push('/');
+      return;
+    }
+    router.push(`/b/${board.value.slug}`);
+  });
 };
 
 const addAttachments = async (files: File[]) => {
@@ -366,4 +393,15 @@ watch(
       @cancel="cancel"
     />
   </ArticleUpsertPageLayout>
+
+  <ConfirmModal
+    :open="isLeaveModalOpen"
+    :title="t('article.upsert.leaveConfirm.title')"
+    :description="t('article.upsert.leaveConfirm.description')"
+    :confirm-label="t('article.upsert.leaveConfirm.confirm')"
+    :cancel-label="t('article.upsert.leaveConfirm.cancel')"
+    confirm-variant="danger"
+    @close="cancelLeave"
+    @confirm="confirmLeave"
+  />
 </template>

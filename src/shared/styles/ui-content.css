@@ -43,6 +43,13 @@
   border-radius: var(--radius-xl);
 }
 
+.ui-content img.file-view-media--failed,
+.ui-content video.file-view-media--failed {
+  min-height: 4rem;
+  background: var(--surface-2, #f3f4f6);
+  object-fit: contain;
+}
+
 .ui-content iframe {
   display: block;
   max-width: 100%;

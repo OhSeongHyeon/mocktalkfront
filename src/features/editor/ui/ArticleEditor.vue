@@ -51,7 +51,7 @@ import { getCodeLanguageOptions, getFontFamilyOptions, getFontSizeOptions, getYo
 import type { YoutubeSizeValue } from '../lib/toolbarOptions';
 import { useUploadQueue } from '../lib/useUploadQueue';
 import type { UploadKind } from '../lib/useUploadQueue';
-import { hydrateProtectedFileViewUrls, uploadEditorFileTask } from '../../../entities/file';
+import { attachFileViewMediaRecovery, hydrateProtectedFileViewUrls, uploadEditorFileTask } from '../../../entities/file';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../../../shared/lib/files';
 import BaseModal from '../../../shared/ui/BaseModal.vue';
 import ArticleEditorToolbarMobile from './ArticleEditorToolbarMobile.vue';
@@ -88,11 +88,17 @@ const IMAGE_SCALE_MIN_PERCENT = 1;
 const IMAGE_SCALE_MAX_PERCENT = 100;
 const lowlight = createLowlight(common);
 
+let detachEditorMediaRecovery: (() => void) | undefined;
+
 const hydrateEditorMedia = async (instance: Editor | null | undefined) => {
-  if (!instance?.view?.dom) {
+  const editorDom = instance?.view?.dom;
+  if (!editorDom || !(editorDom instanceof HTMLElement)) {
     return;
   }
-  await hydrateProtectedFileViewUrls(instance.view.dom, isAuthenticated.value);
+  detachEditorMediaRecovery?.();
+  detachEditorMediaRecovery = undefined;
+  await hydrateProtectedFileViewUrls(editorDom, isAuthenticated.value);
+  detachEditorMediaRecovery = attachFileViewMediaRecovery(editorDom, isAuthenticated.value);
 };
 
 const errorMessage = ref<string | null>(null);
@@ -670,6 +676,8 @@ const { uploads, uploadInProgressCount, handleFiles, retryUpload, cancelUpload, 
 });
 
 onBeforeUnmount(() => {
+  detachEditorMediaRecovery?.();
+  detachEditorMediaRecovery = undefined;
   editor.value?.destroy();
 });
 

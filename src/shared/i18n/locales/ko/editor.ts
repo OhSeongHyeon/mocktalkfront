@@ -183,6 +183,7 @@ const editor = {
       split: '분할',
       preview: '미리보기',
       loading: '렌더링 중...',
+      mediaLoading: '미디어를 불러오는 중...',
       empty: '미리보기가 여기에 표시됩니다.',
       loadFailed: '미리보기를 불러오지 못했습니다.',
       label: '미리보기',

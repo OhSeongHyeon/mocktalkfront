@@ -19,7 +19,7 @@ import { bookmarkArticle, deleteArticle, getArticleDetail, toggleArticleReaction
 import type { UserProfileResponse } from '../entities/user';
 import { getMyProfile } from '../entities/user';
 import { ApiError } from '../shared/lib/http/api';
-import { resolveProtectedFileViewUrlsInHtml } from '../entities/file';
+import { attachFileViewMediaRecovery, hasFileViewMediaUrls, resolveProtectedFileViewUrlsInHtml } from '../entities/file';
 import { recordHistoryItem } from '../shared/lib/history';
 import { renderMermaidDiagrams } from '../shared/lib/mermaid';
 import { sanitizeHtml } from '../shared/lib/sanitize';
@@ -124,6 +124,7 @@ const formatFileSize = (size: number) => {
 const attachments = computed(() => article.value?.attachments ?? []);
 const sanitizedContent = computed(() => (article.value?.content ? sanitizeHtml(article.value.content) : ''));
 const renderedContent = ref('');
+let detachMediaRecovery: (() => void) | undefined;
 const articleCategoryLabel = computed(() => {
   const trimmed = article.value?.categoryName?.trim();
   return trimmed ? trimmed : null;
@@ -143,8 +144,20 @@ const renderArticleMermaid = async () => {
   await renderMermaidDiagrams(articleContentRef.value);
 };
 
+const bindArticleContentMediaRecovery = async () => {
+  detachMediaRecovery?.();
+  detachMediaRecovery = undefined;
+  await nextTick();
+  detachMediaRecovery = attachFileViewMediaRecovery(articleContentRef.value, isAuthenticated.value);
+};
+
 const refreshRenderedContent = async () => {
-  renderedContent.value = await resolveProtectedFileViewUrlsInHtml(sanitizedContent.value, isAuthenticated.value);
+  const content = sanitizedContent.value;
+  renderedContent.value = await resolveProtectedFileViewUrlsInHtml(content, isAuthenticated.value);
+  const shouldAttachMediaRecovery = isAuthenticated.value && hasFileViewMediaUrls(content);
+  if (shouldAttachMediaRecovery) {
+    await bindArticleContentMediaRecovery();
+  }
 };
 
 const boardLink = computed(() => {
@@ -274,7 +287,6 @@ const loadArticle = async () => {
         boardName: article.value.board?.boardName ?? null,
       });
       await refreshRenderedContent();
-      void renderArticleMermaid();
     }
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
@@ -288,6 +300,11 @@ const loadArticle = async () => {
     errorMessage.value = error instanceof ApiError ? error.message : t('article.errors.loadFailed');
   } finally {
     isLoading.value = false;
+  }
+
+  if (article.value && !errorMessage.value) {
+    await nextTick();
+    await renderArticleMermaid();
   }
 };
 
@@ -922,6 +939,11 @@ const handleCommentPage = async (page: number) => {
   await loadCommentsPage(page);
 };
 
+onUnmounted(() => {
+  detachMediaRecovery?.();
+  detachMediaRecovery = undefined;
+});
+
 onMounted(async () => {
   articleDetailScrollContainer.value = appShellRef.value?.getMainElement() ?? null;
   await loadArticle();
@@ -1030,6 +1052,10 @@ onUnmounted(() => {
 
         <div v-if="errorMessage" class="ui-state ui-state-danger mt-6">
           {{ errorMessage }}
+        </div>
+
+        <div v-else-if="isLoading" class="mt-6 flex min-h-[24rem] items-center justify-center">
+          <p class="ui-section-loading">{{ t('article.detail.loading') }}</p>
         </div>
 
         <div v-else class="mt-6 space-y-6">
@@ -1222,8 +1248,6 @@ onUnmounted(() => {
 
           <BoardArticlePanel :board-id="article?.board?.id ?? null" :board-slug="article?.board?.slug ?? ''" @select="goBoardArticle" />
         </div>
-
-        <div v-if="isLoading" class="mt-6 text-sm text-muted">{{ t('article.detail.loading') }}</div>
       </div>
     </PageContainer>
 

@@ -69,6 +69,7 @@ const article = {
     edit: 'Edit',
     delete: 'Delete',
     loading: 'Loading post...',
+    mediaLoading: 'Loading media...',
     deleteModal: {
       title: 'Delete post',
       description: 'Deleted posts cannot be restored. Continue?',
@@ -91,6 +92,12 @@ const article = {
     invalidArticle: 'Invalid post info.',
     loadProfileFailed: 'Failed to load user profile.',
     loadCategoriesFailed: 'Failed to load categories.',
+    leaveConfirm: {
+      title: 'Discard this draft?',
+      description: 'Unsaved changes will be lost. Leave this page?',
+      confirm: 'Leave',
+      cancel: 'Keep editing',
+    },
   },
   bookmarkPage: {
     title: 'Bookmarks',

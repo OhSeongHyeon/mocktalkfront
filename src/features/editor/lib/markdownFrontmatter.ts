@@ -22,6 +22,10 @@ interface ManagedFrontmatterValues {
   categoryName?: string | null;
 }
 
+interface MergeManagedFrontmatterOptions {
+  body?: string;
+}
+
 const MANAGED_KEY_ALIASES = new Set(['title', 'boardslug', 'visibility', 'categoryname', 'category_name', 'category-name', 'category']);
 
 const stripUtf8Bom = (value: string) => value.replace(/^\uFEFF/, '');
@@ -137,18 +141,19 @@ const stripMarkdownFrontmatter = (source: string) => {
   return result.hasFrontmatter ? result.body : result.normalizedSource;
 };
 
-const mergeManagedMarkdownFrontmatter = (source: string, values: ManagedFrontmatterValues) => {
+const mergeManagedMarkdownFrontmatter = (source: string, values: ManagedFrontmatterValues, options?: MergeManagedFrontmatterOptions) => {
   const result = splitMarkdownFrontmatter(source);
   const managedLines = buildManagedFrontmatterLines(values);
+  const body = options?.body ?? (result.hasFrontmatter ? result.body : result.normalizedSource);
 
   if (!result.hasFrontmatter) {
     if (managedLines.length === 0) {
-      return result.normalizedSource;
+      return body;
     }
-    if (!result.normalizedSource) {
+    if (!body) {
       return ['---', ...managedLines, '---'].join('\n');
     }
-    return ['---', ...managedLines, '---', '', result.normalizedSource].join('\n');
+    return ['---', ...managedLines, '---', '', body].join('\n');
   }
 
   const preservedLines = parseFrontmatterEntries(result.frontmatterLines)
@@ -162,15 +167,15 @@ const mergeManagedMarkdownFrontmatter = (source: string, values: ManagedFrontmat
 
   const nextFrontmatterLines = [...managedLines, ...preservedLines];
   if (nextFrontmatterLines.length === 0) {
-    return result.body;
+    return body;
   }
 
   const rebuilt = ['---', ...nextFrontmatterLines, '---'];
-  if (result.body) {
-    rebuilt.push('', result.body);
+  if (body) {
+    rebuilt.push('', body);
   }
   return rebuilt.join('\n');
 };
 
 export { mergeManagedMarkdownFrontmatter, splitMarkdownFrontmatter, stripMarkdownFrontmatter };
-export type { ManagedFrontmatterValues };
+export type { ManagedFrontmatterValues, MergeManagedFrontmatterOptions };

@@ -10,7 +10,7 @@ import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
-import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
+import { mergeManagedMarkdownFrontmatter, stripMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
 import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import type { ArticleContentFormat, ArticleEditorDetailResponse, ArticleUpdateRequest } from '../entities/article';
 import { getArticleEditorDetail, updateArticle } from '../entities/article';
@@ -22,6 +22,9 @@ import type { UserProfileResponse } from '../entities/user';
 import { getMyProfile } from '../entities/user';
 import type { FileResponse } from '../entities/file';
 import { uploadArticleAttachmentFile } from '../entities/file';
+import ConfirmModal from '../shared/ui/ConfirmModal.vue';
+import { createArticleUpsertSnapshot, isArticleUpsertDirty, type ArticleUpsertFormState } from '../shared/lib/articleUpsertDirty';
+import { useUnsavedChangesGuard } from '../shared/lib/useUnsavedChangesGuard';
 import { useAuthStore } from '../stores/auth';
 
 const { t } = useI18n();
@@ -52,6 +55,8 @@ const attachmentErrorMessage = ref('');
 const errorMessage = ref('');
 const isLoading = ref(false);
 const isSubmitting = ref(false);
+const baselineFormState = ref<ArticleUpsertFormState | null>(null);
+const storedMarkdownSource = ref('');
 
 const isBoardAdmin = computed(() => {
   const role = board.value?.memberStatus;
@@ -98,6 +103,26 @@ const isInvalid = computed(() => {
     return true;
   }
   return false;
+});
+
+const upsertFormState = computed(() => ({
+  title: title.value,
+  contentSource: contentSource.value,
+  contentFormat: contentFormat.value,
+  visibility: visibility.value,
+  selectedCategoryId: selectedCategoryId.value,
+  attachmentIds: attachmentFiles.value.map((file) => file.id),
+}));
+
+const isDirty = computed(() => {
+  if (isLoading.value) {
+    return false;
+  }
+  return isArticleUpsertDirty(upsertFormState.value, baselineFormState.value, 'edit');
+});
+
+const { allowLeaveWithoutConfirm, cancelLeave, confirmLeave, isLeaveModalOpen, requestLeave } = useUnsavedChangesGuard({
+  isDirty,
 });
 
 const applyImportedCategory = (nextCategoryName?: string | null) => {
@@ -148,6 +173,7 @@ const loadCategories = async (boardId: number) => {
 
 const loadArticle = async () => {
   categories.value = [];
+  baselineFormState.value = null;
   selectedCategoryId.value = null;
   categoryErrorMessage.value = '';
   isCategoryAccessDenied.value = false;
@@ -163,11 +189,21 @@ const loadArticle = async () => {
   try {
     article.value = await getArticleEditorDetail(articleId.value);
     title.value = article.value.title;
-    contentSource.value = article.value.contentSource;
+    storedMarkdownSource.value = article.value.contentSource;
+    contentSource.value =
+      article.value.contentFormat === 'MARKDOWN' ? stripMarkdownFrontmatter(article.value.contentSource) : article.value.contentSource;
     contentFormat.value = article.value.contentFormat;
     visibility.value = article.value.visibility;
     selectedCategoryId.value = article.value.categoryId ?? null;
     attachmentFiles.value = [...article.value.attachments];
+    baselineFormState.value = createArticleUpsertSnapshot({
+      title: title.value,
+      contentSource: contentSource.value,
+      contentFormat: contentFormat.value,
+      visibility: visibility.value,
+      selectedCategoryId: selectedCategoryId.value,
+      attachmentIds: attachmentFiles.value.map((file) => file.id),
+    });
     await loadBoard(article.value.board?.slug ?? '');
     await loadCategories(article.value.board?.id ?? 0);
   } catch (error) {
@@ -224,12 +260,16 @@ const submit = async () => {
   const normalizedTitle = title.value.trim();
   const normalizedContentSource =
     contentFormat.value === 'MARKDOWN'
-      ? mergeManagedMarkdownFrontmatter(contentSource.value, {
-          title: normalizedTitle,
-          boardSlug: article.value.board.slug,
-          visibility: visibility.value,
-          categoryName: selectedCategoryName.value,
-        })
+      ? mergeManagedMarkdownFrontmatter(
+          storedMarkdownSource.value,
+          {
+            title: normalizedTitle,
+            boardSlug: article.value.board.slug,
+            visibility: visibility.value,
+            categoryName: selectedCategoryName.value,
+          },
+          { body: contentSource.value },
+        )
       : contentSource.value;
   const payload: ArticleUpdateRequest = {
     categoryId: selectedCategoryId.value,
@@ -243,6 +283,7 @@ const submit = async () => {
   try {
     await updateArticle(article.value.id, payload);
     const boardSlug = article.value.board?.slug ?? slug.value;
+    allowLeaveWithoutConfirm();
     router.push(`/b/${boardSlug}/articles/${article.value.id}`);
   } catch (error) {
     errorMessage.value = error instanceof ApiError ? error.message : t('article.upsert.updateFailed');
@@ -252,11 +293,13 @@ const submit = async () => {
 };
 
 const cancel = () => {
-  if (article.value?.board?.slug) {
-    router.push(`/b/${article.value.board.slug}/articles/${article.value.id}`);
-    return;
-  }
-  router.push('/');
+  requestLeave(() => {
+    if (article.value?.board?.slug) {
+      router.push(`/b/${article.value.board.slug}/articles/${article.value.id}`);
+      return;
+    }
+    router.push('/');
+  });
 };
 
 const addAttachments = async (files: File[]) => {
@@ -355,4 +398,15 @@ watch(
       @cancel="cancel"
     />
   </ArticleUpsertPageLayout>
+
+  <ConfirmModal
+    :open="isLeaveModalOpen"
+    :title="t('article.upsert.leaveConfirm.title')"
+    :description="t('article.upsert.leaveConfirm.description')"
+    :confirm-label="t('article.upsert.leaveConfirm.confirm')"
+    :cancel-label="t('article.upsert.leaveConfirm.cancel')"
+    confirm-variant="danger"
+    @close="cancelLeave"
+    @confirm="confirmLeave"
+  />
 </template>

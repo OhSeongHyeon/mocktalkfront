@@ -1,7 +1,7 @@
 import { buildApiUrl } from '../../../shared/lib/http/api';
 import { resolveFileUrl, resolveFileViewUrl, resolveImageUrl } from '../../../shared/lib/files';
 import type { FileLike, FileVariant } from '../../../shared/lib/files';
-import { issueFileViewUrl } from '../api/fileViewApi';
+import { batchResultKey, issueFileViewTicketsBatch, issueFileViewUrl, toBatchRequestItem } from '../api/fileViewApi';
 
 interface FileViewDescriptor {
   fileId: number;
@@ -9,9 +9,15 @@ interface FileViewDescriptor {
 }
 
 type SupportedMediaElement = HTMLImageElement | HTMLVideoElement | HTMLSourceElement;
+type FileViewMediaAttribute = 'src' | 'poster';
 
 const FILE_VIEW_PATH_PATTERN = /\/api\/files\/(\d+)\/view$/;
+const FILE_VIEW_MEDIA_URL_PATTERN = /\/api\/files\/\d+\/view/;
 const FILE_VIEW_ATTRIBUTE_NAMES = ['src', 'poster'] as const;
+const FILE_VIEW_MEDIA_SELECTOR = 'img[src], video[src], video[poster], source[src]';
+const FILE_VIEW_MEDIA_FAILED_CLASS = 'file-view-media--failed';
+const FILE_VIEW_RETRY_ATTR = 'data-file-view-retry';
+const FILE_VIEW_RECOVERY_ATTR = 'data-file-view-recovery';
 
 const normalizeVariant = (value: string | null): FileVariant | null => {
   if (!value || value === 'medium') {
@@ -23,19 +29,15 @@ const normalizeVariant = (value: string | null): FileVariant | null => {
   return null;
 };
 
-const buildDescriptorKey = (descriptor: FileViewDescriptor) => `${descriptor.fileId}:${descriptor.variant ?? 'medium'}`;
+const buildDescriptorKey = (descriptor: FileViewDescriptor) => batchResultKey(descriptor.fileId, descriptor.variant);
 
-const parseFileViewDescriptor = (rawUrl: string): FileViewDescriptor | null => {
+const parseFileViewMediaUrl = (rawUrl: string): FileViewDescriptor | null => {
   if (!rawUrl) {
     return null;
   }
 
   try {
     const resolvedUrl = new URL(rawUrl, typeof window !== 'undefined' ? window.location.origin : 'https://mocktalk.local');
-    if (resolvedUrl.searchParams.has('ticket')) {
-      return null;
-    }
-
     const match = resolvedUrl.pathname.match(FILE_VIEW_PATH_PATTERN);
     if (!match) {
       return null;
@@ -53,6 +55,118 @@ const parseFileViewDescriptor = (rawUrl: string): FileViewDescriptor | null => {
   } catch {
     return null;
   }
+};
+
+const parseFileViewDescriptor = (rawUrl: string): FileViewDescriptor | null => {
+  if (!rawUrl) {
+    return null;
+  }
+
+  try {
+    const resolvedUrl = new URL(rawUrl, typeof window !== 'undefined' ? window.location.origin : 'https://mocktalk.local');
+    if (resolvedUrl.searchParams.has('ticket')) {
+      return null;
+    }
+    return parseFileViewMediaUrl(rawUrl);
+  } catch {
+    return null;
+  }
+};
+
+const hasFileViewMediaUrls = (html: string) => FILE_VIEW_MEDIA_URL_PATTERN.test(html);
+
+const markMediaFailed = (element: SupportedMediaElement | Element) => {
+  element.classList.add(FILE_VIEW_MEDIA_FAILED_CLASS);
+  element.setAttribute(FILE_VIEW_RETRY_ATTR, 'exhausted');
+};
+
+const getFileViewMediaBinding = (element: Element): { attributeName: FileViewMediaAttribute; rawUrl: string } | null => {
+  if (element instanceof HTMLImageElement || element instanceof HTMLSourceElement) {
+    const rawUrl = element.getAttribute('src');
+    if (!rawUrl || !parseFileViewMediaUrl(rawUrl)) {
+      return null;
+    }
+    return { attributeName: 'src', rawUrl };
+  }
+
+  if (element instanceof HTMLVideoElement) {
+    const src = element.getAttribute('src');
+    if (src && parseFileViewMediaUrl(src)) {
+      return { attributeName: 'src', rawUrl: src };
+    }
+    const poster = element.getAttribute('poster');
+    if (poster && parseFileViewMediaUrl(poster)) {
+      return { attributeName: 'poster', rawUrl: poster };
+    }
+  }
+
+  return null;
+};
+
+const createMediaErrorHandler = (isAuthenticated: boolean) => {
+  return async (event: Event) => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const target = event.currentTarget;
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    if (target.getAttribute(FILE_VIEW_RETRY_ATTR) === 'exhausted' || target.getAttribute(FILE_VIEW_RETRY_ATTR) === 'pending') {
+      return;
+    }
+
+    const binding = getFileViewMediaBinding(target);
+    if (!binding) {
+      return;
+    }
+
+    const descriptor = parseFileViewMediaUrl(binding.rawUrl);
+    if (!descriptor) {
+      return;
+    }
+
+    target.setAttribute(FILE_VIEW_RETRY_ATTR, 'pending');
+
+    try {
+      const response = await issueFileViewUrl(descriptor.fileId, descriptor.variant ?? 'medium');
+      target.setAttribute(binding.attributeName, buildApiUrl(response.viewUrl));
+      target.removeAttribute(FILE_VIEW_RETRY_ATTR);
+      target.classList.remove(FILE_VIEW_MEDIA_FAILED_CLASS);
+    } catch {
+      markMediaFailed(target);
+    }
+  };
+};
+
+const attachFileViewMediaRecovery = (root: HTMLElement | null, isAuthenticated: boolean) => {
+  if (!root || !isAuthenticated || typeof window === 'undefined') {
+    return () => undefined;
+  }
+
+  const handler = createMediaErrorHandler(isAuthenticated);
+  const boundElements: Element[] = [];
+
+  root.querySelectorAll(FILE_VIEW_MEDIA_SELECTOR).forEach((element) => {
+    if (!getFileViewMediaBinding(element)) {
+      return;
+    }
+    if (element.getAttribute(FILE_VIEW_RECOVERY_ATTR) === '1') {
+      return;
+    }
+    element.setAttribute(FILE_VIEW_RECOVERY_ATTR, '1');
+    element.addEventListener('error', handler, true);
+    boundElements.push(element);
+  });
+
+  return () => {
+    boundElements.forEach((element) => {
+      element.removeEventListener('error', handler, true);
+      element.removeAttribute(FILE_VIEW_RECOVERY_ATTR);
+    });
+  };
 };
 
 const resolveRenderableFileUrl = async (file: FileLike | null | undefined, variant: FileVariant | null | undefined, isAuthenticated: boolean) => {
@@ -117,25 +231,26 @@ const hydrateProtectedFileViewUrls = async (root: ParentNode | null, isAuthentic
     return;
   }
 
-  const resolvedUrlMap = new Map<string, string>();
-  await Promise.all(
-    Array.from(new Set(targets.map((target) => buildDescriptorKey(target.descriptor)))).map(async (key) => {
-      const target = targets.find((item) => buildDescriptorKey(item.descriptor) === key);
-      if (!target) {
-        return;
-      }
-      const response = await issueFileViewUrl(target.descriptor.fileId, target.descriptor.variant ?? 'medium');
-      resolvedUrlMap.set(key, buildApiUrl(response.viewUrl));
-    }),
-  );
+  const uniqueDescriptors = Array.from(new Map(targets.map((target) => [buildDescriptorKey(target.descriptor), target.descriptor])).values());
+  const batchItems = uniqueDescriptors.map((descriptor) => toBatchRequestItem(descriptor.fileId, descriptor.variant));
+  const batchResults = await issueFileViewTicketsBatch(batchItems);
 
   targets.forEach((target) => {
-    const resolvedUrl = resolvedUrlMap.get(buildDescriptorKey(target.descriptor));
-    if (!resolvedUrl) {
+    const result = batchResults.get(buildDescriptorKey(target.descriptor));
+    if (!result?.success || !result.viewUrl) {
+      markMediaFailed(target.element);
       return;
     }
-    target.element.setAttribute(target.attributeName, resolvedUrl);
+    target.element.setAttribute(target.attributeName, buildApiUrl(result.viewUrl));
   });
 };
 
-export { hydrateProtectedFileViewUrls, parseFileViewDescriptor, resolveProtectedFileViewUrlsInHtml, resolveRenderableFileUrl };
+export {
+  attachFileViewMediaRecovery,
+  hasFileViewMediaUrls,
+  hydrateProtectedFileViewUrls,
+  parseFileViewDescriptor,
+  parseFileViewMediaUrl,
+  resolveProtectedFileViewUrlsInHtml,
+  resolveRenderableFileUrl,
+};

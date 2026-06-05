@@ -69,6 +69,7 @@ const article = {
     edit: '수정',
     delete: '삭제',
     loading: '게시글을 불러오는 중입니다...',
+    mediaLoading: '본문 미디어를 불러오는 중...',
     deleteModal: {
       title: '게시글 삭제',
       description: '삭제한 게시글은 복구할 수 없습니다. 계속 진행하시겠어요?',
@@ -91,6 +92,12 @@ const article = {
     invalidArticle: '게시글 정보가 올바르지 않습니다.',
     loadProfileFailed: '사용자 정보를 불러오지 못했습니다.',
     loadCategoriesFailed: '카테고리 목록을 불러오지 못했습니다.',
+    leaveConfirm: {
+      title: '작성을 취소할까요?',
+      description: '저장하지 않은 내용은 사라집니다. 이 페이지를 벗어날까요?',
+      confirm: '나가기',
+      cancel: '계속 작성',
+    },
   },
   bookmarkPage: {
     title: '보관함',
