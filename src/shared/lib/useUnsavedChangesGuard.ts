@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref, type ComputedRef } from 'vue';
-import { onBeforeRouteLeave, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router';
+import { onBeforeRouteLeave, useRouter, type RouteLocationNormalized } from 'vue-router';
 
 type UnsavedChangesGuardOptions = {
   isDirty: ComputedRef<boolean>;
@@ -7,18 +7,30 @@ type UnsavedChangesGuardOptions = {
 };
 
 const useUnsavedChangesGuard = ({ isDirty, shouldBypassRouteLeave }: UnsavedChangesGuardOptions) => {
+  const router = useRouter();
   const isLeaveConfirmed = ref(false);
   const isLeaveModalOpen = ref(false);
-  let pendingRouteNext: NavigationGuardNext | null = null;
+  let pendingRouteTo: RouteLocationNormalized | null = null;
   let pendingLeaveAction: (() => void) | null = null;
 
   const allowLeaveWithoutConfirm = () => {
     isLeaveConfirmed.value = true;
   };
 
-  const openLeaveModal = (routeNext?: NavigationGuardNext, leaveAction?: () => void) => {
-    pendingRouteNext = routeNext ?? null;
-    pendingLeaveAction = leaveAction ?? null;
+  const clearPendingLeave = () => {
+    pendingRouteTo = null;
+    pendingLeaveAction = null;
+  };
+
+  const openLeaveModalForRoute = (to: RouteLocationNormalized) => {
+    clearPendingLeave();
+    pendingRouteTo = to;
+    isLeaveModalOpen.value = true;
+  };
+
+  const openLeaveModalForAction = (leaveAction: () => void) => {
+    clearPendingLeave();
+    pendingLeaveAction = leaveAction;
     isLeaveModalOpen.value = true;
   };
 
@@ -27,45 +39,41 @@ const useUnsavedChangesGuard = ({ isDirty, shouldBypassRouteLeave }: UnsavedChan
       leaveAction();
       return;
     }
-    openLeaveModal(undefined, leaveAction);
+    openLeaveModalForAction(leaveAction);
   };
 
-  const confirmLeave = () => {
+  const confirmLeave = async () => {
     isLeaveModalOpen.value = false;
     allowLeaveWithoutConfirm();
 
-    if (pendingRouteNext) {
-      const routeNext = pendingRouteNext;
-      pendingRouteNext = null;
-      pendingLeaveAction = null;
-      routeNext();
+    if (pendingRouteTo) {
+      const destination = pendingRouteTo;
+      clearPendingLeave();
+      await router.push(destination);
       return;
     }
 
     if (pendingLeaveAction) {
       const leaveAction = pendingLeaveAction;
-      pendingLeaveAction = null;
+      clearPendingLeave();
       leaveAction();
     }
   };
 
   const cancelLeave = () => {
     isLeaveModalOpen.value = false;
-    pendingRouteNext = null;
-    pendingLeaveAction = null;
+    clearPendingLeave();
   };
 
-  onBeforeRouteLeave((to, from, next) => {
+  onBeforeRouteLeave((to, from) => {
     if (isLeaveConfirmed.value || !isDirty.value) {
-      next();
       return;
     }
     if (shouldBypassRouteLeave?.(to, from)) {
-      next();
       return;
     }
-    openLeaveModal(next);
-    next(false);
+    openLeaveModalForRoute(to);
+    return false;
   });
 
   const handleBeforeUnload = (event: BeforeUnloadEvent) => {
