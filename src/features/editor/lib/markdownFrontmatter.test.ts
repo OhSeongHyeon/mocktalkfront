@@ -55,6 +55,32 @@ customFlag: true
     expect(result).toContain('\n\n본문');
   });
 
+  it('body 옵션으로 본문만 교체하면서 원본 frontmatter의 비관리 필드를 보존한다', () => {
+    const original = `---
+title: "이전 제목"
+tags:
+  - alpha
+---
+
+이전 본문`;
+
+    const result = mergeManagedMarkdownFrontmatter(
+      original,
+      {
+        title: '새 제목',
+        boardSlug: 'dev',
+        visibility: 'PUBLIC',
+      },
+      { body: '수정된 본문' },
+    );
+
+    expect(result).toContain('title: "새 제목"');
+    expect(result).toContain('tags:');
+    expect(result).toContain('alpha');
+    expect(result).toContain('수정된 본문');
+    expect(result).not.toContain('이전 본문');
+  });
+
   it('frontmatter가 없어도 관리 키를 새 frontmatter로 추가한다', () => {
     // given: frontmatter가 없는 Markdown
     const markdown = '# 본문';

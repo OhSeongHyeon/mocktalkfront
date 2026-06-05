@@ -10,7 +10,7 @@ import ArticleUpsertPageLayout from '../widgets/article/ArticleUpsertPageLayout.
 import { ApiError } from '../shared/lib/http/api';
 import { extractFileIdsFromContent } from '../features/editor/lib/contentFiles';
 import { hasMeaningfulArticleContent } from '../features/editor/lib/articleContent';
-import { mergeManagedMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
+import { mergeManagedMarkdownFrontmatter, stripMarkdownFrontmatter } from '../features/editor/lib/markdownFrontmatter';
 import type { MarkdownImportMetadata } from '../features/editor/lib/markdownImport';
 import type { ArticleContentFormat, ArticleEditorDetailResponse, ArticleUpdateRequest } from '../entities/article';
 import { getArticleEditorDetail, updateArticle } from '../entities/article';
@@ -56,6 +56,7 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const isSubmitting = ref(false);
 const baselineFormState = ref<ArticleUpsertFormState | null>(null);
+const storedMarkdownSource = ref('');
 
 const isBoardAdmin = computed(() => {
   const role = board.value?.memberStatus;
@@ -188,7 +189,9 @@ const loadArticle = async () => {
   try {
     article.value = await getArticleEditorDetail(articleId.value);
     title.value = article.value.title;
-    contentSource.value = article.value.contentSource;
+    storedMarkdownSource.value = article.value.contentSource;
+    contentSource.value =
+      article.value.contentFormat === 'MARKDOWN' ? stripMarkdownFrontmatter(article.value.contentSource) : article.value.contentSource;
     contentFormat.value = article.value.contentFormat;
     visibility.value = article.value.visibility;
     selectedCategoryId.value = article.value.categoryId ?? null;
@@ -257,12 +260,16 @@ const submit = async () => {
   const normalizedTitle = title.value.trim();
   const normalizedContentSource =
     contentFormat.value === 'MARKDOWN'
-      ? mergeManagedMarkdownFrontmatter(contentSource.value, {
-          title: normalizedTitle,
-          boardSlug: article.value.board.slug,
-          visibility: visibility.value,
-          categoryName: selectedCategoryName.value,
-        })
+      ? mergeManagedMarkdownFrontmatter(
+          storedMarkdownSource.value,
+          {
+            title: normalizedTitle,
+            boardSlug: article.value.board.slug,
+            visibility: visibility.value,
+            categoryName: selectedCategoryName.value,
+          },
+          { body: contentSource.value },
+        )
       : contentSource.value;
   const payload: ArticleUpdateRequest = {
     categoryId: selectedCategoryId.value,
